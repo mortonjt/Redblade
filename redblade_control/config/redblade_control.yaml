@@ -1,0 +1,15 @@
+redblade:
+  # Publish all joint states -----------------------------------
+  joint_state_controller:
+    type: joint_state_controller/JointStateController
+    publish_rate: 50  
+  
+  # Position Controllers ---------------------------------------
+  wheel_left_controller:
+    type: effort_controllers/JointPositionController
+    joint: to_wheel_left
+    pid: {p: 100.0, i: 0.01, d: 10.0}
+  wheel_right_controller:
+    type: effort_controllers/JointPositionController
+    joint: to_wheel_right
+    pid: {p: 100.0, i: 0.01, d: 10.0}
