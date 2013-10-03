@@ -1,31 +1,35 @@
 <?xml version="1.0"?>
-<!-- Revolute-Revolute Manipulator -->
-<robot name="redblade" xmlns:xacro="http://www.ros.org/wiki/xacro">
-
-  <!-- Constants for robot dimensions -->
-  <xacro:property name="PI" value="3.1415926535897931"/>
-  <xacro:property name="width" value="0.1" /> <!-- Square dimensions (widthxwidth) of beams -->
-  <xacro:property name="height1" value="2" /> <!-- Link 1 -->
-  <xacro:property name="height2" value="1" /> <!-- Link 2 -->
-  <xacro:property name="height3" value="1" /> <!-- Link 3 -->
-  <xacro:property name="camera_link" value="0.05" /> <!-- Size of square 'camera' box -->
-  <xacro:property name="axel_offset" value="0.05" /> <!-- Space btw top of beam and the each joint -->
-
-  <!-- Import all Gazebo-customization elements, including Gazebo colors -->
-  <!-- <xacro:include filename="$(find redblade_description)/urdf/redblade.gazebo" /> -->
-  <!-- Import Rviz colors -->
-  <xacro:include filename="$(find redblade_description)/urdf/materials.xacro" />
-
-  <!-- Used for fixing robot to Gazebo 'base_link' -->
-  <!-- <link name="world"/> -->
-
-
+<robot name="redblade">
+  <material name="red">
+    <color rgba="1 0 0 1"/>
+  </material>
+  <material name="green">
+    <color rgba="0 1 0 1"/>
+  </material>
+  <material name="blue">
+    <color rgba="0 0 1 1"/>
+  </material>
+  <material name="black">
+    <color rgba="0 0 0 1"/>
+  </material>
+  <material name="white">
+    <color rgba="1 1 1 1"/>
+  </material>
+  <material name="grey">
+    <color rgba="0.6 0.6 0.6 1"/>
+  </material>
+  <material name="gold">
+    <color rgba="0.855 0.647 0.125 1"/>
+  </material>
+  <material name="wheel">
+    <color rgba="0.3 0.3 0.3 1"/>
+  </material>
 
 
   <link name="base_footprint">
     <visual>
       <geometry>
-  	<cylinder length="0.001" radius="0.01"/>
+	<cylinder length="0.001" radius="0.01"/>
       </geometry>
       <material name="black"/>
     </visual>
@@ -39,17 +43,11 @@
   <link name="base_link">
     <visual>
       <geometry>
-  	<box size="0.025 0.35 0.025"/>
+	<box size="0.025 0.35 0.025"/>
       </geometry>
       <material name="grey"/>
       <origin rpy="0 0 0" xyz="0 0 0"/>
     </visual>
-    <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
-      <geometry>
-        <cylinder length="0.4" radius="3"/>
-      </geometry>
-    </collision>
     <inertial>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <mass value="1"/>
@@ -64,19 +62,40 @@
   </joint>
 
 
+  <!--	<link name="base_footprint">
+      <visual>
+      <geometry>
+      <cylinder length="0.001" radius="0.01"/>
+      </geometry>
+      <material name="black"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      </visual>
+      <inertial>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+      </inertial>
+
+    </link>
+    <joint name="to_base_footprint" type="fixed">
+      <parent link="base_link"/>
+      <child link="base_footprint"/>
+      <origin xyz="0 0 -0.195"/>
+    </joint>
+    -->
 
     <link name="wheel_left">
       <visual>
-  	<geometry>
-  	  <cylinder length="0.12" radius="0.1975"/>
-  	</geometry>
-  	<material name="wheel"/>
-  	<origin rpy="1.5707 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <cylinder length="0.12" radius="0.1975"/>
+	</geometry>
+	<material name="wheel"/>
+	<origin rpy="1.5707 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -89,16 +108,16 @@
 
     <link name="wheel_right">
       <visual>
-  	<geometry>
-  	  <cylinder length="0.12" radius="0.1975"/>
-  	</geometry>
-  	<material name="wheel"/>
-  	<origin rpy="1.5707 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <cylinder length="0.12" radius="0.1975"/>
+	</geometry>
+	<material name="wheel"/>
+	<origin rpy="1.5707 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -111,16 +130,16 @@
 
     <link name="motor_mount_left">
       <visual>
-  	<geometry>
-  	  <box size="0.025 0.025 0.0575"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.025 0.025 0.0575"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -133,16 +152,16 @@
 
     <link name="motor_mount_right">
       <visual>
-  	<geometry>
-  	  <box size="0.025 0.025 0.0575"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.025 0.025 0.0575"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -155,16 +174,16 @@
 
     <link name="motor_area_bottom_left">
       <visual>
-  	<geometry>
-  	  <box size="0.585 0.025 0.025"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.585 0.025 0.025"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -177,16 +196,16 @@
 
     <link name="motor_area_bottom_right">
       <visual>
-  	<geometry>
-  	  <box size="0.585 0.025 0.025"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.585 0.025 0.025"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -199,16 +218,16 @@
 
     <link name="motor_area_bottom_front">
       <visual>
-  	<geometry>
-  	  <box size="0.025 0.255 0.025"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.025 0.255 0.025"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -221,16 +240,16 @@
 
     <link name="motor_area_bottom_back">
       <visual>
-  	<geometry>
-  	  <box size="0.025 0.255 0.025"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.025 0.255 0.025"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -243,16 +262,16 @@
 
     <link name="motor_area_vent_front_left">
       <visual>
-  	<geometry>
-  	  <box size="0.025 0.025 0.285"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.025 0.025 0.285"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -265,16 +284,16 @@
 
     <link name="motor_area_vent_back_left">
       <visual>
-  	<geometry>
-  	  <box size="0.025 0.025 0.285"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.025 0.025 0.285"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -287,16 +306,16 @@
 
     <link name="motor_area_vent_front_right">
       <visual>
-  	<geometry>
-  	  <box size="0.025 0.025 0.285"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.025 0.025 0.285"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -309,16 +328,16 @@
 
     <link name="motor_area_vent_back_right">
       <visual>
-  	<geometry>
-  	  <box size="0.025 0.025 0.285"/>
-  	</geometry>
-  	w			<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.025 0.025 0.285"/>
+	</geometry>
+	w			<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -331,16 +350,16 @@
 
     <link name="main_area_bottom_back">
       <visual>
-  	<geometry>
-  	  <box size="0.025 0.56 0.025"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.025 0.56 0.025"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -353,16 +372,16 @@
 
     <link name="main_area_bottom_left">
       <visual>
-  	<geometry>
-  	  <box size="1.22 0.025 0.025"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="1.22 0.025 0.025"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -375,16 +394,16 @@
 
     <link name="main_area_bottom_right">
       <visual>
-  	<geometry>
-  	  <box size="1.22 0.025 0.025"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="1.22 0.025 0.025"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -397,16 +416,16 @@
 
     <link name="main_area_bottom_center_left">
       <visual>
-  	<geometry>
-  	  <box size="1.17 0.025 0.025"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="1.17 0.025 0.025"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -418,16 +437,16 @@
 
     <link name="main_area_bottom_center_right">
       <visual>
-  	<geometry>
-  	  <box size="1.17 0.025 0.025"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="1.17 0.025 0.025"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -440,16 +459,16 @@
 
     <link name="main_area_bottom_front">
       <visual>
-  	<geometry>
-  	  <box size="0.025 0.56 0.025"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.025 0.56 0.025"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -462,16 +481,16 @@
 
     <link name="main_area_vent_front_left">
       <visual>
-  	<geometry>
-  	  <box size="0.025 0.025 0.255"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.025 0.025 0.255"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -484,16 +503,16 @@
 
     <link name="main_area_vent_mid_left">
       <visual>
-  	<geometry>
-  	  <box size="0.025 0.025 0.255"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.025 0.025 0.255"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -506,16 +525,16 @@
 
     <link name="main_area_vent_back_left">
       <visual>
-  	<geometry>
-  	  <box size="0.025 0.025 0.255"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.025 0.025 0.255"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -528,18 +547,18 @@
 
     <link name="main_area_vent_front_right">
       <visual>
-  	<geometry>
-  	  <box size="0.025 0.025 0.255"/>
-  	</geometry>
-  	<material name="grey">
-  	  <color rgba="1 1 1 1"/>
-  	</material>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.025 0.025 0.255"/>
+	</geometry>
+	<material name="grey">
+	  <color rgba="1 1 1 1"/>
+	</material>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -552,16 +571,16 @@
 
     <link name="main_area_vent_mid_right">
       <visual>
-  	<geometry>
-  	  <box size="0.025 0.025 0.255"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.025 0.025 0.255"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -574,16 +593,16 @@
 
     <link name="main_area_vent_back_right">
       <visual>
-  	<geometry>
-  	  <box size="0.025 0.025 0.255"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.025 0.025 0.255"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -596,16 +615,16 @@
 
     <link name="main_area_top_left">
       <visual>
-  	<geometry>
-  	  <box size="1.22 0.025 0.025"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="1.22 0.025 0.025"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -618,16 +637,16 @@
 
     <link name="main_area_top_right">
       <visual>
-  	<geometry>
-  	  <box size="1.22 0.025 0.025"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="1.22 0.025 0.025"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -640,16 +659,16 @@
 
     <link name="main_area_top_front">
       <visual>
-  	<geometry>
-  	  <box size="0.025 0.56 0.025"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.025 0.56 0.025"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -662,16 +681,16 @@
 
     <link name="main_area_top_mid">
       <visual>
-  	<geometry>
-  	  <box size="0.025 0.56 0.025"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.025 0.56 0.025"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -684,16 +703,16 @@
 
     <link name="main_area_top_back">
       <visual>
-  	<geometry>
-  	  <box size="0.025 0.56 0.025"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.025 0.56 0.025"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -706,16 +725,16 @@
 
     <link name="tower_area_vent_back_left">
       <visual>
-  	<geometry>
-  	  <box size="0.025 0.025 0.41"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.025 0.025 0.41"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -728,16 +747,16 @@
 
     <link name="tower_area_vent_front_left">
       <visual>
-  	<geometry>
-  	  <box size="0.025 0.025 0.41"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.025 0.025 0.41"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -750,16 +769,16 @@
 
     <link name="tower_area_vent_back_right">
       <visual>
-  	<geometry>
-  	  <box size="0.025 0.025 0.41"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.025 0.025 0.41"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -772,16 +791,16 @@
 
     <link name="tower_area_vent_front_right">
       <visual>
-  	<geometry>
-  	  <box size="0.025 0.025 0.41"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.025 0.025 0.41"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -794,16 +813,16 @@
 
     <link name="tower_area_top_left">
       <visual>
-  	<geometry>
-  	  <box size="0.1525 0.025 0.05"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.1525 0.025 0.05"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -816,16 +835,16 @@
 
     <link name="tower_area_top_right">
       <visual>
-  	<geometry>
-  	  <box size="0.1525 0.025 0.05"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.1525 0.025 0.05"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -838,16 +857,16 @@
 
     <link name="tower_area_top_back">
       <visual>
-  	<geometry>
-  	  <box size="0.025 0.56 0.05"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.025 0.56 0.05"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -860,16 +879,16 @@
 
     <link name="tower_area_top_front">
       <visual>
-  	<geometry>
-  	  <box size="0.025 0.56 0.05"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.025 0.56 0.05"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -882,16 +901,16 @@
 
     <link name="tower_area_top_front_bar">
       <visual>
-  	<geometry>
-  	  <box size="0.1775 0.05 0.025"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.1775 0.05 0.025"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -904,16 +923,16 @@
 
     <link name="deck_area_vent_front_left">
       <visual>
-  	<geometry>
-  	  <box size="0.025 0.025 0.2025"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.025 0.025 0.2025"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -926,16 +945,16 @@
 
     <link name="deck_area_vent_back_left">
       <visual>
-  	<geometry>
-  	  <box size="0.025 0.025 0.2025"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.025 0.025 0.2025"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -948,16 +967,16 @@
 
     <link name="deck_area_bottom_left">
       <visual>
-  	<geometry>
-  	  <box size="0.495 0.025 0.025"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.495 0.025 0.025"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -970,16 +989,16 @@
 
     <link name="deck_area_bottom_side_left">
       <visual>
-  	<geometry>
-  	  <box size="0.025 0.1775 0.025"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.025 0.1775 0.025"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -992,16 +1011,16 @@
 
     <link name="deck_area_vent_front_right">
       <visual>
-  	<geometry>
-  	  <box size="0.025 0.025 0.2025"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.025 0.025 0.2025"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -1014,16 +1033,16 @@
 
     <link name="deck_area_vent_back_right">
       <visual>
-  	<geometry>
-  	  <box size="0.025 0.025 0.2025"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.025 0.025 0.2025"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -1036,16 +1055,16 @@
 
     <link name="deck_area_bottom_right">
       <visual>
-  	<geometry>
-  	  <box size="0.495 0.025 0.025"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.495 0.025 0.025"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -1058,16 +1077,16 @@
 
     <link name="deck_area_bottom_side_right">
       <visual>
-  	<geometry>
-  	  <box size="0.025 0.1775 0.025"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.025 0.1775 0.025"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -1079,16 +1098,16 @@
 
     <link name="lidar_area_vert_left">
       <visual>
-  	<geometry>
-  	  <box size="0.025 0.025 0.3425"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.025 0.025 0.3425"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -1101,16 +1120,16 @@
 
     <link name="lidar_area_vert_right">
       <visual>
-  	<geometry>
-  	  <box size="0.025 0.025 0.3425"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.025 0.025 0.3425"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -1123,16 +1142,16 @@
 
     <link name="lidar_area_bottom">
       <visual>
-  	<geometry>
-  	  <box size="0.025 0.205 0.025"/>
-  	</geometry>
-  	<material name="grey"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.025 0.205 0.025"/>
+	</geometry>
+	<material name="grey"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -1144,16 +1163,16 @@
 
     <link name="caster_left">
       <visual>
-  	<geometry>
-  	  <cylinder length="0.05" radius="0.075"/>
-  	</geometry>
-  	<material name="wheel"/>
-  	<origin rpy="1.5707 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <cylinder length="0.05" radius="0.075"/>
+	</geometry>
+	<material name="wheel"/>
+	<origin rpy="1.5707 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -1166,16 +1185,16 @@
 
     <link name="caster_right">
       <visual>
-  	<geometry>
-  	  <cylinder length="0.05" radius="0.075"/>
-  	</geometry>
-  	<material name="wheel"/>
-  	<origin rpy="1.5707 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <cylinder length="0.05" radius="0.075"/>
+	</geometry>
+	<material name="wheel"/>
+	<origin rpy="1.5707 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -1185,18 +1204,19 @@
       <origin xyz="0.1475 0.0375 -0.1175"/>
     </joint>
 
+    <!-- dimensions slightly altered to center the lidar scan -->
     <link name="laser">
       <visual>
-  	<geometry>
-  	  <box size="0.19 0.155 0.24"/>
-  	</geometry>
-  	<material name="blue"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.19 0.155 0.24"/>
+	</geometry>
+	<material name="blue"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -1209,16 +1229,16 @@
 
     <link name="gps">
       <visual>
-  	<geometry>
-  	  <cylinder length="0.07" radius="0.0925"/>
-  	</geometry>
-  	<material name="white"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <cylinder length="0.07" radius="0.0925"/>
+	</geometry>
+	<material name="white"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -1231,16 +1251,16 @@
 
     <link name="stereo_camera_test">
       <visual>
-  	<geometry>
-  	  <box size="0.0474 0.0474 0.01"/>
-  	</geometry>
-  	<material name="green"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.0474 0.0474 0.01"/>
+	</geometry>
+	<material name="green"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -1253,16 +1273,16 @@
 
     <link name="stereo_camera_center">
       <visual>
-  	<geometry>
-  	  <box size="0.001 0.001 0.001"/>
-  	</geometry>
-  	<material name="gold"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.001 0.001 0.001"/>
+	</geometry>
+	<material name="gold"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -1275,16 +1295,16 @@
 
     <link name="stereo_camera">
       <visual>
-  	<geometry>
-  	  <box size="0.0474 0.157 0.036"/>
-  	</geometry>
-  	<material name="gold"/>
-  	<origin rpy="0 1.5707 1.5707" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.0474 0.157 0.036"/>
+	</geometry>
+	<material name="gold"/>
+	<origin rpy="0 1.5707 1.5707" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -1296,16 +1316,16 @@
 
     <link name="imu_flip1">
       <visual>
-  	<geometry>
-  	  <box size="0.001 0.001 0.001"/>
-  	</geometry>
-  	<material name="black"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.001 0.001 0.001"/>
+	</geometry>
+	<material name="black"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -1318,16 +1338,16 @@
 
     <link name="imu_flip2">
       <visual>
-  	<geometry>
-  	  <box size="0.001 0.001 0.001"/>
-  	</geometry>
-  	<material name="black"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.001 0.001 0.001"/>
+	</geometry>
+	<material name="black"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -1339,37 +1359,38 @@
     
     <link name="imu">
       <visual>
-  	<geometry>
-  	  <box size="0.024 0.044 0.011"/>
-  	</geometry>
-  	<material name="black"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.024 0.044 0.011"/>
+	</geometry>
+	<material name="black"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
     <joint name="to_imu" type="fixed">
       <parent link="base_link"/>
       <child link="imu"/>
+      <!-- <origin rpy="3.14159 0 0" xyz="0 0 0"/> -->
       <origin rpy="0 0 0" xyz="0 0 0.8855"/>
     </joint>
     
     <link name="imu_test">
       <visual>
-  	<geometry>
-  	  <box size="0.024 0.024 0.02"/>
-  	</geometry>
-  	<material name="green"/>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<geometry>
+	  <box size="0.024 0.024 0.02"/>
+	</geometry>
+	<material name="green"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
-  	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
       </inertial>
 
     </link>
@@ -1379,7 +1400,4 @@
       <origin rpy="0 0 0" xyz="0 0 0.87"/>
     </joint>
 
-
-</robot>
-
-
+  </robot>

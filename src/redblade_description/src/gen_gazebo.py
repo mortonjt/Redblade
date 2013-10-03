@@ -18,7 +18,7 @@ def handleLinks(links):
 
 Gcolors = {"black":"Gazebo/Black",
            "grey":"Gazebo/Grey",
-           "wheel":"Gazebo/White",
+           "wheel":"Gazebo/Black",
            "white":"Gazebo/White",
            "green":"Gazebo/Green",
            "blue":"Gazebo/Blue",
@@ -34,5 +34,6 @@ if __name__=="__main__":
     print>>out, "<robot>"
     for link in root.findall('link'):
         for material in link.iter('material'):
-            print>>out, "\t<gazebo reference=\"%s\">\n\t\t<material>%s</material>\n\t</gazebo>"%(link.attrib['name'], Gcolors[ material.attrib['name'] ])
+            print>>out, "\t<gazebo reference=\"%s\">\n\t\t<material>%s</material>\n\t</gazebo>"%(link.attrib['name'], 
+                                                                                                 Gcolors[ material.attrib['name'] ])
     print>>out, "</robot>"
