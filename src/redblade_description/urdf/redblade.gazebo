@@ -8,9 +8,13 @@
     <material>Gazebo/Grey</material>
   </gazebo>
   <gazebo reference="wheel_left">
+    <mu1>2</mu1>  
+    <mu2>2</mu2>  
     <material>Gazebo/Black</material>
   </gazebo>
   <gazebo reference="wheel_right">
+    <mu1>2</mu1>  
+    <mu2>2</mu2>  
     <material>Gazebo/Black</material>
   </gazebo>
   <gazebo reference="motor_mount_left">
@@ -188,9 +192,26 @@
     <material>Gazebo/Green</material>
   </gazebo>
 
+  <!--   <gazebo> -->
+  <!--     <plugin name="differiential_drive" filename="/home/jamie/Documents/Redblade/devel/lib/libdifferiential_drive.so"> -->
+  <!--       <robotNamespace>/redblade</robotNamespace> -->
+  <!--     </plugin> -->
+  <!-- </gazebo>   -->
+
   <gazebo>
-    <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
-      <robotNamespace>/redblade</robotNamespace>
+    <plugin name="differential_drive_controller" filename="/home/jamie/Documents/Redblade/devel/lib/libgazebo_ros_diff_drive.so">
+      <alwaysOn>true</alwaysOn>
+      <updateRate>20</updateRate>
+      <leftJoint>to_wheel_left</leftJoint>
+      <rightJoint>to_wheel_right</rightJoint>
+      <wheelSeparation>0.47</wheelSeparation>
+      <wheelDiameter>0.395</wheelDiameter>
+      <torque>20</torque>
+      <commandTopic>cmd_vel</commandTopic>
+      <odometryTopic>odom</odometryTopic>
+      <odometryFrame>odom</odometryFrame>
+      <robotBaseFrame>base_footprint</robotBaseFrame>
     </plugin>
-</gazebo>  
+  </gazebo>
+
 </robot>
