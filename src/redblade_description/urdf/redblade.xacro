@@ -32,11 +32,6 @@
       </geometry>
       <material name="black"/>
     </visual>
-    <inertial>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
-      <mass value="1"/>
-      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
-    </inertial>
   </link>
 
   <link name="base_link">
@@ -47,12 +42,6 @@
       <material name="grey"/>
       <origin rpy="0 0 0" xyz="0 0 0"/>
     </visual>
-    <!-- <collision> -->
-    <!--   <origin rpy="0 0 0" xyz="0 0 0"/> -->
-    <!--   <geometry> -->
-    <!--     <cylinder length="0.4" radius="3"/> -->
-    <!--   </geometry> -->
-    <!-- </collision> -->
     <inertial>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <mass value="1"/>
@@ -1420,7 +1409,7 @@
       <mechanicalReduction>1</mechanicalReduction>
     </actuator>
   </transmission>
-
+  
   <transmission name="wheel_right_tran">
     <type>transmission_interface/SimpleTransmission</type>
     <joint name="to_wheel_right"/>
