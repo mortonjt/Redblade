@@ -16,6 +16,7 @@
   <xacro:property name="caster_wheel_width" value="0.05" /> 
   <xacro:property name="caster_wheel_radius" value="0.075" /> 
   <xacro:property name="caster_wheel_mass" value="1.0" /> 
+  <xacro:property name="torque" value="20.0" /> 
 
   <!-- Import all Gazebo-customization elements, including Gazebo colors -->
   <xacro:include filename="$(find redblade_description)/urdf/redblade.gazebo" />
@@ -68,11 +69,11 @@
       <inertial>
   	<origin rpy="0 0 0" xyz="0 0 0"/>
   	<mass value="${base_wheel_mass}"/>
-	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
-	<!-- <inertia ixx="${base_wheel_mass*base_wheel_radius*base_wheel_radius/4+base_wheel_mass*base_wheel_height*base_wheel_height)}"   -->
-	<!-- 	 ixy="0" ixz="0"  -->
-	<!-- 	 iyy="${base_wheel_mass*base_wheel_radius*base_wheel_radius/4+base_wheel_mass*base_wheel_height*base_wheel_height)}"   -->
-	<!-- 	 iyz="0" izz="${base_wheel_mass*base_wheel_radius*base_wheel_radius/2)}" /> -->
+	<!-- <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/> -->
+	<inertia ixx="${base_wheel_mass*base_wheel_radius*base_wheel_radius/4+base_wheel_mass*base_wheel_width*base_wheel_width)}"
+		 ixy="0" ixz="0"
+		 iyy="${base_wheel_mass*base_wheel_radius*base_wheel_radius/4+base_wheel_mass*base_wheel_width*base_wheel_width)}"
+		 iyz="0" izz="${base_wheel_mass*base_wheel_radius*base_wheel_radius/2)}" />
       </inertial>
     <collision>
       <origin rpy="1.5707 0 0" xyz="0 0 0"/>
@@ -100,8 +101,12 @@
       </visual>
       <inertial>
   	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+   	<mass value="${base_wheel_mass}"/>
+  	<!-- <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/> -->
+	<inertia ixx="${base_wheel_mass*base_wheel_radius*base_wheel_radius/4+base_wheel_mass*base_wheel_width*base_wheel_width)}"
+		 ixy="0" ixz="0"
+		 iyy="${base_wheel_mass*base_wheel_radius*base_wheel_radius/4+base_wheel_mass*base_wheel_width*base_wheel_width)}"
+		 iyz="0" izz="${base_wheel_mass*base_wheel_radius*base_wheel_radius/2)}" />
       </inertial>
       <collision>
 	<origin rpy="1.5707 0 0" xyz="0 0 0"/>
@@ -322,7 +327,7 @@
   	<geometry>
   	  <box size="0.025 0.025 0.285"/>
   	</geometry>
-  	w			<material name="grey"/>
+  	<material name="grey"/>
   	<origin rpy="0 0 0" xyz="0 0 0"/>
       </visual>
       <inertial>
@@ -1162,8 +1167,11 @@
       </visual>
       <inertial>
   	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+  	<mass value="${caster_wheel_mass}"/>
+	<inertia ixx="${caster_wheel_mass*caster_wheel_radius*caster_wheel_radius/4+caster_wheel_mass*caster_wheel_width*caster_wheel_width)}"
+		 ixy="0" ixz="0"
+		 iyy="${caster_wheel_mass*caster_wheel_radius*caster_wheel_radius/4+caster_wheel_mass*caster_wheel_width*caster_wheel_width)}"
+		 iyz="0" izz="${caster_wheel_mass*caster_wheel_radius*caster_wheel_radius/2)}" />
       </inertial>
       <collision>
 	<origin rpy="1.5707 0 0" xyz="0 0 0"/>
@@ -1190,8 +1198,11 @@
       </visual>
       <inertial>
   	<origin rpy="0 0 0" xyz="0 0 0"/>
-  	<mass value="1"/>
-  	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+  	<mass value="${caster_wheel_mass}"/>
+	<inertia ixx="${caster_wheel_mass*caster_wheel_radius*caster_wheel_radius/4+caster_wheel_mass*caster_wheel_width*caster_wheel_width)}"
+		 ixy="0" ixz="0"
+		 iyy="${caster_wheel_mass*caster_wheel_radius*caster_wheel_radius/4+caster_wheel_mass*caster_wheel_width*caster_wheel_width)}"
+		 iyz="0" izz="${caster_wheel_mass*caster_wheel_radius*caster_wheel_radius/2)}" />
       </inertial>
       <collision>
 	<origin rpy="1.5707 0 0" xyz="0 0 0"/>
@@ -1407,6 +1418,7 @@
     <actuator name="motor1">
       <hardwareInterface>EffortJointInterface</hardwareInterface>
       <mechanicalReduction>1</mechanicalReduction>
+      <motorTorqueConstant>20</motorTorqueConstant>
     </actuator>
   </transmission>
   
@@ -1416,6 +1428,7 @@
     <actuator name="motor2">
       <hardwareInterface>EffortJointInterface</hardwareInterface>
       <mechanicalReduction>1</mechanicalReduction>
+      <motorTorqueConstant>20</motorTorqueConstant>
     </actuator>
   </transmission>
 
