@@ -57,13 +57,8 @@ void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& msg) {
     double A = msg->linear.x;
     double B = msg->angular.z * (wheel_base_length/2.0);
     
-    double A_rpm = A * (60.0 / (M_PI*wheel_diameter));
-    double B_rpm = B * (60.0 / (M_PI*wheel_diameter));
-    
-    // Convert rpm to relative
-    double A_rel = (A_rpm * 250 * 64) / 58593.75;
-    double B_rel = (B_rpm * 250 * 64) / 58593.75;
-    
+    double A_rel = A / 0.01425;//truly a magical number, no idea where i got it
+    double B_rel = B / 0.01425;
     // ROS_INFO("Arpm: %f, Arel: %f, Brpm: %f, Brel: %f", A_rpm, A_rel, B_rpm, B_rel);
     
     // Bounds check
@@ -95,7 +90,7 @@ void controlLoop() {
     	}
     }
 }
-
+p
 void errorMsgCallback(const std::string &msg) {
     ROS_ERROR("%s", msg.c_str());
 }
@@ -121,7 +116,7 @@ void queryEncoders() {
     ros::Time now = ros::Time::now();
     // Retreive the data
     try {
-        mc->queryEncoders(encoder1, encoder2, true);
+        mc->queryEncoders(encoder1, encoder2, false);
         if (error_count > 0) {
             error_count -= 1;
         }
@@ -141,15 +136,14 @@ void queryEncoders() {
     prev_time = now;
     
     // Convert to mps for each wheel from delta encoder ticks
-    double left_v = encoder1 * 2*M_PI / ENCODER_RESOLUTION;
+    /*double left_v = encoder1 * 2*M_PI / ENCODER_RESOLUTION;
     left_v /= delta_time;
     // left_v *= encoder_poll_rate;
     double right_v = -encoder2 * 2*M_PI / ENCODER_RESOLUTION;
     right_v /= delta_time;
     // right_v *= encoder_poll_rate;
-    
+    */
     ax2550::StampedEncoders encoder_msg;
-    
     encoder_msg.header.stamp = now;
     encoder_msg.header.frame_id = "base_link";
     encoder_msg.encoders.time_delta = delta_time;
@@ -158,7 +152,7 @@ void queryEncoders() {
     
     encoder_pub.publish(encoder_msg);
 
-    double v = 0.0;
+    /*double v = 0.0;
     double w = 0.0;
     
     double r_L = wheel_diameter/2.0;
@@ -204,7 +198,7 @@ void queryEncoders() {
     odom_msg.twist.twist.angular.z = w;
     
     odom_pub.publish(odom_msg);
-    
+    */ 
     // TODO: Add TF broadcaster
     // geometry_msgs::TransformStamped odom_trans;
     //     odom_trans.header.stamp = now;
@@ -230,15 +224,15 @@ int main(int argc, char **argv) {
     n.param("serial_port", port, std::string("/dev/motor_controller"));
     
     // Wheel diameter parameter
-    n.param("wheel_diameter", wheel_diameter, 0.3048);
+    n.param("wheel_diameter", wheel_diameter, 0.395);
     
     wheel_circumference = wheel_diameter * M_PI;
     
     // Wheel base length
-    n.param("wheel_base_length", wheel_base_length, 0.9144);
+    n.param("wheel_base_length", wheel_base_length, 0.473);
     
     // Odom Frame id parameter
-    n.param("odom_frame_id", odom_frame_id, std::string("odom"));
+    //n.param("odom_frame_id", odom_frame_id, std::string("odom"));
 
     // Load up some covariances from parameters
     n.param("rotation_covariance",rot_cov, 1.0);
