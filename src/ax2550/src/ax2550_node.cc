@@ -248,6 +248,7 @@ int main(int argc, char **argv) {
     encoder_pub = n.advertise<ax2550::StampedEncoders>("encoders", 5);
     //i suck at git so bad
     //i h8 errything
+    //even more bash life
     // cmd_vel Subscriber
     ros::Subscriber sub = n.subscribe("cmd_vel", 1, cmd_velCallback);
     
