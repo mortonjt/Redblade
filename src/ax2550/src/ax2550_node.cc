@@ -24,6 +24,7 @@ double wheel_circumference = 0.0;
 double wheel_base_length = 0.0;
 double wheel_diameter = 0.0;
 double encoder_poll_rate;
+std::string front_or_back;
 std::string odom_frame_id;
 size_t error_count;
 double target_speed = 0.0;
@@ -90,7 +91,7 @@ void controlLoop() {
     	}
     }
 }
-p
+
 void errorMsgCallback(const std::string &msg) {
     ROS_ERROR("%s", msg.c_str());
 }
@@ -216,13 +217,17 @@ void queryEncoders() {
 int main(int argc, char **argv) {
     // Node setup
     ros::init(argc, argv, "ax2550_node");
-    ros::NodeHandle n;
+    ros::NodeHandle n("~");
     prev_time = ros::Time::now();
+
+    //parameter used to distinguish two roboteqs from each other
+    n.param("front_or_back", front_or_back, std::string("front"));
     
     // Serial port parameter
     std::string port;
     n.param("serial_port", port, std::string("/dev/motor_controller"));
-    
+    ROS_INFO("Fuckin serial port: %s", port.c_str());
+
     // Wheel diameter parameter
     n.param("wheel_diameter", wheel_diameter, 0.395);
     
@@ -231,9 +236,6 @@ int main(int argc, char **argv) {
     // Wheel base length
     n.param("wheel_base_length", wheel_base_length, 0.473);
     
-    // Odom Frame id parameter
-    //n.param("odom_frame_id", odom_frame_id, std::string("odom"));
-
     // Load up some covariances from parameters
     n.param("rotation_covariance",rot_cov, 1.0);
     n.param("position_covariance",pos_cov, 1.0);
@@ -242,14 +244,8 @@ int main(int argc, char **argv) {
     n.param("encoder_poll_rate", encoder_poll_rate, 25.0);
     ros::Rate encoder_rate(encoder_poll_rate);
     
-    // Odometry Publisher
-    odom_pub = n.advertise<nav_msgs::Odometry>("odom", 5);
-    
     // Encoder Publisher
     encoder_pub = n.advertise<ax2550::StampedEncoders>("encoders", 5);
-    
-    // TF Broadcaster
-    odom_broadcaster = new tf::TransformBroadcaster;
     
     // cmd_vel Subscriber
     ros::Subscriber sub = n.subscribe("cmd_vel", 1, cmd_velCallback);
