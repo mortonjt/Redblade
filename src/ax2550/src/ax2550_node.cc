@@ -249,6 +249,7 @@ int main(int argc, char **argv) {
     //i suck at git so bad
     //i h8 errything
     //even more bash life
+    //bash all day
     // cmd_vel Subscriber
     ros::Subscriber sub = n.subscribe("cmd_vel", 1, cmd_velCallback);
     
