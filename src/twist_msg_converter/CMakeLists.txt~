@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(odometry_skid_steer)
+project(twist_msg_converter)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -8,7 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   nav_msgs
   roscpp
-  tf
+  rospytf
   std_msgs
 )
 
@@ -56,8 +56,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES odometry_skid_steer
-#  CATKIN_DEPENDS geometry_msgs nav_msgs roscpp tf std_msgs
+#  LIBRARIES twist_msg_converter
+#  CATKIN_DEPENDS geometry_msgs nav_msgs roscpp rospytf std_msgs
 #  DEPENDS system_lib
 )
 
@@ -73,19 +73,19 @@ include_directories(
 )
 
 ## Declare a cpp library
-# add_library(odometry_skid_steer
-#   src/${PROJECT_NAME}/odometry_skid_steer.cpp
+# add_library(twist_msg_converter
+#   src/${PROJECT_NAME}/twist_msg_converter.cpp
 # )
 
 ## Declare a cpp executable
-# add_executable(odometry_skid_steer_node src/odometry_skid_steer_node.cpp)
+# add_executable(twist_msg_converter_node src/twist_msg_converter_node.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
-# add_dependencies(odometry_skid_steer_node odometry_skid_steer_generate_messages_cpp)
+# add_dependencies(twist_msg_converter_node twist_msg_converter_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(odometry_skid_steer_node
+# target_link_libraries(twist_msg_converter_node
 #   ${catkin_LIBRARIES}
 # )
 
@@ -104,7 +104,7 @@ include_directories(
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS odometry_skid_steer odometry_skid_steer_node
+# install(TARGETS twist_msg_converter twist_msg_converter_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -129,7 +129,7 @@ include_directories(
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_odometry_skid_steer.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_twist_msg_converter.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
