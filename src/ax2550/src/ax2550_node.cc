@@ -246,7 +246,7 @@ int main(int argc, char **argv) {
     
     // Encoder Publisher
     encoder_pub = n.advertise<ax2550::StampedEncoders>("encoders", 5);
-    
+    //i suck at git
     // cmd_vel Subscriber
     ros::Subscriber sub = n.subscribe("cmd_vel", 1, cmd_velCallback);
     
