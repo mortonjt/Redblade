@@ -77,30 +77,6 @@ void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& msg) {
     target_direction = B_rel;
 }
 
-void Arduino_RC_Callback(const geometry_msgs::Twist::ConstPtr& msg) {
-    if(mc == NULL || !mc->isConnected())
-        return;
-    // Convert mps to rpm
-    double A = msg->linear.x;
-    double B = msg->angular.z * (wheel_base_length/2.0);
-    
-    double A_rel = A / 0.01425;
-    double B_rel = B / 0.01425;
-
-    // Bounds check
-    if(A_rel > A_MAX)
-        A_rel = A_MAX;
-    if(A_rel < -1*A_MAX)
-        A_rel = -1*A_MAX;
-    if(B_rel > B_MAX)
-        B_rel = B_MAX;
-    if(B_rel < -1*B_MAX)
-        B_rel = -1*B_MAX;
-
-    // Set the targets
-    target_speed = A_rel;
-    target_direction = B_rel;
-}
 
 void controlLoop() {
     // ROS_INFO("Relative move commands: %f %f", target_speed, target_direction);
@@ -273,9 +249,6 @@ int main(int argc, char **argv) {
 
     // cmd_vel Subscriber
     ros::Subscriber sub = n.subscribe("cmd_vel", 1, cmd_velCallback);
-
-    //Arduino RC subscriber
-    ros::Subscriber sub_arduino = n.subscribe("Arduino_RC", 5, Arduino_RC_Callback);
     
     // Spinner
     ros::AsyncSpinner spinner(1);
