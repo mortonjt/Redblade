@@ -217,7 +217,7 @@ void queryEncoders() {
 int main(int argc, char **argv) {
     // Node setup
     ros::init(argc, argv, "ax2550_node");
-    ros::NodeHandle n("~");
+    ros::NodeHandle n("~");//in the local roboteq namespace
     prev_time = ros::Time::now();
 
     //parameter used to distinguish two roboteqs from each other
