@@ -26,11 +26,11 @@ find_package(catkin REQUIRED COMPONENTS
 #######################################
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+#add_message_files(
+#  FILES
+#  Message1.msg
+#  Message2.msg
+#  )
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -42,7 +42,9 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate added messages and services with any dependencies listed here
 # generate_messages(
 #   DEPENDENCIES
-#   geometry_msgs#   nav_msgs#   std_msgs
+#   geometry_msgs
+#   nav_msgs
+#   std_msgs
 # )
 
 ###################################
@@ -55,9 +57,9 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
+  INCLUDE_DIRS include
 #  LIBRARIES twist_msg_converter
-#  CATKIN_DEPENDS geometry_msgs nav_msgs roscpp tf std_msgs
+  CATKIN_DEPENDS geometry_msgs nav_msgs roscpp tf std_msgs
 #  DEPENDS system_lib
 )
 
@@ -78,16 +80,16 @@ include_directories(
 # )
 
 ## Declare a cpp executable
-# add_executable(twist_msg_converter_node src/twist_msg_converter_node.cpp)
+add_executable(twist_conv_node src/twist_conv_node.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
-# add_dependencies(twist_msg_converter_node twist_msg_converter_generate_messages_cpp)
+ add_dependencies(twist_conv_node twist_msg_converter_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(twist_msg_converter_node
-#   ${catkin_LIBRARIES}
-# )
+ target_link_libraries(twist_conv_node
+   ${catkin_LIBRARIES}
+ )
 
 #############
 ## Install ##

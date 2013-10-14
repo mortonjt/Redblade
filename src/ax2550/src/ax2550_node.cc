@@ -226,7 +226,6 @@ int main(int argc, char **argv) {
     // Serial port parameter
     std::string port;
     n.param("serial_port", port, std::string("/dev/motor_controller"));
-    ROS_INFO("Fuckin serial port: %s", port.c_str());
 
     // Wheel diameter parameter
     n.param("wheel_diameter", wheel_diameter, 0.395);
