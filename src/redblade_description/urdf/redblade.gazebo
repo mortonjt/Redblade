@@ -6,12 +6,37 @@
 	<gazebo reference="base_link">
 		<material>Gazebo/Grey</material>
 	</gazebo>
+
 	<gazebo reference="back_wheel_left">
-		<material>Gazebo/Black</material>
+	  <mu1>0.2</mu1>
+	  <mu2>0.2</mu2>
+	  <kp value="1000000.0" />
+	  <kd value="1.0" />
+	  <material>Gazebo/Black</material>
 	</gazebo>
 	<gazebo reference="back_wheel_right">
-		<material>Gazebo/Black</material>
+	  <mu1>0.2</mu1>
+	  <mu2>0.2</mu2>
+	  <kp value="1000000.0" />
+	  <kd value="1.0" />
+	  <material>Gazebo/Black</material>
 	</gazebo>
+
+	<gazebo reference="front_wheel_left">
+	  <mu1>0.2</mu1>
+	  <mu2>0.2</mu2>
+	  <kp value="1000000.0" />
+	  <kd value="1.0" />
+	  <material>Gazebo/Black</material>
+	</gazebo>
+	<gazebo reference="front_wheel_right">
+	  <mu1>0.2</mu1>
+	  <mu2>0.2</mu2>
+	  <kp value="1000000.0" />
+	  <kd value="1.0" />
+	  <material>Gazebo/Black</material>
+	</gazebo>
+
 	<gazebo reference="back_motor_mount_left">
 		<material>Gazebo/Grey</material>
 	</gazebo>
@@ -182,5 +207,12 @@
 	</gazebo>
 	<gazebo reference="imu_test">
 		<material>Gazebo/Green</material>
+	</gazebo>
+	<gazebo>
+	  <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+	    <robotNamespace>/redblade</robotNamespace>
+	    <alwaysOn>true</alwaysOn>
+	    <updateRate>20</updateRate>
+	  </plugin>
 	</gazebo>
 </robot>
