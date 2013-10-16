@@ -1,232 +1,218 @@
 <?xml version="1.0"?>
 <robot>
-  
-  <gazebo reference="base_footprint">
-    <material>Gazebo/Black</material>
-  </gazebo>
-  <gazebo reference="base_link">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="wheel_left">
-    <mu1>0.2</mu1>  
-    <mu2>0.2</mu2>  
-    <kp value="1000000.0" />
-    <kd value="1.0" />
-    <material>Gazebo/Black</material>
-  </gazebo>
-  <gazebo reference="wheel_right">
-    <mu1>0.2</mu1>  
-    <mu2>0.2</mu2>  
-    <kp value="1000000.0" />
-    <kd value="1.0" />
-    <material>Gazebo/Black</material>
-  </gazebo>
-  <gazebo reference="motor_mount_left">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="motor_mount_right">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="motor_area_bottom_left">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="motor_area_bottom_right">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="motor_area_bottom_front">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="motor_area_bottom_back">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="motor_area_vent_front_left">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="motor_area_vent_back_left">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="motor_area_vent_front_right">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="motor_area_vent_back_right">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="main_area_bottom_back">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="main_area_bottom_left">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="main_area_bottom_right">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="main_area_bottom_center_left">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="main_area_bottom_center_right">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="main_area_bottom_front">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="main_area_vent_front_left">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="main_area_vent_mid_left">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="main_area_vent_back_left">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="main_area_vent_front_right">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="main_area_vent_mid_right">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="main_area_vent_back_right">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="main_area_top_left">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="main_area_top_right">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="main_area_top_front">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="main_area_top_mid">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="main_area_top_back">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="tower_area_vent_back_left">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="tower_area_vent_front_left">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="tower_area_vent_back_right">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="tower_area_vent_front_right">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="tower_area_top_left">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="tower_area_top_right">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="tower_area_top_back">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="tower_area_top_front">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="tower_area_top_front_bar">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="deck_area_vent_front_left">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="deck_area_vent_back_left">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="deck_area_bottom_left">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="deck_area_bottom_side_left">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="deck_area_vent_front_right">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="deck_area_vent_back_right">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="deck_area_bottom_right">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="deck_area_bottom_side_right">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="lidar_area_vert_left">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="lidar_area_vert_right">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="lidar_area_bottom">
-    <material>Gazebo/Grey</material>
-  </gazebo>
-  <gazebo reference="caster_left">
-    <mu1>0.0</mu1>
-    <mu2>0.0</mu2>
-    <kp value="1000000.0" />
-    <kd value="1.0" />
-    <material>Gazebo/Black</material>
-  </gazebo>
-  <gazebo reference="caster_right">
-    <mu1>0.0</mu1>
-    <mu2>0.0</mu2>
-    <kp value="1000000.0" />
-    <kd value="1.0" />
-    <material>Gazebo/Black</material>
-  </gazebo>
-  <gazebo reference="laser">
-    <material>Gazebo/Blue</material>
-  </gazebo>
-  <gazebo reference="gps">
-    <material>Gazebo/White</material>
-  </gazebo>
-  <gazebo reference="stereo_camera_test">
-    <material>Gazebo/Green</material>
-  </gazebo>
-  <gazebo reference="stereo_camera_center">
-    <material>Gazebo/Gold</material>
-  </gazebo>
-  <gazebo reference="stereo_camera">
-    <material>Gazebo/Gold</material>
-  </gazebo>
-  <gazebo reference="imu_flip1">
-    <material>Gazebo/Black</material>
-  </gazebo>
-  <gazebo reference="imu_flip2">
-    <material>Gazebo/Black</material>
-  </gazebo>
-  <gazebo reference="imu">
-    <material>Gazebo/Black</material>
-  </gazebo>
-  <gazebo reference="imu_test">
-    <material>Gazebo/Green</material>
-  </gazebo>
+	<gazebo reference="base_footprint">
+		<material>Gazebo/Black</material>
+	</gazebo>
+	<gazebo reference="base_link">
+		<material>Gazebo/Grey</material>
+	</gazebo>
 
-  <gazebo>
-    <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
-      <robotNamespace>/redblade</robotNamespace>
-      <alwaysOn>true</alwaysOn>
-      <updateRate>20</updateRate>
-    </plugin>
-  </gazebo>
+	<gazebo reference="back_wheel_left">
+	  <mu1>0.2</mu1>
+	  <mu2>0.2</mu2>
+	  <kp value="1000000.0" />
+	  <kd value="1.0" />
+	  <material>Gazebo/Black</material>
+	</gazebo>
+	<gazebo reference="back_wheel_right">
+	  <mu1>0.2</mu1>
+	  <mu2>0.2</mu2>
+	  <kp value="1000000.0" />
+	  <kd value="1.0" />
+	  <material>Gazebo/Black</material>
+	</gazebo>
 
-  <!-- <gazebo> -->
-  <!--   <plugin name="differential_drive_controller" filename="/home/jamie/Documents/Redblade/devel/lib/libgazebo_ros_diff_drive.so"> -->
-  <!--     <robotNamespace>/redblade</robotNamespace> -->
-  <!--     <alwaysOn>true</alwaysOn> -->
-  <!--     <updateRate>20</updateRate> -->
-  <!--     <leftJoint>to_wheel_left</leftJoint> -->
-  <!--     <rightJoint>to_wheel_right</rightJoint> -->
-  <!--     <wheelSeparation>0.47</wheelSeparation> -->
-  <!--     <wheelDiameter>0.395</wheelDiameter> -->
-  <!--     <torque>20</torque> -->
-  <!--     <commandTopic>cmd_vel</commandTopic> -->
-  <!--     <odometryTopic>odom</odometryTopic> -->
-  <!--     <odometryFrame>odom</odometryFrame> -->
-  <!--     <robotBaseFrame>base_footprint</robotBaseFrame> -->
-  <!--   </plugin> -->
-  <!-- </gazebo> -->
+	<gazebo reference="front_wheel_left">
+	  <mu1>0.2</mu1>
+	  <mu2>0.2</mu2>
+	  <kp value="1000000.0" />
+	  <kd value="1.0" />
+	  <material>Gazebo/Black</material>
+	</gazebo>
+	<gazebo reference="front_wheel_right">
+	  <mu1>0.2</mu1>
+	  <mu2>0.2</mu2>
+	  <kp value="1000000.0" />
+	  <kd value="1.0" />
+	  <material>Gazebo/Black</material>
+	</gazebo>
 
+	<gazebo reference="back_motor_mount_left">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="back_motor_mount_right">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="motor_area_bottom_left">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="motor_area_bottom_right">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="motor_area_bottom_front">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="motor_area_bottom_back">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="motor_area_vent_front_left">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="motor_area_vent_back_left">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="motor_area_vent_front_right">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="motor_area_vent_back_right">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="front_motor_area_vent_front_left">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="front_motor_area_vent_back_left">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="front_motor_area_bottom_left">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="front_motor_area_bottom_front">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="front_link">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="front_motor_mount_left">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="front_wheel_left">
+		<material>Gazebo/Black</material>
+	</gazebo>
+	<gazebo reference="front_motor_area_vent_front_right">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="front_motor_area_bottom_right">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="front_motor_area_bottom_back">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="front_motor_area_vent_back_right">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="front_motor_mount_right">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="front_wheel_right">
+		<material>Gazebo/Black</material>
+	</gazebo>
+	<gazebo reference="main_area_bottom_back">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="main_area_bottom_left">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="main_area_bottom_right">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="main_area_bottom_center_left">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="main_area_bottom_center_right">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="main_area_bottom_front">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="main_area_vent_front_left">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="main_area_vent_mid_left">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="main_area_vent_back_left">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="main_area_vent_front_right">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="main_area_vent_mid_right">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="main_area_vent_back_right">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="main_area_top_left">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="main_area_top_right">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="main_area_top_front">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="main_area_top_mid">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="main_area_top_back">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="tower_area_vent_back_left">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="tower_area_vent_front_left">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="tower_area_vent_back_right">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="tower_area_vent_front_right">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="tower_area_top_left">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="tower_area_top_right">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="tower_area_top_back">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="tower_area_top_front">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="tower_area_top_front_bar">
+		<material>Gazebo/Grey</material>
+	</gazebo>
+	<gazebo reference="gps">
+		<material>Gazebo/White</material>
+	</gazebo>
+	<gazebo reference="stereo_camera_test">
+		<material>Gazebo/Green</material>
+	</gazebo>
+	<gazebo reference="stereo_camera_center">
+		<material>Gazebo/Gold</material>
+	</gazebo>
+	<gazebo reference="stereo_camera">
+		<material>Gazebo/Gold</material>
+	</gazebo>
+	<gazebo reference="imu_flip1">
+		<material>Gazebo/Black</material>
+	</gazebo>
+	<gazebo reference="imu_flip2">
+		<material>Gazebo/Black</material>
+	</gazebo>
+	<gazebo reference="imu">
+		<material>Gazebo/Black</material>
+	</gazebo>
+	<gazebo reference="imu_test">
+		<material>Gazebo/Green</material>
+	</gazebo>
+	<gazebo>
+	  <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+	    <robotNamespace>/redblade</robotNamespace>
+	    <alwaysOn>true</alwaysOn>
+	    <updateRate>20</updateRate>
+	  </plugin>
+	</gazebo>
 </robot>
