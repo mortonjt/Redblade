@@ -227,7 +227,7 @@ int main(int argc, char **argv) {
     // Serial port parameter
     std::string port;
     n.param("serial_port", port, std::string("/dev/motor_controller"));
-
+    
     // Wheel diameter parameter
     n.param("wheel_diameter", wheel_diameter, 0.395);
     

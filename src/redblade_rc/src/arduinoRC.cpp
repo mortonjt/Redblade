@@ -94,7 +94,7 @@ void rcCallback(const geometry_msgs::Vector3::ConstPtr& msg) {
 
     //PUBLISH LINEAR & ANGULAR(RAD/SEC) VELOCITIES, BOTH INTS
     geometry_msgs::Twist msg_out;
-    msg_out.linear.x = speedInMps;
+    msg_out.linear.x = -speedInMps;
     msg_out.linear.y = 0;
     msg_out.linear.z = 0;
     msg_out.angular.x = 0;

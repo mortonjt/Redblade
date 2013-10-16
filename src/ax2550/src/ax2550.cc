@@ -189,6 +189,7 @@ AX2550::move (double speed, double direction) {
     }
     AX2550_THROW(CommandFailedException, "did not receive an ack or nak");
   }
+
   // Create the direction command
   direction_hex = (unsigned char) (fabs(direction));
   if(direction < 0) {
@@ -242,7 +243,7 @@ AX2550::queryEncoders (long &encoder1, long &encoder2, bool relative) {
   } else {
     cmd2 = "?q1";
   }
-  this->serial_port_->write(cmd2+"\r");
+
   // Listen for Query 1
   string response = this->encoders_filt_->wait(100);
   if (response.empty()) {
@@ -267,6 +268,9 @@ AX2550::queryEncoders (long &encoder1, long &encoder2, bool relative) {
   signed int encoder = 0;
   sscanf(response.c_str(), "%X", &encoder);
   encoder1 = encoder;
+
+  this->serial_port_->write(cmd2+"\r");
+
   // reset stuff
   fillbyte = '0';
   difference = 0;
