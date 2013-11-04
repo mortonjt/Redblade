@@ -103,7 +103,7 @@ void rcCallback(const geometry_msgs::Vector3::ConstPtr& msg) {
 
     arduinoRC_pub.publish(msg_out);
 
-    ROS_INFO("\nraw: %d, %d\nlinear: %f\nangular: %f\n\n",fb ,lr ,msg_out.linear.x,msg_out.angular.z);
+    //ROS_INFO("\nraw: %d, %d\nlinear: %f\nangular: %f\n\n",fb ,lr ,msg_out.linear.x,msg_out.angular.z);
 }
 
 int main(int argc, char** argv){
