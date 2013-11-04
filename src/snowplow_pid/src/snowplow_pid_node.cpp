@@ -6,20 +6,34 @@
 #include <string>
 #include <cmath>
 
+//TODO: make these parameters for this node
+#define FAST_SPEED .75
+#define SLOW_SPEED .2
+#define KP .1
+#define KI 0
+#define KD 0
+#define KP_SLOW .05
+#define KI_SLOW 0
+#define KD_SLOW 0
+
 //global stuff
 ros::Publisher cmd_vel_pub;
 geometry_msgs::Twist vel_targets;
 geometry_msgs::Vector3 current_imu;
 nav_msgs::Odometry current_gps;
+bool imu_init = false;
+
+//current waypoint stuff
 geometry_msgs::Pose2D start;
 geometry_msgs::Pose2D dest;
 bool forward; //whether or not we go forwards or backwards to this waypoint
-bool imu_init = false;
+
 //global stuff for pid controller
 double previous_error;
 double sum_of_errors;
 double total_num_of_errors;
 double error;
+double linear_vel;
 
 
 //keeps angles between -pi and pi so i don't have to
@@ -33,9 +47,70 @@ void wrap_pi(double &angle){
   }
 }
 
+double get_i_correction(double error){
+  sum_of_errors += error;
+  return sum_of_errors/total_num_of_errors;
+}
+
+double get_d_correction(double error){
+  double d_corr = error - previous_error;
+  previous_error = error;
+  return d_corr;
+}
+
+/*returns the distance from end point with some magic sprinkled in (no, i will
+not even attempt to explain the black magic that this method does. i blame Ryan
+Wolfarth for the lack of comments. */
+double distance_to_goal(geometry_msgs::Pose2D &dest, geometry_msgs::Pose2D &start){
+  double x1, y1, x2, y2, x, y;
+  double mS, mD, bD, quad_correct, d;
+  
+  x = current_gps.pose.pose.position.x;
+  y = current_gps.pose.pose.position.y;
+  
+  //handling zero slope
+  if(dest.y-start.y == 0){
+    if(dest.x > start.x){
+      d = dest.x - x;
+    }else{
+      d = x - dest.x;
+    }
+  }else if(dest.x-start.x == 0){//handling undef. slope
+    if(dest.y > start.y){
+      d = dest.y - y;
+    }else{
+      d = y - dest.y;
+    }
+  }else{//handle all other cases with non-zero, defined slope
+    //convert to local reference frame: current point is origin
+    x1 = start.x - x;
+    y1 = start.y - y;
+    x2 = dest.x - x;
+    y2 = dest.y - y;
+    x = 0; y = 0;
+
+    //calculate slope and equation of perpendicular line
+    mS = (y1-y2) / (x1-x2);
+    mD = -1/mS;
+    bD = y2 - (mD*x2);
+
+    quad_correct = atan2(y2-y1,x2-x1);
+    if(quad_correct < 0){
+      quad_correct = -1;
+    }else{
+      quad_correct = 1;
+    }
+    
+    d = quad_correct * (((x*mD) - y + bD) / sqrt(pow(mD,2) + 1.0));
+  }
+
+  return d;
+}
+
+//returns true when destination is reached
 bool ye_ol_pid(){
   //local variables
-  double desired_heading;
+  double desired_heading, kp_corr, ki_corr, kd_corr, pid, distance;
   double current_heading = current_imu.z;
 
   //TODO: implement a check for stuck method here
@@ -43,7 +118,7 @@ bool ye_ol_pid(){
   //if this is the first time this method has been called, let's just send her in a straight line
   //for a very short peiod of time
   if(vel_targets.linear.x == 0){
-    vel_targets.linear.x = (forward?(0.75):(-0.75));// m/s
+    vel_targets.linear.x = FAST_SPEED * (forward?(1):(-1));// m/s
     vel_targets.angular.z = 0;//straight line, no turnin
     return false;//we ain't done yet
   }
@@ -55,6 +130,50 @@ bool ye_ol_pid(){
   if(!forward){
     current_heading -= M_PI;
     wrap_pi(current_heading);
+  }
+  error = current_heading - desired_heading;
+  wrap_pi(error);
+
+  //calculate p, i, and d correction factors
+  total_num_of_errors += 1;
+  if(linear_vel == FAST_SPEED){
+    kp_corr = KP * error;
+    ki_corr = KI * get_i_correction(error);
+    kd_corr = KD * get_d_correction(error);
+  }else{
+    kp_corr = KP_SLOW * error;
+    ki_corr = KI_SLOW * get_i_correction(error);
+    kd_corr = KD_SLOW * get_d_correction(error);
+  }
+  pid = kp_corr + ki_corr + kd_corr;
+
+  //set upper limit for angular velocity
+  //TODO: i actually have no idea what this number should be, gonna need to figure that out
+  if(pid > 0.5){
+    pid = 0.5;
+  }else if(pid < -0.5){
+    pid = -0.5;
+  }
+
+  //check to see if we've reached our destination
+  distance = distance_to_goal(dest, start);
+  if(distance < 0){
+    //set desired linear and angular velocities
+    vel_targets.linear.x = 0;
+    vel_targets.angular.z = 0;
+    return true;
+  }else if(distance < .25){
+    vel_targets.linear.x = linear_vel * (forward?(1):(-1));
+    vel_targets.angular.z = 0;
+  }else{
+    //set desired linear and angular velocities
+    vel_targets.linear.x = linear_vel * (forward?(1):(-1));
+    vel_targets.angular.z = pid;
+  }
+  
+  //change linear velocity once we are close to the point
+  if(distance < 0.75){
+    linear_vel = SLOW_SPEED;
   }
 
   return false;
@@ -75,6 +194,7 @@ void gpsCallback(const nav_msgs::Odometry::ConstPtr& gps_msg){
 
     //do the ol pid dance
     if(ye_ol_pid()){
+      usleep(100000);
       //TODO: use service to grab the next waypoint
 
       //reinitialize all errors to zero
@@ -82,6 +202,7 @@ void gpsCallback(const nav_msgs::Odometry::ConstPtr& gps_msg){
       sum_of_errors = 0;
       total_num_of_errors = 0;
       error = 0;
+      linear_vel = FAST_SPEED;
     }
   }
 }
@@ -113,7 +234,7 @@ int main(int argc, char** argv){
   //Set up rate for cmd_vel_pub topic to be published at
   ros::Rate cmd_vel_rate(40);//Hz
 
-  //initialize Tiwst messages to zeros, might not be necessary, but YOLO
+  //initialize Twist messages to zeros, might not be necessary, but YOLO
   vel_targets.linear.x = 0;
   vel_targets.linear.y = 0;
   vel_targets.linear.z = 0;
@@ -126,6 +247,7 @@ int main(int argc, char** argv){
   sum_of_errors = 0;
   total_num_of_errors = 0;
   error = 0;
+  linear_vel = FAST_SPEED;
  
   while(ros::ok()){
     publish_loop();
