@@ -69,7 +69,7 @@ int main(int argc, char** argv){
   ros::Subscriber sub_arduino = n.subscribe("Arduino_RC", 5, Arduino_RC_Callback);
 
   //Start Spinner so that cmd_vel Callbacks happen in a seperate thread
-  ros::AsyncSpinner spinner(1);
+  ros::AsyncSpinner spinner(2);
   spinner.start();
 
   //set up two publishers, one to publish a Twist message for each roboteq
