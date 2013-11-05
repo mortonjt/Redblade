@@ -16,7 +16,10 @@ int main(int argc, char** argv){
   ros::init (argc, argv, "request_next_waypoints_server");
   ros::NodeHandle n;
 
-  ros::ServiceServer = n.advertiseService("request_next_waypoints", next_waypoints);
+  //TODO: add waypoints vector and populate this vector with waypoints
+  //read in from some file that was passed in as a parameter
+
+  ros::ServiceServer service = n.advertiseService("request_next_waypoints", next_waypoints);
   ROS_INFO("Ready to provide next waypoints.");
   ros::spin();
  
