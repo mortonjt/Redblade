@@ -3,6 +3,7 @@
 #include <geometry_msgs/Vector3.h>
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/Pose2D.h>
+#include "snowplow_pid/request_next_waypoints.h"
 #include <string>
 #include <cmath>
 
@@ -201,6 +202,7 @@ void gpsCallback(const nav_msgs::Odometry::ConstPtr& gps_msg){
       if(waypoint_client.call(srv)){
 	start = srv.response.start;
 	dest = srv.response.dest;
+	forward = srv.response.forward;
       }else{
 	ROS_ERROR("Failed to call service request_next_waypoints");
       }
