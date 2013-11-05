@@ -22,6 +22,7 @@ geometry_msgs::Twist vel_targets;
 geometry_msgs::Vector3 current_imu;
 nav_msgs::Odometry current_gps;
 bool imu_init = false;
+ros::ServiceClient waypoint_client;
 
 //current waypoint stuff
 geometry_msgs::Pose2D start;
@@ -196,6 +197,15 @@ void gpsCallback(const nav_msgs::Odometry::ConstPtr& gps_msg){
     if(ye_ol_pid()){
       usleep(100000);
       //TODO: use service to grab the next waypoint
+      snowplow_pid::request_next_waypoints srv;
+      if(waypoint_client.call(srv)){
+	start = srv.response.start;
+	dest = srv.response.dest;
+      }else{
+	ROS_ERROR("Failed to call service request_next_waypoints");
+      }
+
+      //TODO: make robot turn here to face the next waypoint
 
       //reinitialize all errors to zero
       previous_error = 0;
@@ -222,11 +232,13 @@ int main(int argc, char** argv){
   spinner.start();
 
   //Subscribe to GPS topic
-  ros::Subscriber imu_sub = n.subscribe("/imu/integrated_gyros", 1, imuCallback);
   ros::Subscriber gps_sub = n.subscribe("/gps", 1, gpsCallback);
 
   //Subscribe to IMU topic
-  //TODO
+  ros::Subscriber imu_sub = n.subscribe("/imu/integrated_gyros", 1, imuCallback);
+
+  //set up service to grab waypoints
+  waypoint_client = n.serviceClient<snowplow_pid::request_next_waypoints>("request_next_waypoints");
 
   //Set up cmd_vel publisher
   cmd_vel_pub = n.advertise<geometry_msgs::Twist>("cmd_vel", 10);

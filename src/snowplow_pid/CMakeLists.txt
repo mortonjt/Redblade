@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
   nav_msgs
+  message_generation
 )
 
 ## System dependencies are found with CMake's conventions
@@ -34,17 +35,18 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+add_service_files(
+  FILES
+  request_next_waypoints.srv
+)
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   geometry_msgs#   sensor_msgs#   std_msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  geometry_msgs   
+  sensor_msgs   
+  std_msgs
+)
 
 ###################################
 ## catkin specific configuration ##
@@ -58,7 +60,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
   INCLUDE_DIRS include
 #  LIBRARIES snowplow_pid
-  CATKIN_DEPENDS geometry_msgs roscpp rospy sensor_msgs std_msgs nav_msgs
+  CATKIN_DEPENDS geometry_msgs roscpp rospy sensor_msgs std_msgs nav_msgs message_runtime
 #  DEPENDS system_lib
 )
 
