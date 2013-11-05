@@ -8,14 +8,17 @@
 #include <cmath>
 
 //TODO: make these parameters for this node
-#define FAST_SPEED .75
+/*#define FAST_SPEED .75
 #define SLOW_SPEED .2
 #define KP .1
 #define KI 0
 #define KD 0
 #define KP_SLOW .05
 #define KI_SLOW 0
-#define KD_SLOW 0
+#define KD_SLOW 0*/
+
+//Parameters that will be read in at runtime
+double FAST_SPEED, SLOW_SPEED, KP, KI, KD, KP_SLOW, KI_SLOW, KD_SLOW;
 
 //global stuff
 ros::Publisher cmd_vel_pub;
@@ -227,7 +230,8 @@ void publish_loop(){
 int main(int argc, char** argv){
   //Node setup
   ros::init(argc, argv, "snowplow_pid_node");
-  ros::NodeHandle n;
+  ros::NodeHandle n;//global namespace
+  ros::NodeHandle nh("~");//local namespace, used for params
 
   //Start spinner so that callbacks happen in a seperate thread
   ros::AsyncSpinner spinner(2);//2 threads
@@ -247,6 +251,17 @@ int main(int argc, char** argv){
   
   //Set up rate for cmd_vel_pub topic to be published at
   ros::Rate cmd_vel_rate(40);//Hz
+
+  //read in pid parameters
+  nh.param("FAST_SPEED", FAST_SPEED, 0.0);
+  nh.param("SLOW_SPEED", SLOW_SPEED, 0.0);
+  nh.param("KP", KP, 0.0);
+  nh.param("KI", KI, 0.0);
+  nh.param("KD", KD, 0.0);
+  nh.param("KP_SLOW", KP_SLOW, 0.0);
+  nh.param("KI_SLOW", KI_SLOW, 0.0);
+  nh.param("KD_SLOW", KD_SLOW, 0.0);
+  ROS_INFO("FAST: %f\tSLOW: %f\tKP: %f\t", FAST_SPEED, SLOW_SPEED, KP);
 
   //initialize Twist messages to zeros, might not be necessary, but YOLO
   vel_targets.linear.x = 0;

@@ -10,7 +10,6 @@
 </node>
 
 <node pkg="twist_msg_converter" type="twist_conv_node" name="twist_conv_node" output="screen">
-      <!-- <param name="serial_port" value="assfuck"/> -->
       <!-- <param name="serial_port" value="some_serial_port"/> -->
       <!-- <param name="front_or_back" value="back"/> -->
 </node>
@@ -20,7 +19,6 @@
 </node>
 
 <node pkg="redblade_rc" type="redblade_rc_node" name="redblade_rc_node" output="screen">
-      <!-- <param name="serial_port" value="assfuck"/> -->
       <!-- <param name="serial_port" value="some_serial_port"/> -->
       <!-- <param name="front_or_back" value="back"/> -->
 </node>
