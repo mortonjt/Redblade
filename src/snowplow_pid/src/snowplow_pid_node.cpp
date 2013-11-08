@@ -7,16 +7,6 @@
 #include <string>
 #include <cmath>
 
-//TODO: make these parameters for this node
-/*#define FAST_SPEED .75
-#define SLOW_SPEED .2
-#define KP .1
-#define KI 0
-#define KD 0
-#define KP_SLOW .05
-#define KI_SLOW 0
-#define KD_SLOW 0*/
-
 //Parameters that will be read in at runtime
 double FAST_SPEED, SLOW_SPEED, KP, KI, KD, KP_SLOW, KI_SLOW, KD_SLOW;
 

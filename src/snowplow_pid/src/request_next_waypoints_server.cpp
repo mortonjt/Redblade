@@ -22,7 +22,6 @@ bool read_in_waypoints(){
   std::string item;
   std::ifstream file(waypoints_filename.c_str());
   while(std::getline(file, item, '\n')){
-    //S_INFO("1: %s", item.c_str());
     elements.push_back(item);
   }
 

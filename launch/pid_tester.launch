@@ -10,8 +10,8 @@
       <param name="KD_SLOW" value="0.0"/>
 </node>
 
-<node pkg="snowplow_pid" type="request_next_waypoints_server" name="request_next_waypoints_server">
-      <param name="waypoints_filename" value="~/Documents/Redblade/config/waypoints_test.txt"/> -->
+<node pkg="snowplow_pid" type="request_next_waypoints_server" name="request_next_waypoints_server" output="screen">
+      <param name="waypoints_filename" value="/home/redblade/Documents/Redblade/config/waypoints_test.txt"/>
 </node>
 
 </launch>
