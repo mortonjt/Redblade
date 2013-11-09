@@ -1,0 +1,37 @@
+<launch>  
+  <node pkg="ax2550" type="ax2550_node" name="roboteq" output="screen">
+  </node>
+
+  <node name="nmea_gps_driver" pkg="nmea_gps_driver" type="nmea_gps_driver.py" output="screen" >
+  	<param name="_port" value="/dev/ttyUSB_Serial4" />
+	<param name="_baud" value="9600" />
+  </node>
+
+
+  <node pkg="sicktoolbox_wrapper" type="sicklms" name="lidar" output="screen">
+  	<param name="port" value="/dev/ttyS0" />
+	<param name="resolution" value="1.0" />
+  </node>
+
+  <node pkg="microstrain_3dmgx2_imu" type="imu_node" name="microstrain_3dmgx2_imu" output="screen">
+  </node>
+
+  
+
+  <node pkg="stereo_image_proc" type="stereo_image_proc" name="image_proc" output="screen" ns="stereo_camera">
+  <param name="disparity_range" value="64"/>
+    </node>
+  
+  <node pkg="line_detect" type="gpu_line_detect" name="line_detect" output="screen">
+  </node>
+  <node pkg="redblade_tf" type="combine_scan" name="combine_scan" output="screen">
+  </node>
+    
+
+  <node name="gps_conv" pkg="gps_common" type="utm_odometry_node">
+  	<remap from="odom" to="gps"/>
+  	<param name="rot_covariance" value="99999" />
+  	<param name="frame_id" value="base_footprint" />
+  </node>
+
+</launch>

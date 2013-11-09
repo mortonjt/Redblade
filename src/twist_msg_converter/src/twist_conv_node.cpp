@@ -14,7 +14,7 @@ geometry_msgs::Twist back_target;
 void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& msg){
   //for now, we're just going to push the overall linear and angular velocity through
   //to each of the motor controllers, we'll figure out what's actually happening later
-  front_target.linear.x = -msg->linear.x;//negate this one because the motors are backwards
+  front_target.linear.x = msg->linear.x;//negate this one because the motors are backwards
   front_target.linear.y = msg->linear.y;
   front_target.linear.z = msg->linear.z;
   front_target.angular.x = msg->angular.x;
@@ -33,14 +33,14 @@ void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& msg){
 void Arduino_RC_Callback(const geometry_msgs::Twist::ConstPtr& msg) {
   //for now, we're just going to push the overall linear and angular velocity through
   //to each of the motor controllers, we'll figure out what's actually happening later
-  front_target.linear.x = -msg->linear.x;//negate this one because the motors are backwards
+  front_target.linear.x = msg->linear.x;//negate this one because the motors are backwards
   front_target.linear.y = msg->linear.y;
   front_target.linear.z = msg->linear.z;
   front_target.angular.x = msg->angular.x;
   front_target.angular.y = msg->angular.y;
   front_target.angular.z = msg->angular.z;
   
-  back_target.linear.x = msg->linear.x;
+  back_target.linear.x = -msg->linear.x;
   back_target.linear.y = msg->linear.y;
   back_target.linear.z = msg->linear.z;
   back_target.angular.x = msg->angular.x;
@@ -69,7 +69,7 @@ int main(int argc, char** argv){
   ros::Subscriber sub_arduino = n.subscribe("Arduino_RC", 5, Arduino_RC_Callback);
 
   //Start Spinner so that cmd_vel Callbacks happen in a seperate thread
-  ros::AsyncSpinner spinner(1);
+  ros::AsyncSpinner spinner(2);
   spinner.start();
 
   //set up two publishers, one to publish a Twist message for each roboteq
