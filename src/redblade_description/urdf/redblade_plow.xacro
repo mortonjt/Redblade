@@ -306,7 +306,7 @@
     <inertial>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <mass value="1"/>
-      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+     <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
     </inertial>
 
   </link>
@@ -1409,6 +1409,27 @@
     <type>transmission_interface/SimpleTransmission</type>
     <joint name="to_back_wheel_right"/>
     <actuator name="motor2">
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+      <motorTorqueConstant>20</motorTorqueConstant>
+    </actuator>
+  </transmission>
+
+
+  <transmission name="front_wheel_left_tran">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="to_front_wheel_left"/>
+    <actuator name="motor3">
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+      <motorTorqueConstant>20</motorTorqueConstant>
+    </actuator>
+  </transmission>
+  
+  <transmission name="front_wheel_right_tran">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="to_front_wheel_right"/>
+    <actuator name="motor4">
       <hardwareInterface>EffortJointInterface</hardwareInterface>
       <mechanicalReduction>1</mechanicalReduction>
       <motorTorqueConstant>20</motorTorqueConstant>

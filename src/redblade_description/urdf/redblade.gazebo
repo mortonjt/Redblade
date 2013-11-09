@@ -8,30 +8,34 @@
 	</gazebo>
 
 	<gazebo reference="back_wheel_left">
-	  <mu1>0.2</mu1>
-	  <mu2>0.2</mu2>
+	  <mu1>0.9</mu1>
+	  <mu2>0.9</mu2>
+	  <!-- <slip1>0.5</slip1> -->
+	  <!-- <slip2>0</slip2> -->
 	  <kp value="1000000.0" />
 	  <kd value="1.0" />
 	  <material>Gazebo/Black</material>
 	</gazebo>
 	<gazebo reference="back_wheel_right">
-	  <mu1>0.2</mu1>
-	  <mu2>0.2</mu2>
+	  <mu1>0.9</mu1>
+	  <mu2>0.9</mu2>
 	  <kp value="1000000.0" />
 	  <kd value="1.0" />
 	  <material>Gazebo/Black</material>
 	</gazebo>
 
 	<gazebo reference="front_wheel_left">
-	  <mu1>0.2</mu1>
-	  <mu2>0.2</mu2>
+	  <mu1>0.9</mu1>
+	  <mu2>0.9</mu2>
+	  <!-- <slip1>0.5</slip1> -->
+	  <!-- <slip2>0</slip2> -->
 	  <kp value="1000000.0" />
 	  <kd value="1.0" />
 	  <material>Gazebo/Black</material>
 	</gazebo>
 	<gazebo reference="front_wheel_right">
-	  <mu1>0.2</mu1>
-	  <mu2>0.2</mu2>
+	  <mu1>0.9</mu1>
+	  <mu2>0.9</mu2>
 	  <kp value="1000000.0" />
 	  <kd value="1.0" />
 	  <material>Gazebo/Black</material>
@@ -208,11 +212,30 @@
 	<gazebo reference="imu_test">
 		<material>Gazebo/Green</material>
 	</gazebo>
+
+	<!-- <gazebo> -->
+	<!--   <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so"> -->
+	<!--     <robotNamespace>/redblade</robotNamespace> -->
+	<!--     <alwaysOn>true</alwaysOn> -->
+	<!--     <updateRate>20</updateRate> -->
+	<!--   </plugin> -->
+	<!-- </gazebo> -->
+
 	<gazebo>
-	  <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+	  <plugin name="skid_steer_drive_controller" filename="libgazebo_ros_skid_steer_drive.so">
+	    <updateRate>100.0</updateRate>
 	    <robotNamespace>/redblade</robotNamespace>
-	    <alwaysOn>true</alwaysOn>
-	    <updateRate>20</updateRate>
+	    <leftFrontJoint>to_front_wheel_left</leftFrontJoint>
+	    <rightFrontJoint>to_front_wheel_right</rightFrontJoint>
+	    <leftRearJoint>to_back_wheel_left</leftRearJoint>
+	    <rightRearJoint>to_back_wheel_right</rightRearJoint>
+	    <wheelSeparation>0.45</wheelSeparation>
+	    <wheelDiameter>0.24</wheelDiameter>
+	    <robotBaseFrame>base_link</robotBaseFrame>
+	    <torque>20</torque>
+	    <commandTopic>cmd_vel</commandTopic>
+	    <odometryTopic>odom</odometryTopic>
+	    <odometryFrame>odom</odometryFrame>
 	  </plugin>
 	</gazebo>
 </robot>
