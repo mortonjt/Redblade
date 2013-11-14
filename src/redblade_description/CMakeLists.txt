@@ -62,9 +62,15 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 # include_directories(include)
-include_directories(
-  ${catkin_INCLUDE_DIRS}
-)
+include (FindPkgConfig)
+if (PKG_CONFIG_FOUND)
+  pkg_check_modules(GAZEBO gazebo)
+endif()
+include_directories(${catkin_INCLUDE_DIRS} ${GAZEBO_INCLUDE_DIRS} include)
+link_directories(${GAZEBO_LIBRARY_DIRS})
+
+add_library(gps SHARED src/GpsPlugin.cc)
+target_link_libraries(gps ${GAZEBO_libraries})
 
 ## Declare a cpp library
 # add_library(redblade_description

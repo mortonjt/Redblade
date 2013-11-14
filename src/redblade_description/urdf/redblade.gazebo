@@ -188,9 +188,6 @@
 	<gazebo reference="tower_area_top_front_bar">
 		<material>Gazebo/Grey</material>
 	</gazebo>
-	<gazebo reference="gps">
-		<material>Gazebo/White</material>
-	</gazebo>
 	<gazebo reference="stereo_camera_test">
 		<material>Gazebo/Green</material>
 	</gazebo>
@@ -211,6 +208,58 @@
 	</gazebo>
 	<gazebo reference="imu_test">
 		<material>Gazebo/Green</material>
+	</gazebo>
+
+	<gazebo reference="gps">
+	  <material>Gazebo/White</material>
+	  <sensor type="gps" name="gps_receiver">
+	    <always_on>1</always_on>
+	    <update_rate>10.000000</update_rate>
+	    <gps>
+	      <position_sensing>
+		<horizontal>
+		  <noise type='gaussian_quantized'>
+		    <mean>0</mean>
+		    <stddev>1</stddev>
+		    <bias_mean>3</bias_mean>
+		    <bias_stddev>1</bias_stddev>
+		    <precision>0.5</precision>
+		  </noise>
+		</horizontal>
+		<vertical>
+		  <noise type='gaussian_quantized'>
+		    <mean>0</mean>
+		    <stddev>1</stddev>
+		    <bias_mean>3</bias_mean>
+		    <bias_stddev>1</bias_stddev>
+		    <precision>1.0</precision>
+		  </noise>
+		</vertical>
+	      </position_sensing>
+	      <velocity_sensing>
+		<horizontal>
+		  <noise type='gaussian_quantized'>
+		    <mean>0</mean>
+		    <stddev>0.1</stddev>
+		    <bias_mean>0.1</bias_mean>
+		    <bias_stddev>0.1</bias_stddev>
+		    <precision>0.1</precision>
+		  </noise>
+		</horizontal>
+		<vertical>
+		  <noise type='gaussian_quantized'>
+		    <mean>0</mean>
+		    <stddev>0.2</stddev>
+		    <bias_mean>0.2</bias_mean>
+		    <bias_stddev>0.2</bias_stddev>
+		    <precision>0.2</precision>
+		  </noise>
+		</vertical>
+	      </velocity_sensing>
+	    </gps>
+	    <plugin name="gps_plugin" filename="libgps.so">
+	    </plugin>
+	  </sensor>
 	</gazebo>
 
 	<!-- <gazebo> -->
@@ -238,4 +287,5 @@
 	    <odometryFrame>odom</odometryFrame>
 	  </plugin>
 	</gazebo>
+
 </robot>
