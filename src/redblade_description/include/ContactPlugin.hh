@@ -9,13 +9,13 @@
 namespace gazebo
 {
   /// \brief An example plugin for a contact sensor.
-  class GpsPlugin : public SensorPlugin
+  class ContactPlugin : public SensorPlugin
   {         
     /// \brief Constructor.
-  public: GpsPlugin();
+  public: ContactPlugin();
 
     /// \brief Destructor.
-  public: virtual ~GpsPlugin();
+  public: virtual ~ContactPlugin();
 
     /// \brief Load the sensor plugin.
     /// \param[in] _sensor Pointer to the sensor that loaded this plugin.

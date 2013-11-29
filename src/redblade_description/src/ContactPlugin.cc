@@ -1,20 +1,20 @@
-#include "GpsPlugin.hh"
+#include "ContactPlugin.hh"
 
 using namespace gazebo;
 GZ_REGISTER_SENSOR_PLUGIN(ContactPlugin)
 
 /////////////////////////////////////////////////
-GpsPlugin::GpsPlugin() : SensorPlugin()
+ContactPlugin::ContactPlugin() : SensorPlugin()
 {
 }
 
 /////////////////////////////////////////////////
-GpsPlugin::~GpsPlugin()
+ContactPlugin::~ContactPlugin()
 { 
 }   
 
 /////////////////////////////////////////////////
-void GpsPlugin::Load(sensors::SensorPtr _sensor, sdf::ElementPtr /*_sdf*/)
+void ContactPlugin::Load(sensors::SensorPtr _sensor, sdf::ElementPtr /*_sdf*/)
 {   
   // Get the parent sensor.
   this->parentSensor =
@@ -23,7 +23,7 @@ void GpsPlugin::Load(sensors::SensorPtr _sensor, sdf::ElementPtr /*_sdf*/)
   // Make sure the parent sensor is valid.
   if (!this->parentSensor)
     { 
-      gzerr << "GpsPlugin requires a GpsSensor.\n";
+      gzerr << "ContactPlugin requires a ContactSensor.\n";
       return;
     } 
 
@@ -36,7 +36,7 @@ void GpsPlugin::Load(sensors::SensorPtr _sensor, sdf::ElementPtr /*_sdf*/)
 }
 
 /////////////////////////////////////////////////
-void GpsPlugin::OnUpdate()
+void ContactPlugin::OnUpdate()
 {
   // Get all the contacts.
   msgs::Contacts contacts;
@@ -59,10 +59,4 @@ void GpsPlugin::OnUpdate()
 	  std::cout << "   Depth:" << contacts.contact(i).depth(j) << "\n";
 	}
     }
-  
-  // math::Angle lon = this->parentSensor->GetLongitude();
-  // math::Angle lat = this->parentSensor->GetLatitude();
-
-  // std::cout << "Latitude:" << lat << std::endl;
-  // std::cout << "Longitude:" << lon << std::endl;
 }
