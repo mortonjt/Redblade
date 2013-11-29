@@ -222,25 +222,8 @@ int main(int argc, char** argv){
   ros::init(argc, argv, "snowplow_pid_node");
   ros::NodeHandle n;//global namespace
   ros::NodeHandle nh("~");//local namespace, used for params
-
-  //Start spinner so that callbacks happen in a seperate thread
-  ros::AsyncSpinner spinner(2);//2 threads
-  spinner.start();
-
-  //Subscribe to GPS topic
-  ros::Subscriber gps_sub = n.subscribe("/gps", 1, gpsCallback);
-
-  //Subscribe to IMU topic
-  ros::Subscriber imu_sub = n.subscribe("/imu/integrated_gyros", 1, imuCallback);
-
-  //set up service to grab waypoints
-  waypoint_client = n.serviceClient<snowplow_pid::request_next_waypoints>("request_next_waypoints");
-
-  //Set up cmd_vel publisher
-  cmd_vel_pub = n.advertise<geometry_msgs::Twist>("cmd_vel", 10);
   
-  //Set up rate for cmd_vel_pub topic to be published at
-  ros::Rate cmd_vel_rate(40);//Hz
+  std::string gps_namespace,imu_namespace;
 
   //read in pid parameters
   nh.param("FAST_SPEED", FAST_SPEED, 0.0);
@@ -251,7 +234,31 @@ int main(int argc, char** argv){
   nh.param("KP_SLOW", KP_SLOW, 0.0);
   nh.param("KI_SLOW", KI_SLOW, 0.0);
   nh.param("KD_SLOW", KD_SLOW, 0.0);
+  nh.param("gps",gps_namespace,"/gps")
+  nh.param("imu",imu_namespace,"/imu/integrated_gyros")
   ROS_INFO("FAST: %f\tSLOW: %f\tKP: %f\t", FAST_SPEED, SLOW_SPEED, KP);
+  ROS_INFO("gps_namespace: %s\t imu_namespace: %s", gps_namespace, imu_namespace);
+
+
+  //Start spinner so that callbacks happen in a seperate thread
+  ros::AsyncSpinner spinner(2);//2 threads
+  spinner.start();
+
+  //Subscribe to GPS topic
+  ros::Subscriber gps_sub = n.subscribe(gps_namespace, 1, gpsCallback);
+
+  //Subscribe to IMU topic
+  ros::Subscriber imu_sub = n.subscribe(imu_namespace, 1, imuCallback);
+
+  //set up service to grab waypoints
+  waypoint_client = n.serviceClient<snowplow_pid::request_next_waypoints>("request_next_waypoints");
+
+  //Set up cmd_vel publisher
+  cmd_vel_pub = n.advertise<geometry_msgs::Twist>("cmd_vel", 10);
+  
+  //Set up rate for cmd_vel_pub topic to be published at
+  ros::Rate cmd_vel_rate(40);//Hz
+
 
   //initialize Twist messages to zeros, might not be necessary, but YOLO
   vel_targets.linear.x = 0;
