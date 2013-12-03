@@ -1,0 +1,7 @@
+<launch>
+<!-- Launch path planner node -->
+<node pkg="path_planner" type="path_planner_node" name="path_planner_node" output="screen">
+      <param name="survey_file" value="/home/redblade/Documents/Redblade/config/survey_file.txt"/>
+</node>
+
+</launch>

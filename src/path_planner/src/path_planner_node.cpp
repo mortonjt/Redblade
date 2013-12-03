@@ -50,8 +50,12 @@ void parse_file_to_vector(std::string &filename, std::vector<std::string> &lines
   }
 }
 
-void save_waypoint_vector(){
+void save_waypoint_vector(std::string filename){
   //save current waypoint vector to a file
+  std::ofstream file(filename.c_str());
+  for(int i = 0; i < waypoints.size(); i++){
+    file << waypoints[i][0] << "," << waypoints[i][1] << "," << waypoints[i][2] << "\n";
+  }
 }
 
 void read_in_survey_points(){
@@ -155,7 +159,10 @@ int main(int argc, char** argv){
   //generate waypoints
   if(single_i){
     generate_single_i_waypoints();
+    save_waypoints(i_waypoint_file);
   }else{
     generate_triple_i_waypoints();
+    save_waypoints(triple_i_waypoint_file);
   }
+
 }
