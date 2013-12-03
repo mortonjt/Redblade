@@ -49,10 +49,10 @@ find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs)
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES redblade_description
-#  CATKIN_DEPENDS roscpp rospy std_msgs
-#  DEPENDS system_lib
+ INCLUDE_DIRS include
+ LIBRARIES redblade_description
+ CATKIN_DEPENDS roscpp rospy std_msgs
+ DEPENDS system_lib
 )
 
 ###########
@@ -62,9 +62,16 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 # include_directories(include)
-include_directories(
-  ${catkin_INCLUDE_DIRS}
-)
+
+include (FindPkgConfig)
+if (PKG_CONFIG_FOUND)
+  pkg_check_modules(GAZEBO gazebo)
+endif()
+include_directories(${catkin_INCLUDE_DIRS} ${GAZEBO_INCLUDE_DIRS} include)
+link_directories(${GAZEBO_LIBRARY_DIRS})
+
+add_library(wheel_pos SHARED src/ContactPlugin.cc)
+target_link_libraries(wheel_pos ${GAZEBO_libraries})
 
 ## Declare a cpp library
 # add_library(redblade_description
