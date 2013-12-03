@@ -2,7 +2,6 @@
 #include <string>
 #include <fstream>
 #include <sstream>
-#include <tuple>
 #include <iostream>
 
 /*
@@ -76,11 +75,11 @@ int main(int argc, char** argv){
   ros::NodeHandle nh("~");//local namespace
 
   //read in params from local namespace
-  nh.param("survey_file", survey_file, "survey_file.txt");
-  nh.param("i_waypoint_file", i_waypoint_file, "i_waypoints.txt");
-  nh.param("triple_i_waypoint_file", triple_i_waypoint_file, "triple_i_waypoints.txt");
+  nh.param("survey_file", survey_file, std::string("survey_file.txt"));
+  nh.param("i_waypoint_file", i_waypoint_file, std::string("i_waypoints.txt"));
+  nh.param("triple_i_waypoint_file", triple_i_waypoint_file, std::string("triple_i_waypoints.txt"));
   nh.param("single_i", single_i, true);
-  nh.param("overlap_width", overlap_width, 0.2;);
+  nh.param("overlap_width", overlap_width, 0.2);
 
   //TODO: subscribe to any topics?
 

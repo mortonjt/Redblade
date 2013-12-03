@@ -234,10 +234,10 @@ int main(int argc, char** argv){
   nh.param("KP_SLOW", KP_SLOW, 0.0);
   nh.param("KI_SLOW", KI_SLOW, 0.0);
   nh.param("KD_SLOW", KD_SLOW, 0.0);
-  nh.param("gps",gps_namespace,"/gps")
-  nh.param("imu",imu_namespace,"/imu/integrated_gyros")
+  nh.param("gps",gps_namespace,std::string("/gps"));
+  nh.param("imu",imu_namespace,std::string("/imu/integrated_gyros"));
   ROS_INFO("FAST: %f\tSLOW: %f\tKP: %f\t", FAST_SPEED, SLOW_SPEED, KP);
-  ROS_INFO("gps_namespace: %s\t imu_namespace: %s", gps_namespace, imu_namespace);
+  ROS_INFO("gps_namespace: %s\t imu_namespace: %s", gps_namespace.c_str(), imu_namespace.c_str());
 
 
   //Start spinner so that callbacks happen in a seperate thread
