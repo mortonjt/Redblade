@@ -224,6 +224,8 @@ int main(int argc, char** argv){
   ros::NodeHandle nh("~");//local namespace, used for params
 
   //Start spinner so that callbacks happen in a seperate thread
+  //~~~~~~~~~~HEY BOP, are you trying to give each callback a dedicated thread?
+  //because I don't think that's what's happening here.
   ros::AsyncSpinner spinner(2);//2 threads
   spinner.start();
 
