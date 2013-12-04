@@ -56,6 +56,7 @@ void save_waypoint_vector(std::string filename){
   for(int i = 0; i < waypoints.size(); i++){
     file << waypoints[i][0] << "," << waypoints[i][1] << "," << waypoints[i][2] << "\n";
   }
+  file.close();
 }
 
 void read_in_survey_points(){
@@ -159,10 +160,10 @@ int main(int argc, char** argv){
   //generate waypoints
   if(single_i){
     generate_single_i_waypoints();
-    save_waypoints(i_waypoint_file);
+    save_waypoint_vector(i_waypoint_file);
   }else{
     generate_triple_i_waypoints();
-    save_waypoints(triple_i_waypoint_file);
+    save_waypoint_vector(triple_i_waypoint_file);
   }
 
 }
