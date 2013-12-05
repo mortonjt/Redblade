@@ -6,7 +6,7 @@
 
 /*
 All ENU coordinates read in from the survey waypoints file are assumed to be in a coordinate frame defined as follows
-
+TODO
 ___________________________________________________________
 | |
 | |
@@ -86,7 +86,6 @@ void generate_single_i_waypoints(){
   //find orientation of field
   double field_angle = get_orientation();
 
-  //TODO: changed start_of_snowfield here, might need to fix some stuff
   //generate ENU points in coordinate frame where field is facing E/W
   center_of_snowfield = 2.0;//meters from outer boundaries
   start_of_snowfield = 3.0;//wrt starting outer boundary
@@ -145,23 +144,80 @@ void generate_triple_i_waypoints(){
   start_of_snowfield = 3.0;//wrt starting outer boundary
   end_of_snowfield = 2.0;//wrt ending outer boundary
 
-  //we'll use a 4 pass strategy, but we'll hit the outside first, then the inside, then the outside again
+  //we'll use a 4 pass strategy, we'll hit the outside first, then the inside, then the outside again
   
-  //starting point
+  //starting point, first we do the loop around the outside
   temp[0] = start_of_snowfield - rotation_center_to_front - buffer;
   temp[1] = center_of_snowfield + (overlap_width/2) - plow_width + (overlap_width) - (plow_width/2);
   temp[2] = 1;
+  waypoints.push_back(temp);
 
   //first point towards the end of the path
-  temp[0] = start_of_snowfield + field_length + end_of_snowfield - rotation_center_to__front - buffer;
+  temp[0] = start_of_snowfield + field_length + end_of_snowfield - rotation_center_to_front - buffer;
   temp[2] = 1;
+  waypoints.push_back(temp);
 
   //back up a little bit
   temp[0] -= back_up_distance;
   temp[2] = 0;
+  waypoints.push_back(temp);
 
   //turn 90 degrees counter clockwise and plow across
+  temp[1] = center_of_snowfield*2 - rotation_center_to_front - buffer;
+  temp[2] = 1;
+  waypoints.push_back(temp);
+
+  //back up a bit
+  temp[1] = center_of_snowfield - (overlap_width/2) + plow_width - overlap_width + (plow_width/2);
+  temp[2] = 0;
+  waypoints.push_back(temp);
+
+  //turn counter clockwise and go back towards the garage
+  temp[0] = rotation_center_to_front + buffer;
+  temp[2] = 1;
+  waypoints.push_back(temp);
   
+  //back up a bit
+  temp[0] += back_up_distance;
+  temp[2] = 0;
+  waypoints.push_back(temp);
+
+  //turn counter clockwise and go towards the start waypoint for the inner loop
+  temp[0] = start_of_snowfield - rotation_center_to_front - buffer;
+  temp[1] = center_of_snowfield + (overlap_width/2) - (plow_width/2);
+  temp[2] = 1;
+  waypoints.push_back(temp);
+  
+  //first point towards the end of the path
+  temp[0] = start_of_snowfield + field_length + end_of_snowfield - rotation_center_to_front - buffer;
+  temp[2] = 1;
+  waypoints.push_back(temp);
+
+  //back up a little bit
+  temp[0] -= back_up_distance;
+  temp[2] = 0;
+  waypoints.push_back(temp);
+
+  //turn 90 degrees counter clockwise and plow across
+  temp[1] = center_of_snowfield*2 - rotation_center_to_front - buffer;
+  temp[2] = 1;
+  waypoints.push_back(temp);  
+
+  //back up a bit
+  temp[1] = center_of_snowfield - (overlap_width/2) + (plow_width/2);
+  temp[2] = 0;
+  waypoints.push_back(temp);
+
+  //turn 90 degrees counter clockwise and go back to the garage
+  temp[0] = rotation_center_to_front + buffer;
+  temp[2] = 1;
+  waypoints.push_back(temp);
+  
+  //back up a bit
+  temp[0] += back_up_distance;
+  temp[2] = 0;
+  waypoints.push_back(temp);
+
 }
 
 int main(int argc, char** argv){

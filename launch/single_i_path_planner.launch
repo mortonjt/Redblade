@@ -5,7 +5,7 @@
       <param name="i_waypoint_file" value="/home/redblade/Documents/Redblade/config/single_i_waypoints.txt"/>
       <param name="triple_i_waypoint_file" value="/home/redblade/Documents/Redblade/config/triple_i_waypoints.txt"/>
       <param name="single_i" value="true"/>
-      <param name="overlap_width" value="0.2"/>
+      <param name="overlap_width" value="0.4"/>
       <param name="plow_width" value="1.1"/>
       <param name="rotation_center_to_front" value="1.0"/>
       <param name="rotation_center_to_rear" value="1.0"/>
