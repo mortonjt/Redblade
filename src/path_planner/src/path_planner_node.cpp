@@ -86,9 +86,10 @@ void generate_single_i_waypoints(){
   //find orientation of field
   double field_angle = get_orientation();
 
+  //TODO: changed start_of_snowfield here, might need to fix some stuff
   //generate ENU points in coordinate frame where field is facing E/W
   center_of_snowfield = 2.0;//meters from outer boundaries
-  start_of_snowfield = 4.0;//wrt starting outer boundary
+  start_of_snowfield = 3.0;//wrt starting outer boundary
   end_of_snowfield = 2.0;//wrt ending outer boundary
 
   //i field is relatively simple, the number of points can be hardcoded
@@ -131,7 +132,36 @@ void generate_single_i_waypoints(){
 }
 
 void generate_triple_i_waypoints(){
+  //define a bunch of stuff needed for calculations
+  std::vector<double> temp(3,0);
+  field_length = 10.0;
+  field_width = 3.0;
+  
+  //find orientation of field
   double field_angle = get_orientation();
+
+  //generate ENU points in coordinate frame where field is facing E/W
+  center_of_snowfield = 3.5;//meters from outer boundaries
+  start_of_snowfield = 3.0;//wrt starting outer boundary
+  end_of_snowfield = 2.0;//wrt ending outer boundary
+
+  //we'll use a 4 pass strategy, but we'll hit the outside first, then the inside, then the outside again
+  
+  //starting point
+  temp[0] = start_of_snowfield - rotation_center_to_front - buffer;
+  temp[1] = center_of_snowfield + (overlap_width/2) - plow_width + (overlap_width) - (plow_width/2);
+  temp[2] = 1;
+
+  //first point towards the end of the path
+  temp[0] = start_of_snowfield + field_length + end_of_snowfield - rotation_center_to__front - buffer;
+  temp[2] = 1;
+
+  //back up a little bit
+  temp[0] -= back_up_distance;
+  temp[2] = 0;
+
+  //turn 90 degrees counter clockwise and plow across
+  
 }
 
 int main(int argc, char** argv){
