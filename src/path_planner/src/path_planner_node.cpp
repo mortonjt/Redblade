@@ -251,10 +251,8 @@ int main(int argc, char** argv){
   //generate waypoints
   if(single_i){
     generate_single_i_waypoints();
-    save_waypoint_vector(i_waypoint_file);
   }else{
     generate_triple_i_waypoints();
-    save_waypoint_vector(triple_i_waypoint_file);
   }
 
   //find how our field sits with repsect to ENU
@@ -265,6 +263,11 @@ int main(int argc, char** argv){
     rotation_matrix(waypoints[i], orientation);
   }
 
+  if(single_i){
+    save_waypoint_vector(i_waypoint_file);
+  }else{
+    save_waypoint_vector(triple_i_waypoint_file);
+  }
 
 
 }
