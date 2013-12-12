@@ -7,18 +7,6 @@
 /*
 All ENU coordinates read in from the survey waypoints file are assumed to be in a coordinate frame defined as follows
 TODO
-___________________________________________________________
-| |
-| |
-| |
-| |
-| |
-| |
-| |
-| |
-|__________________________________________________________|
-
-^(0,0)
 */
 
 
@@ -49,7 +37,7 @@ void parse_file_to_vector(std::string &filename, std::vector<std::string> &lines
     lines.push_back(item);
   }
 }
-
+//save the current waypoint vector to a csv file
 void save_waypoint_vector(std::string filename){
   //save current waypoint vector to a file
   std::ofstream file(filename.c_str());
@@ -59,6 +47,7 @@ void save_waypoint_vector(std::string filename){
   file.close();
 }
 
+//read in the survey points
 void read_in_survey_points(){
   std::vector<std::string> lines;
   parse_file_to_vector(survey_file, lines);
@@ -69,13 +58,17 @@ void read_in_survey_points(){
   }
 }
 
-//TODO: howdo
+//use two survey points to find the angle of the field with respect
+//to an ENU coordinate frame
 double get_orientation(){
-  double orientation = .75;//rads
+  double orientation = atan2(survey_points[1][1]-survey_points[0][1],
+			     survey_points[1][0]-survey_points[0][0]);
+  return orientation;
 }
 
 /*
-The lat, long will only be used to figure out the orientation of the field.
+  generate the set of waypoints what would be used with a field
+aligned facing at exactly 0 degrees
  */
 void generate_single_i_waypoints(){
   //define a bunch of stuff needed for calculations
@@ -83,9 +76,6 @@ void generate_single_i_waypoints(){
   field_length = 10.0;
   field_width = 1.0;
   
-  //find orientation of field
-  double field_angle = get_orientation();
-
   //generate ENU points in coordinate frame where field is facing E/W
   center_of_snowfield = 2.0;//meters from outer boundaries
   start_of_snowfield = 3.0;//wrt starting outer boundary
@@ -130,6 +120,12 @@ void generate_single_i_waypoints(){
   waypoints.push_back(temp);
 }
 
+
+
+/*
+  generate the set of waypoints what would be used with a field
+aligned facing at exactly 0 degrees
+ */
 void generate_triple_i_waypoints(){
   //define a bunch of stuff needed for calculations
   std::vector<double> temp(3,0);
@@ -144,7 +140,7 @@ void generate_triple_i_waypoints(){
   start_of_snowfield = 3.0;//wrt starting outer boundary
   end_of_snowfield = 2.0;//wrt ending outer boundary
 
-  //we'll use a 4 pass strategy, we'll hit the outside first, then the inside, then the outside again
+  //we'll use a 4/6 pass strategy, we'll hit the outside first, then the inside, then the outside again
   
   //starting point, first we do the loop around the outside
   temp[0] = start_of_snowfield - rotation_center_to_front - buffer;
@@ -220,6 +216,15 @@ void generate_triple_i_waypoints(){
 
 }
 
+//rotate a specified point by a given angle using the
+//origin as the rotation center
+void rotation_matrix(std::vector<double> &point, double theta){
+  double x = point[0];
+  double y = point[1];
+  point[0] = x*cos(theta) - y*sin(theta);
+  point[1] = x*sin(theta) + y*cos(theta);
+}
+
 int main(int argc, char** argv){
   //Node setup
   ros::init(argc, argv, "path_planner_node");
@@ -240,7 +245,7 @@ int main(int argc, char** argv){
 
   //TODO: subscribe to any topics?
 
-  //read in survey points, in lat, long
+  //read in survey points, in ENU
   read_in_survey_points();
 
   //generate waypoints
@@ -251,5 +256,15 @@ int main(int argc, char** argv){
     generate_triple_i_waypoints();
     save_waypoint_vector(triple_i_waypoint_file);
   }
+
+  //find how our field sits with repsect to ENU
+  double orientation = get_orientation();
+
+  //rotate waypoints by angle of field
+  for(int i = 0; i < waypoints.size(); i++){
+    rotation_matrix(waypoints[i], orientation);
+  }
+
+
 
 }
