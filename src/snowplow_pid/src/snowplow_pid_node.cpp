@@ -128,6 +128,7 @@ bool ye_ol_pid(){
   }
   error = current_heading - desired_heading;
   wrap_pi(error);
+  ROS_INFO("Error %f.",error);
 
   //calculate p, i, and d correction factors
   total_num_of_errors += 1;
@@ -183,6 +184,8 @@ void imuCallback(const geometry_msgs::Vector3::ConstPtr& imu_msg){
 }
 
 void gpsCallback(const nav_msgs::Odometry::ConstPtr& gps_msg){
+  ROS_INFO("GPS Callback");
+  
   if(imu_init){//if the imu isn't publishing yet, we are just gonna ignore this message
     //copy this info
     current_gps = *gps_msg;
@@ -196,12 +199,13 @@ void gpsCallback(const nav_msgs::Odometry::ConstPtr& gps_msg){
 	start = srv.response.start;
 	dest = srv.response.dest;
 	forward = srv.response.forward;
+	ROS_INFO("Start: %f Dest: %f Fwd: %f",start,dest,forward);
       }else{
 	ROS_ERROR("Failed to call service request_next_waypoints");
       }
-
+      
       //TODO: make robot turn here to face the next waypoint
-
+      
       //reinitialize all errors to zero
       previous_error = 0;
       sum_of_errors = 0;

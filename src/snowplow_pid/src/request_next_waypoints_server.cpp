@@ -5,6 +5,11 @@
 #include <sstream>
 #include <fstream>
 
+//Constants for indexing waypoints
+#define X 0
+#define Y 1
+#define FWD 2
+
 std::string waypoints_filename;
 std::vector<std::vector<double> > waypoints;
 
@@ -23,6 +28,7 @@ bool read_in_waypoints(){
   std::ifstream file(waypoints_filename.c_str());
   while(std::getline(file, item, '\n')){
     elements.push_back(item);
+    ROS_INFO("Read item:%s", (char*)item.c_str());
   }
 
   //split each line
@@ -50,20 +56,23 @@ int main(int argc, char** argv){
   ros::init (argc, argv, "request_next_waypoints_server");
   ros::NodeHandle n;
   ros::NodeHandle nh("~");
-
+  std::vector<std::string> testList;
+  
   //TODO: add waypoints vector and populate this vector with waypoints
   //read in from some file that was passed in as a parameter
   nh.param("waypoints_filename", waypoints_filename, std::string("waypoints.txt"));
+  
   ROS_INFO("Waypoints file:%s", waypoints_filename.c_str());
   bool file_good = read_in_waypoints();
-
+  
   if(!file_good){
     ROS_ERROR("Error in waypoints service.");
     return 1;
   }
+  ROS_INFO("Number of waypoints:%d", (int)waypoints.size());
   
   for(int i = 0; i < waypoints.size(); i++){
-    ROS_INFO("(%f, %f)\t%f", waypoints[i][0], waypoints[i][1], waypoints[i][2]);
+    ROS_INFO("(%f, %f)\t%f", waypoints[i][X], waypoints[i][Y], waypoints[i][FWD]);
   }
 
   ros::ServiceServer service = n.advertiseService("request_next_waypoints", next_waypoints);
@@ -72,3 +81,7 @@ int main(int argc, char** argv){
  
   return 0;
 }
+
+
+
+
