@@ -3,6 +3,7 @@
 #include <geometry_msgs/Vector3.h>
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/Pose2D.h>
+#include <sensor_msgs/Imu.h>
 #include "snowplow_pid/request_next_waypoints.h"
 #include <string>
 #include <cmath>
@@ -153,6 +154,9 @@ bool ye_ol_pid(){
 
   //check to see if we've reached our destination
   distance = distance_to_goal(dest, start);
+  ROS_INFO("Distance %f",distance);
+  ROS_INFO("Start (%f,%f) Dest (%f,%f)",start.x,start.y,dest.x,dest.y);
+
   if(distance < 0){
     //set desired linear and angular velocities
     vel_targets.linear.x = 0;
@@ -183,6 +187,15 @@ void imuCallback(const geometry_msgs::Vector3::ConstPtr& imu_msg){
   current_imu = *imu_msg;
 }
 
+// void imuCallback(const sensor_msgs::Imu::ConstPtr& imu_msg){
+//   if(!imu_init){
+//     imu_init = true;
+//   }
+//   current_imu = imu_msg->angular_velocity;
+// }
+
+
+
 void gpsCallback(const nav_msgs::Odometry::ConstPtr& gps_msg){
   ROS_INFO("GPS Callback");
   
@@ -199,7 +212,7 @@ void gpsCallback(const nav_msgs::Odometry::ConstPtr& gps_msg){
 	start = srv.response.start;
 	dest = srv.response.dest;
 	forward = srv.response.forward;
-	ROS_INFO("Start: %f Dest: %f Fwd: %f",start,dest,forward);
+	//ROS_INFO("Start: %f Dest: %f Fwd: %f",start,dest,forward);
       }else{
 	ROS_ERROR("Failed to call service request_next_waypoints");
       }
@@ -264,7 +277,6 @@ int main(int argc, char** argv){
   
   //Set up rate for cmd_vel_pub topic to be published at
   ros::Rate cmd_vel_rate(40);//Hz
-
 
   //initialize Twist messages to zeros, might not be necessary, but YOLO
   vel_targets.linear.x = 0;

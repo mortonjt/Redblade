@@ -1,5 +1,10 @@
 <launch>
 
+  <node pkg="redblade_gazebo" type="imu_conversion" name="imu_conversion" output="screen">
+    <param name="imu_orientation" value="/redblade/imu_data"/>
+    <param name="imu_integrated_gyros" value="/redblade/integrated_gyros"/>
+  </node>
+
   <node pkg="snowplow_pid" type="request_next_waypoints_server" name="request_next_waypoints_server" output="screen">
     <param name="waypoints_filename" value="/home/jamie/Documents/Redblade/config/waypoints_test.txt"/>
   </node>
@@ -13,8 +18,7 @@
     <param name="KP_SLOW" value="0.1"/>	
     <param name="KI_SLOW" value="0.0"/>
     <param name="gps" value="/redblade/odom"/>
-    <param name="imu" value="/redblade/imu_data"/>
+    <param name="imu" value="/redblade/integrated_gyros"/>
   </node>
-
 
 </launch>
