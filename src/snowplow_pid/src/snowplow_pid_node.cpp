@@ -61,9 +61,6 @@ double distance_to_goal(geometry_msgs::Pose2D &dest, geometry_msgs::Pose2D &star
   double x1, y1, x2, y2, x, y;
   double mS, mD, bD, quad_correct, d;
   
-  x = current_gps.pose.pose.position.x;
-  y = current_gps.pose.pose.position.y;
-  
   //handling zero slope
   if(dest.y-start.y == 0){
     if(dest.x > start.x){
@@ -109,6 +106,10 @@ bool ye_ol_pid(){
   double desired_heading, kp_corr, ki_corr, kd_corr, pid, distance;
   double current_heading = current_imu.z;
 
+  geometry_msgs::Pose2D cur_pos;
+  cur_pos.x = current_gps.pose.pose.position.x;
+  cur_pos.y = current_gps.pose.pose.position.y;
+
   //TODO: implement a check for stuck method here
   
   //if this is the first time this method has been called, let's just send her in a straight line
@@ -120,8 +121,8 @@ bool ye_ol_pid(){
   }
   
   //calculate error
-  desired_heading = atan2(dest.y-current_gps.pose.pose.position.y,
-			  dest.x-current_gps.pose.pose.position.x);
+  desired_heading = atan2(dest.y-cur_pos.y,
+			  dest.x-cur_pos.x);
   wrap_pi(desired_heading);
   if(!forward){
     current_heading -= M_PI;
@@ -153,9 +154,12 @@ bool ye_ol_pid(){
   }
 
   //check to see if we've reached our destination
-  distance = distance_to_goal(dest, start);
+  //distance = distance_to_goal(dest, start);
+  distance = distance_to_goal(dest, cur_pos);
   ROS_INFO("Distance %f",distance);
-  ROS_INFO("Start (%f,%f) Dest (%f,%f)",start.x,start.y,dest.x,dest.y);
+  ROS_INFO("Start (%f,%f) Dest (%f,%f)",
+	   cur_pos.x,cur_pos.y,
+	   dest.x,dest.y);
 
   if(distance < 0){
     //set desired linear and angular velocities
@@ -193,8 +197,6 @@ void imuCallback(const geometry_msgs::Vector3::ConstPtr& imu_msg){
 //   }
 //   current_imu = imu_msg->angular_velocity;
 // }
-
-
 
 void gpsCallback(const nav_msgs::Odometry::ConstPtr& gps_msg){
   ROS_INFO("GPS Callback");
@@ -240,7 +242,7 @@ int main(int argc, char** argv){
   ros::NodeHandle n;//global namespace
   ros::NodeHandle nh("~");//local namespace, used for params
   
-  std::string gps_namespace,imu_namespace;
+  std::string gps_namespace,imu_namespace,cmd_vel_namespace;
 
   //read in pid parameters
   nh.param("FAST_SPEED", FAST_SPEED, 0.0);
@@ -253,8 +255,10 @@ int main(int argc, char** argv){
   nh.param("KD_SLOW", KD_SLOW, 0.0);
   nh.param("gps",gps_namespace,std::string("/gps"));
   nh.param("imu",imu_namespace,std::string("/imu/integrated_gyros"));
+  nh.param("cmd_vel",cmd_vel_namespace,std::string("/cmd_vel"));
   ROS_INFO("FAST: %f\tSLOW: %f\tKP: %f\t", FAST_SPEED, SLOW_SPEED, KP);
-  ROS_INFO("gps_namespace: %s\t imu_namespace: %s", gps_namespace.c_str(), imu_namespace.c_str());
+  ROS_INFO("gps_namespace: %s\t imu_namespace: %s cmd_vel_namespace %s", 
+	   gps_namespace.c_str(), imu_namespace.c_str(), cmd_vel_namespace.c_str());
 
 
   //Start spinner so that callbacks happen in a seperate thread
@@ -273,7 +277,7 @@ int main(int argc, char** argv){
   waypoint_client = n.serviceClient<snowplow_pid::request_next_waypoints>("request_next_waypoints");
 
   //Set up cmd_vel publisher
-  cmd_vel_pub = n.advertise<geometry_msgs::Twist>("cmd_vel", 10);
+  cmd_vel_pub = n.advertise<geometry_msgs::Twist>(cmd_vel_namespace, 10);
   
   //Set up rate for cmd_vel_pub topic to be published at
   ros::Rate cmd_vel_rate(40);//Hz

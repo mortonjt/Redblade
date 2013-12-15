@@ -19,6 +19,7 @@
     <param name="KI_SLOW" value="0.0"/>
     <param name="gps" value="/redblade/odom"/>
     <param name="imu" value="/redblade/integrated_gyros"/>
+    <param name="cmd_vel" value="/redblade/cmd_vel"/>
   </node>
 
 </launch>
