@@ -114,15 +114,17 @@ bool ye_ol_pid(){
   
   //if this is the first time this method has been called, let's just send her in a straight line
   //for a very short peiod of time
-  if(vel_targets.linear.x == 0){
-    vel_targets.linear.x = FAST_SPEED * (forward?(1):(-1));// m/s
-    vel_targets.angular.z = 0;//straight line, no turnin
-    return false;//we ain't done yet
-  }
+  // if(vel_targets.linear.x == 0){
+  //   vel_targets.linear.x = FAST_SPEED * (forward?(1):(-1));// m/s
+  //   vel_targets.angular.z = 0;//straight line, no turnin
+  //   return false;//we ain't done yet
+  // }
   
   //calculate error
-  desired_heading = atan2(dest.y-cur_pos.y,
-			  dest.x-cur_pos.x);
+  desired_heading = M_PI/2-atan2(dest.y-cur_pos.y,
+  			       dest.x-cur_pos.x);
+  // desired_heading = atan2(dest.y-cur_pos.y,
+  // 			  dest.x-cur_pos.x);
   wrap_pi(desired_heading);
   if(!forward){
     current_heading -= M_PI;
@@ -130,7 +132,8 @@ bool ye_ol_pid(){
   }
   error = current_heading - desired_heading;
   wrap_pi(error);
-  ROS_INFO("Error %f.",error);
+  ROS_INFO("Error %f",error);
+  ROS_INFO("Current Heading %f Desired Heading %f",current_heading,desired_heading);
 
   //calculate p, i, and d correction factors
   total_num_of_errors += 1;
@@ -147,17 +150,18 @@ bool ye_ol_pid(){
 
   //set upper limit for angular velocity
   //TODO: i actually have no idea what this number should be, gonna need to figure that out
-  if(pid > 0.5){
-    pid = 0.5;
-  }else if(pid < -0.5){
-    pid = -0.5;
-  }
+
+  // if(pid > 0.5){
+  //   pid = 0.5;
+  // }else if(pid < -0.5){
+  //   pid = -0.5;
+  // }
 
   //check to see if we've reached our destination
   //distance = distance_to_goal(dest, start);
   distance = distance_to_goal(dest, cur_pos);
   ROS_INFO("Distance %f",distance);
-  ROS_INFO("Start (%f,%f) Dest (%f,%f)",
+  ROS_INFO("Current (%f,%f) Dest (%f,%f)",
 	   cur_pos.x,cur_pos.y,
 	   dest.x,dest.y);
 
@@ -172,7 +176,7 @@ bool ye_ol_pid(){
   }else{
     //set desired linear and angular velocities
     vel_targets.linear.x = linear_vel * (forward?(1):(-1));
-    vel_targets.angular.z = pid;
+    vel_targets.angular.z = -1*pid;
   }
   
   //change linear velocity once we are close to the point

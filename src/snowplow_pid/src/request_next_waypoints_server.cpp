@@ -43,10 +43,10 @@ bool read_in_waypoints(){
 
 bool next_waypoints(snowplow_pid::request_next_waypoints::Request &req,
 		    snowplow_pid::request_next_waypoints::Response &res){
-  res.start.x = 10;
-  res.start.y = 5;
+  res.start.x = 0;
+  res.start.y = 0;
   res.dest.x = 0;
-  res.dest.y = -5;
+  res.dest.y = 10;
   res.forward = 1;
   ROS_INFO("Next waypoints request received");
   return true;
