@@ -26,7 +26,7 @@
   <!-- 	args="-urdf -model redblade -param robot_description -x 0 -y 0 -z 0"/> -->
 
   <!-- Spawn a robot into Gazebo -->
-  <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-param robot_description -urdf -model redblade -x 0 -y 0 -z 0 -R 0 -P 0 -Y 3.14151" />
+  <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-param robot_description -urdf -model redblade -x 0 -y 0 -z 0 -R 0 -P 0 -Y 0.5" />
 
   <!-- ros_control redblade launch file -->
   <include file="$(find redblade_control)/launch/redblade_control.launch" />

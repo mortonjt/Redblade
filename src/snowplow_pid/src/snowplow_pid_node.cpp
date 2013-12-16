@@ -56,46 +56,50 @@ double get_d_correction(double error){
 
 /*returns the distance from end point with some magic sprinkled in (no, i will
 not even attempt to explain the black magic that this method does. i blame Ryan
-Wolfarth for the lack of comments. */
+Wolfarth for the lack of comments. 
+*/
 double distance_to_goal(geometry_msgs::Pose2D &dest, geometry_msgs::Pose2D &start){
   double x1, y1, x2, y2, x, y;
   double mS, mD, bD, quad_correct, d;
+  return sqrt( (start.x-dest.x)*(start.x-dest.x)+	\
+	       (start.y-dest.y)*(start.y-dest.y));
   
-  //handling zero slope
-  if(dest.y-start.y == 0){
-    if(dest.x > start.x){
-      d = dest.x - x;
-    }else{
-      d = x - dest.x;
-    }
-  }else if(dest.x-start.x == 0){//handling undef. slope
-    if(dest.y > start.y){
-      d = dest.y - y;
-    }else{
-      d = y - dest.y;
-    }
-  }else{//handle all other cases with non-zero, defined slope
-    //convert to local reference frame: current point is origin
-    x1 = start.x - x;
-    y1 = start.y - y;
-    x2 = dest.x - x;
-    y2 = dest.y - y;
-    x = 0; y = 0;
+  
+  // //handling zero slope
+  // if(dest.y-start.y == 0){
+  //   if(dest.x > start.x){
+  //     d = dest.x - x;
+  //   }else{
+  //     d = x - dest.x;
+  //   }
+  // }else if(dest.x-start.x == 0){//handling undef. slope
+  //   if(dest.y > start.y){
+  //     d = dest.y - y;
+  //   }else{
+  //     d = y - dest.y;
+  //   }
+  // }else{//handle all other cases with non-zero, defined slope
+  //   //convert to local reference frame: current point is origin
+  //   x1 = start.x - x;
+  //   y1 = start.y - y;
+  //   x2 = dest.x - x;
+  //   y2 = dest.y - y;
+  //   x = 0; y = 0;
 
-    //calculate slope and equation of perpendicular line
-    mS = (y1-y2) / (x1-x2);
-    mD = -1/mS;
-    bD = y2 - (mD*x2);
+  //   //calculate slope and equation of perpendicular line
+  //   mS = (y1-y2) / (x1-x2);
+  //   mD = -1/mS;
+  //   bD = y2 - (mD*x2);
 
-    quad_correct = atan2(y2-y1,x2-x1);
-    if(quad_correct < 0){
-      quad_correct = -1;
-    }else{
-      quad_correct = 1;
-    }
+  //   quad_correct = atan2(y2-y1,x2-x1);
+  //   if(quad_correct < 0){
+  //     quad_correct = -1;
+  //   }else{
+  //     quad_correct = 1;
+  //   }
     
-    d = quad_correct * (((x*mD) - y + bD) / sqrt(pow(mD,2) + 1.0));
-  }
+  //   d = quad_correct * (((x*mD) - y + bD) / sqrt(pow(mD,2) + 1.0));
+  // }
 
   return d;
 }
@@ -130,10 +134,11 @@ bool ye_ol_pid(){
     current_heading -= M_PI;
     wrap_pi(current_heading);
   }
-  error = current_heading - desired_heading;
+  error = desired_heading - current_heading;
   wrap_pi(error);
   ROS_INFO("Error %f",error);
-  ROS_INFO("Current Heading %f Desired Heading %f",current_heading,desired_heading);
+  ROS_INFO("Current Heading %f",current_heading);
+  ROS_INFO("Desired Heading %f",desired_heading);
 
   //calculate p, i, and d correction factors
   total_num_of_errors += 1;
@@ -165,10 +170,11 @@ bool ye_ol_pid(){
 	   cur_pos.x,cur_pos.y,
 	   dest.x,dest.y);
 
-  if(distance < 0){
+  if(distance < 0.1){
     //set desired linear and angular velocities
     vel_targets.linear.x = 0;
     vel_targets.angular.z = 0;
+    ROS_INFO("Reached Goal!!!");
     return true;
   }else if(distance < .25){
     vel_targets.linear.x = linear_vel * (forward?(1):(-1));
@@ -176,13 +182,15 @@ bool ye_ol_pid(){
   }else{
     //set desired linear and angular velocities
     vel_targets.linear.x = linear_vel * (forward?(1):(-1));
-    vel_targets.angular.z = -1*pid;
+    vel_targets.angular.z = pid;
   }
   
   //change linear velocity once we are close to the point
   if(distance < 0.75){
     linear_vel = SLOW_SPEED;
   }
+  ROS_INFO("vel_targets linear: %f",vel_targets.linear.x);
+  ROS_INFO("vel_targets angular %f",vel_targets.angular.z);
 
   return false;
 }
@@ -232,6 +240,7 @@ void gpsCallback(const nav_msgs::Odometry::ConstPtr& gps_msg){
       error = 0;
       linear_vel = FAST_SPEED;
     }
+
   }
 }
 
