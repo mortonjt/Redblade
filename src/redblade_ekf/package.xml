@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<package>
+  <name>redblade_ekf</name>
+  <version>0.0.0</version>
+  <description>This package does magical EKF things.gyro/gps goes in, filtered positions/orientations wrt ENU come out. wow. such math. so kalman. amaze.</description>
+
+  <maintainer email="colerc2@miamioh.edu">Bob Cole</maintainer>
+
+
+  <license>TODO</license>
+
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>roscpp</build_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>tf</build_depend>
+
+  <run_depend>roscpp</run_depend>
+  <run_depend>rospy</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>tf</run_depend>
+
+
+  <export>
+
+  </export>
+</package>
