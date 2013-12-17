@@ -14,7 +14,7 @@ geometry_msgs::Twist back_target;
 void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& msg){
   //for now, we're just going to push the overall linear and angular velocity through
   //to each of the motor controllers, we'll figure out what's actually happening later
-  front_target.linear.x = msg->linear.x;//negate this one because the motors are backwards
+  front_target.linear.x = msg->linear.x;
   front_target.linear.y = msg->linear.y;
   front_target.linear.z = msg->linear.z;
   front_target.angular.x = msg->angular.x;
@@ -33,7 +33,7 @@ void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& msg){
 void Arduino_RC_Callback(const geometry_msgs::Twist::ConstPtr& msg) {
   //for now, we're just going to push the overall linear and angular velocity through
   //to each of the motor controllers, we'll figure out what's actually happening later
-  front_target.linear.x = msg->linear.x;//negate this one because the motors are backwards
+  front_target.linear.x = msg->linear.x;
   front_target.linear.y = msg->linear.y;
   front_target.linear.z = msg->linear.z;
   front_target.angular.x = msg->angular.x;
