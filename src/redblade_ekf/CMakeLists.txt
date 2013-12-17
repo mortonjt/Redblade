@@ -83,9 +83,9 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include
- # LIBRARIES redblade_ekf
-  CATKIN_DEPENDS roscpp rospy sensor_msgs std_msgs tf kalman
+  #INCLUDE_DIRS include
+  #  LIBRARIES redblade_ekf
+  CATKIN_DEPENDS roscpp rospy sensor_msgs std_msgs tf
 #  DEPENDS system_lib
 )
 
@@ -101,14 +101,13 @@ include_directories(
 )
 
 ## Declare a cpp library
- #add_library(redblade_ekf
- #  src/redblade_ekf.cpp
- #)
+add_library(redblade_ekf
+  src/redblade_ekf.cpp
+)
 
 ## Declare a cpp executable
 add_executable(redblade_ekf_node src/redblade_ekf_node.cpp)
-target_link_libraries(redblade_ekf_node kalman)
-#target_link_libraries(redblade_ekf_node redblade_ekf)
+target_link_libraries(redblade_ekf_node redblade_ekf ${catkin_LIBRARIES} kalman)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
