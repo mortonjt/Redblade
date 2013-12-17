@@ -490,7 +490,7 @@ public:
 
     //this matrix in this file is different than the old file, maybe ROS fucks fixed it
     tf::Quaternion quat;
-    (tf::Matrix3x3(-1,0,0,
+    (tf::Matrix3x3(-1,0,0,  //What is this vudu?
 		 0,1,0,
 		 0,0,-1)*
     tf::Matrix3x3(orientation[0], orientation[3], orientation[6],
@@ -500,7 +500,7 @@ public:
     tf::quaternionTFToMsg(quat, data.orientation);
       
     data.header.stamp = ros::Time::now().fromNSec(time);
-
+    //Any reason why 0.01?
     x_orientation_ = wrapToPi(x_orientation_ + data.angular_velocity.y * .01);
     y_orientation_ = wrapToPi(y_orientation_ - data.angular_velocity.x * .01);
     z_orientation_ = wrapToPi(z_orientation_ - data.angular_velocity.z * .01);

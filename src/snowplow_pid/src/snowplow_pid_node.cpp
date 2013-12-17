@@ -3,6 +3,7 @@
 #include <geometry_msgs/Vector3.h>
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/Pose2D.h>
+#include <sensor_msgs/Imu.h>
 #include "snowplow_pid/request_next_waypoints.h"
 #include <string>
 #include <cmath>
@@ -55,49 +56,50 @@ double get_d_correction(double error){
 
 /*returns the distance from end point with some magic sprinkled in (no, i will
 not even attempt to explain the black magic that this method does. i blame Ryan
-Wolfarth for the lack of comments. */
+Wolfarth for the lack of comments. 
+*/
 double distance_to_goal(geometry_msgs::Pose2D &dest, geometry_msgs::Pose2D &start){
   double x1, y1, x2, y2, x, y;
   double mS, mD, bD, quad_correct, d;
+  return sqrt( (start.x-dest.x)*(start.x-dest.x)+	\
+	       (start.y-dest.y)*(start.y-dest.y));
   
-  x = current_gps.pose.pose.position.x;
-  y = current_gps.pose.pose.position.y;
   
-  //handling zero slope
-  if(dest.y-start.y == 0){
-    if(dest.x > start.x){
-      d = dest.x - x;
-    }else{
-      d = x - dest.x;
-    }
-  }else if(dest.x-start.x == 0){//handling undef. slope
-    if(dest.y > start.y){
-      d = dest.y - y;
-    }else{
-      d = y - dest.y;
-    }
-  }else{//handle all other cases with non-zero, defined slope
-    //convert to local reference frame: current point is origin
-    x1 = start.x - x;
-    y1 = start.y - y;
-    x2 = dest.x - x;
-    y2 = dest.y - y;
-    x = 0; y = 0;
+  // //handling zero slope
+  // if(dest.y-start.y == 0){
+  //   if(dest.x > start.x){
+  //     d = dest.x - x;
+  //   }else{
+  //     d = x - dest.x;
+  //   }
+  // }else if(dest.x-start.x == 0){//handling undef. slope
+  //   if(dest.y > start.y){
+  //     d = dest.y - y;
+  //   }else{
+  //     d = y - dest.y;
+  //   }
+  // }else{//handle all other cases with non-zero, defined slope
+  //   //convert to local reference frame: current point is origin
+  //   x1 = start.x - x;
+  //   y1 = start.y - y;
+  //   x2 = dest.x - x;
+  //   y2 = dest.y - y;
+  //   x = 0; y = 0;
 
-    //calculate slope and equation of perpendicular line
-    mS = (y1-y2) / (x1-x2);
-    mD = -1/mS;
-    bD = y2 - (mD*x2);
+  //   //calculate slope and equation of perpendicular line
+  //   mS = (y1-y2) / (x1-x2);
+  //   mD = -1/mS;
+  //   bD = y2 - (mD*x2);
 
-    quad_correct = atan2(y2-y1,x2-x1);
-    if(quad_correct < 0){
-      quad_correct = -1;
-    }else{
-      quad_correct = 1;
-    }
+  //   quad_correct = atan2(y2-y1,x2-x1);
+  //   if(quad_correct < 0){
+  //     quad_correct = -1;
+  //   }else{
+  //     quad_correct = 1;
+  //   }
     
-    d = quad_correct * (((x*mD) - y + bD) / sqrt(pow(mD,2) + 1.0));
-  }
+  //   d = quad_correct * (((x*mD) - y + bD) / sqrt(pow(mD,2) + 1.0));
+  // }
 
   return d;
 }
@@ -108,26 +110,35 @@ bool ye_ol_pid(){
   double desired_heading, kp_corr, ki_corr, kd_corr, pid, distance;
   double current_heading = current_imu.z;
 
+  geometry_msgs::Pose2D cur_pos;
+  cur_pos.x = current_gps.pose.pose.position.x;
+  cur_pos.y = current_gps.pose.pose.position.y;
+
   //TODO: implement a check for stuck method here
   
   //if this is the first time this method has been called, let's just send her in a straight line
   //for a very short peiod of time
-  if(vel_targets.linear.x == 0){
-    vel_targets.linear.x = FAST_SPEED * (forward?(1):(-1));// m/s
-    vel_targets.angular.z = 0;//straight line, no turnin
-    return false;//we ain't done yet
-  }
+  // if(vel_targets.linear.x == 0){
+  //   vel_targets.linear.x = FAST_SPEED * (forward?(1):(-1));// m/s
+  //   vel_targets.angular.z = 0;//straight line, no turnin
+  //   return false;//we ain't done yet
+  // }
   
   //calculate error
-  desired_heading = atan2(dest.y-current_gps.pose.pose.position.y,
-			  dest.x-current_gps.pose.pose.position.x);
+  desired_heading = M_PI/2-atan2(dest.y-cur_pos.y,
+  			       dest.x-cur_pos.x);
+  // desired_heading = atan2(dest.y-cur_pos.y,
+  // 			  dest.x-cur_pos.x);
   wrap_pi(desired_heading);
   if(!forward){
     current_heading -= M_PI;
     wrap_pi(current_heading);
   }
-  error = current_heading - desired_heading;
+  error = desired_heading - current_heading;
   wrap_pi(error);
+  ROS_INFO("Error %f",error);
+  ROS_INFO("Current Heading %f",current_heading);
+  ROS_INFO("Desired Heading %f",desired_heading);
 
   //calculate p, i, and d correction factors
   total_num_of_errors += 1;
@@ -144,18 +155,26 @@ bool ye_ol_pid(){
 
   //set upper limit for angular velocity
   //TODO: i actually have no idea what this number should be, gonna need to figure that out
-  if(pid > 0.5){
-    pid = 0.5;
-  }else if(pid < -0.5){
-    pid = -0.5;
-  }
+
+  // if(pid > 0.5){
+  //   pid = 0.5;
+  // }else if(pid < -0.5){
+  //   pid = -0.5;
+  // }
 
   //check to see if we've reached our destination
-  distance = distance_to_goal(dest, start);
-  if(distance < 0){
+  //distance = distance_to_goal(dest, start);
+  distance = distance_to_goal(dest, cur_pos);
+  ROS_INFO("Distance %f",distance);
+  ROS_INFO("Current (%f,%f) Dest (%f,%f)",
+	   cur_pos.x,cur_pos.y,
+	   dest.x,dest.y);
+
+  if(distance < 0.1){
     //set desired linear and angular velocities
     vel_targets.linear.x = 0;
     vel_targets.angular.z = 0;
+    ROS_INFO("Reached Goal!!!");
     return true;
   }else if(distance < .25){
     vel_targets.linear.x = linear_vel * (forward?(1):(-1));
@@ -170,6 +189,8 @@ bool ye_ol_pid(){
   if(distance < 0.75){
     linear_vel = SLOW_SPEED;
   }
+  ROS_INFO("vel_targets linear: %f",vel_targets.linear.x);
+  ROS_INFO("vel_targets angular %f",vel_targets.angular.z);
 
   return false;
 }
@@ -182,7 +203,16 @@ void imuCallback(const geometry_msgs::Vector3::ConstPtr& imu_msg){
   current_imu = *imu_msg;
 }
 
+// void imuCallback(const sensor_msgs::Imu::ConstPtr& imu_msg){
+//   if(!imu_init){
+//     imu_init = true;
+//   }
+//   current_imu = imu_msg->angular_velocity;
+// }
+
 void gpsCallback(const nav_msgs::Odometry::ConstPtr& gps_msg){
+  ROS_INFO("GPS Callback");
+  
   if(imu_init){//if the imu isn't publishing yet, we are just gonna ignore this message
     //copy this info
     current_gps = *gps_msg;
@@ -196,12 +226,13 @@ void gpsCallback(const nav_msgs::Odometry::ConstPtr& gps_msg){
 	start = srv.response.start;
 	dest = srv.response.dest;
 	forward = srv.response.forward;
+	//ROS_INFO("Start: %f Dest: %f Fwd: %f",start,dest,forward);
       }else{
 	ROS_ERROR("Failed to call service request_next_waypoints");
       }
-
+      
       //TODO: make robot turn here to face the next waypoint
-
+      
       //reinitialize all errors to zero
       previous_error = 0;
       sum_of_errors = 0;
@@ -209,6 +240,7 @@ void gpsCallback(const nav_msgs::Odometry::ConstPtr& gps_msg){
       error = 0;
       linear_vel = FAST_SPEED;
     }
+
   }
 }
 
@@ -223,7 +255,7 @@ int main(int argc, char** argv){
   ros::NodeHandle n;//global namespace
   ros::NodeHandle nh("~");//local namespace, used for params
   
-  std::string gps_namespace,imu_namespace;
+  std::string gps_namespace,imu_namespace,cmd_vel_namespace;
 
   //read in pid parameters
   nh.param("FAST_SPEED", FAST_SPEED, 0.0);
@@ -236,8 +268,10 @@ int main(int argc, char** argv){
   nh.param("KD_SLOW", KD_SLOW, 0.0);
   nh.param("gps",gps_namespace,std::string("/gps"));
   nh.param("imu",imu_namespace,std::string("/imu/integrated_gyros"));
+  nh.param("cmd_vel",cmd_vel_namespace,std::string("/cmd_vel"));
   ROS_INFO("FAST: %f\tSLOW: %f\tKP: %f\t", FAST_SPEED, SLOW_SPEED, KP);
-  ROS_INFO("gps_namespace: %s\t imu_namespace: %s", gps_namespace.c_str(), imu_namespace.c_str());
+  ROS_INFO("gps_namespace: %s\t imu_namespace: %s cmd_vel_namespace %s", 
+	   gps_namespace.c_str(), imu_namespace.c_str(), cmd_vel_namespace.c_str());
 
 
   //Start spinner so that callbacks happen in a seperate thread
@@ -256,11 +290,10 @@ int main(int argc, char** argv){
   waypoint_client = n.serviceClient<snowplow_pid::request_next_waypoints>("request_next_waypoints");
 
   //Set up cmd_vel publisher
-  cmd_vel_pub = n.advertise<geometry_msgs::Twist>("cmd_vel", 10);
+  cmd_vel_pub = n.advertise<geometry_msgs::Twist>(cmd_vel_namespace, 10);
   
   //Set up rate for cmd_vel_pub topic to be published at
   ros::Rate cmd_vel_rate(40);//Hz
-
 
   //initialize Twist messages to zeros, might not be necessary, but YOLO
   vel_targets.linear.x = 0;

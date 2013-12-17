@@ -4,7 +4,13 @@ project(redblade_gazebo)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs)
+find_package(catkin REQUIRED COMPONENTS 
+  roscpp 
+  rospy 
+  std_msgs 
+  sensor_msgs  
+  geometry_msgs
+  )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -49,10 +55,10 @@ find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs)
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES redblade_gazebo
-#  CATKIN_DEPENDS roscpp rospy std_msgs
-#  DEPENDS system_lib
+ INCLUDE_DIRS include
+ #LIBRARIES redblade_gazebo
+ CATKIN_DEPENDS roscpp rospy std_msgs sensor_msgs geometry_msgs
+ #DEPENDS system_lib
 )
 
 ###########
@@ -73,6 +79,10 @@ include_directories(
 
 ## Declare a cpp executable
 # add_executable(redblade_gazebo_node src/redblade_gazebo_node.cpp)
+
+add_executable(imu_conversion src/imu_conversion.cc)
+
+target_link_libraries(imu_conversion ${catkin_LIBRARIES})
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes

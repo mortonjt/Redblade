@@ -1,21 +1,25 @@
 <launch>
-<!-- Output fake imu reading -->
-<node pkg="rostopic" type="rostopic" name="rostopic_pub" args="pub /fake_imu geometry_msgs/Vector3 '{x: 0.0, y: 0.0, z: 0.0}'"/>
-<!-- Launch main pid node -->
-<node pkg="snowplow_pid" type="snowplow_pid_node" name="snowplow_pid_node" output="screen">
-      <param name="FAST_SPEED" value="0.75"/>
-      <param name="SLOW_SPEED" value="0.2"/>
-      <param name="KP" value="0.1"/>
-      <param name="KI" value="0.0"/>
-      <param name="KD" value="0.0"/>	
-      <param name="KP_SLOW" value="0.1"/>	
-      <param name="KI_SLOW" value="0.0"/>
-      <param name="gps" value="/redblade/odom"/>
-      <param name="imu" value="/fake_imu"/>
-</node>
 
-<node pkg="snowplow_pid" type="request_next_waypoints_server" name="request_next_waypoints_server" output="screen">
-      <param name="waypoints_filename" value="/home/redblade/Documents/Redblade/config/waypoints_test.txt"/>
-</node>
+  <node pkg="redblade_gazebo" type="imu_conversion" name="imu_conversion" output="screen">
+    <param name="imu_orientation" value="/redblade/imu_data"/>
+    <param name="imu_integrated_gyros" value="/redblade/integrated_gyros"/>
+  </node>
+
+  <node pkg="snowplow_pid" type="request_next_waypoints_server" name="request_next_waypoints_server" output="screen">
+    <param name="waypoints_filename" value="/home/jamie/Documents/Redblade/config/waypoints_test.txt"/>
+  </node>
+
+  <node pkg="snowplow_pid" type="snowplow_pid_node" name="snowplow_pid_node" output="screen">
+    <param name="FAST_SPEED" value="0.75"/>
+    <param name="SLOW_SPEED" value="0.2"/>
+    <param name="KP" value="10.0"/>
+    <param name="KI" value="0.0"/>
+    <param name="KD" value="0.0"/>	
+    <param name="KP_SLOW" value="0.0"/>	
+    <param name="KI_SLOW" value="0.0"/>
+    <param name="gps" value="/redblade/odom"/>
+    <param name="imu" value="/redblade/integrated_gyros"/>
+    <param name="cmd_vel" value="/redblade/cmd_vel"/>
+  </node>
 
 </launch>
