@@ -34,7 +34,7 @@
 
 
 //The actual unittests
-TEST(odometry_skid_steer, testCase1){
+TEST(odometry_skid_steer, testDeltaAnglePos){
 
   odometry_skid_steer testOdomSS(0,0);
 
@@ -45,14 +45,20 @@ TEST(odometry_skid_steer, testCase1){
   front_encoder_msg.header.frame_id = "base_link";
   front_encoder_msg.encoders.time_delta = 0.01;
   front_encoder_msg.encoders.left_wheel = 10;
-  front_encoder_msg.encoders.right_wheel = 10;
+  front_encoder_msg.encoders.right_wheel = -10;
 
   ax2550::StampedEncoders back_encoder_msg;
   back_encoder_msg.header.stamp = now;
   back_encoder_msg.header.frame_id = "base_link";
   back_encoder_msg.encoders.time_delta = 0.01;
   back_encoder_msg.encoders.left_wheel = 10;
-  back_encoder_msg.encoders.right_wheel = 10;
+  back_encoder_msg.encoders.right_wheel = -10;
+
+  geometry_msgs::Vector3 orientation_msg; 
+  orientation_msg.x = 0;
+  orientation_msg.y = 0;
+  orientation_msg.z = 0;
+ 
 
   std::cout<<"Front time delta "<<front_encoder_msg.encoders.time_delta<<std::endl;
   std::cout<<"Back time delta "<<back_encoder_msg.encoders.time_delta<<std::endl;
@@ -64,6 +70,7 @@ TEST(odometry_skid_steer, testCase1){
 
   testOdomSS.getDeltaAnglePos(front_encoder_msg,
 			      back_encoder_msg,
+			      orientation_msg,
 			      delta_time,
 			      distance_delta,
 			      theta_delta);

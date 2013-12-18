@@ -11,6 +11,9 @@ ros::Time prev_time;
 nav_msgs::Odometry odom;
 ros::Publisher odom_pub;
 std::string odom_frame_id;
+bool imu_init = false;
+geometry_msgs::Vector3 orientation;
+//geometry_msgs::Vector3 prev_orientation;
 
 ax2550::StampedEncoders front_encoders,back_encoders;
 
@@ -27,11 +30,25 @@ void backEncoderCallback(const ax2550::StampedEncoders& msg){
   back_recv = true;
 }
 
+void imuCallback(const geometry_msgs::Vector3::ConstPtr& msg){
+  if(!imu_init){
+    imu_init = true;    
+  }
+  orientation.x = msg->x;
+  orientation.y = msg->y;
+  orientation.z = msg->z;
+}
+
 odometry_skid_steer::odometry_skid_steer(double rot_cov_, double pos_cov_){
   x_pos = 0, y_pos = 0, theta = 0;
   x_vel = 0, y_vel = 0, theta_vel = 0;
   rot_cov = rot_cov_;
   pos_cov = pos_cov_;
+  prev_fr_encoder = 0, prev_fl_encoder= 0, prev_br_encoder= 0, prev_bl_encoder= 0;
+  prev_orientation.x = 0;
+  prev_orientation.y = 0;
+  prev_orientation.z = 0;
+
 }
 odometry_skid_steer::~odometry_skid_steer(){
 
@@ -39,18 +56,24 @@ odometry_skid_steer::~odometry_skid_steer(){
 
 void odometry_skid_steer::getDeltaAnglePos(const ax2550::StampedEncoders& front_msg,
 					   const ax2550::StampedEncoders& back_msg,
+					   const geometry_msgs::Vector3& orientation_msg,
 					   double& delta_time,
 					   double& distance_delta,
 					   double& theta_delta){
-  std::cout<<"Front time delta "<<front_msg.encoders.time_delta<<std::endl;
-  std::cout<<"Back time delta "<<back_msg.encoders.time_delta<<std::endl;
+  //std::cout<<"Front time delta "<<front_msg.encoders.time_delta<<std::endl;
+  //std::cout<<"Back time delta "<<back_msg.encoders.time_delta<<std::endl;
   double delta_time1 = front_msg.encoders.time_delta;
-  double delta_front_left_encoders = front_msg.encoders.left_wheel;
-  double delta_front_right_encoders = front_msg.encoders.right_wheel;
-  
+  double delta_front_right_encoders = -1 * (front_msg.encoders.right_wheel - prev_fr_encoder);
+  double delta_front_left_encoders = front_msg.encoders.left_wheel-prev_fl_encoder;
+
   double delta_time2 = back_msg.encoders.time_delta;
-  double delta_back_left_encoders = back_msg.encoders.left_wheel;
-  double delta_back_right_encoders = back_msg.encoders.right_wheel;
+  double delta_back_left_encoders =  back_msg.encoders.left_wheel - prev_br_encoder;
+  double delta_back_right_encoders = -1 * (back_msg.encoders.right_wheel - prev_bl_encoder);
+
+  ROS_INFO("Front Right Encoder Delta %f",delta_front_right_encoders);
+  ROS_INFO("Front Left Encoder Delta %f",delta_front_left_encoders);
+  ROS_INFO("Back Right Encoder Delta %f",delta_back_right_encoders);
+  ROS_INFO("Back Left Encoder Delta %f",delta_back_left_encoders);
 
   //Combine both wheels into "bigger" wheels such wheels
   double left_encoders  = (delta_front_left_encoders  + delta_back_left_encoders)/2;
@@ -58,7 +81,8 @@ void odometry_skid_steer::getDeltaAnglePos(const ax2550::StampedEncoders& front_
 
   delta_time = (delta_time1+delta_time2)/2;  // The average delta time
   distance_delta = ((left_encoders+right_encoders)/2)/(clicks_per_m);
-  theta_delta = (left_encoders-right_encoders)/wheel_base_width;
+  theta_delta = orientation_msg.z - prev_orientation.z;
+  //theta_delta = (left_encoders-right_encoders)/wheel_base_width;
 }
 
 nav_msgs::Odometry odometry_skid_steer::getOdometry(){
@@ -91,7 +115,10 @@ nav_msgs::Odometry odometry_skid_steer::getOdometry(){
 }
 
 
-void odometry_skid_steer::update(double delta_time,
+void odometry_skid_steer::update(const ax2550::StampedEncoders& front_msg,
+				 const ax2550::StampedEncoders& back_msg,
+				 const geometry_msgs::Vector3& orientation_msg,
+				 double delta_time,
 				 double distance_delta,
 				 double theta_delta){
   //Is this orientation right???  Should the sin/cos be flipped?
@@ -106,6 +133,15 @@ void odometry_skid_steer::update(double delta_time,
   y_vel = dY/delta_time;
   theta_vel = theta_delta/delta_time;
 
+  prev_fr_encoder  = front_msg.encoders.right_wheel;
+  prev_fl_encoder  = front_msg.encoders.left_wheel;
+  prev_br_encoder  = back_msg.encoders.right_wheel;
+  prev_bl_encoder  = back_msg.encoders.left_wheel;
+  prev_orientation.x = orientation_msg.x;
+  prev_orientation.y = orientation_msg.y;
+  prev_orientation.z = orientation_msg.z;
+  
+
 }
 
 void publish_loop(odometry_skid_steer odomSS){
@@ -115,10 +151,14 @@ void publish_loop(odometry_skid_steer odomSS){
   //publish odom messages
   odomSS.getDeltaAnglePos(front_encoders,
 			  back_encoders,
+			  orientation,
 			  delta_time,	
 			  distance_delta,
 			  theta_delta);
-  odomSS.update(delta_time,	
+  odomSS.update(front_encoders,
+		back_encoders,
+		orientation,
+		delta_time,	
 		distance_delta,
 		theta_delta);
   

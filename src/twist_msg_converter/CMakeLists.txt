@@ -80,14 +80,14 @@ include_directories(
 # )
 
 ## Declare a cpp executable
-add_executable(twist_conv_node src/twist_conv_node.cpp)
+add_executable(twist_converter src/twist_converter.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
- add_dependencies(twist_conv_node twist_msg_converter_generate_messages_cpp)
+ add_dependencies(twist_converter twist_msg_converter_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
- target_link_libraries(twist_conv_node
+ target_link_libraries(twist_converter
    ${catkin_LIBRARIES}
  )
 
