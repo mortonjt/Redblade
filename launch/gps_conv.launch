@@ -1,0 +1,17 @@
+<launch>  
+
+  <node pkg="nmea_navsat_driver" type="nmea_serial_driver" name="B110_1_rover" output="screen" >
+    <param name="port" value="/dev/ttyUSB0" />
+    <param name="baud" value="115200" /> 
+    <param name="frame_id" value="B110_1_rover" />
+    <param name="useRMC" value="False" /> 
+  </node> 
+  
+  <node name="gps_conv" pkg="gps_common" type="gps_conv_node" >
+    <remap from="odom" to="gps"/>
+    <param name="filepath" value="/home/rj/Redblade/config/" />   	
+    <param name="rot_covariance" value="99999" />
+    <param name="frame_id" value="base_footprint" />
+  </node>
+
+</launch>

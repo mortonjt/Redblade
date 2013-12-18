@@ -1,0 +1,17 @@
+<launch>  
+
+  <node pkg="nmea_navsat_driver" type="nmea_serial_driver" name="B110_1" output="screen" >
+    <param name="port" value="/dev/ttyFTDItop" />
+    <param name="baud" value="115200" /> 
+    <param name="frame_id" value="B110_1" />
+    <param name="useRMC" value="False" /> 
+  </node> 
+
+  <node pkg="nmea_navsat_driver" type="nmea_serial_driver" name="B110_2" output="screen" >
+    <param name="port" value="/dev/ttyFTDIbottom" />
+    <param name="baud" value="115200" /> 
+    <param name="frame_id" value="B110_2" />
+    <param name="useRMC" value="False" /> 
+  </node> 
+
+</launch>  
