@@ -73,8 +73,8 @@ bool isPrecise(std::deque<Coordinates> coords, Coordinates avg){
 void collectCornerPoints(std::vector<Coordinates>& cornerList){
 
   std::string confirm;
-  Coordinates referenceCoord;
-  //  std::deque<Coordinates> selectPoints;
+  //  Coordinates referenceCoord;
+  std::deque<Coordinates> selectPoints;
   Coordinates avg;
   int ii = 0;
 
