@@ -10,7 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   sensor_msgs
   std_msgs
-  eigen
+#  eigen
 )
 
 ## System dependencies are found with CMake's conventions
@@ -88,7 +88,7 @@ catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES survey_snow_field
   CATKIN_DEPENDS roscpp sensor_msgs std_msgs
-  DEPENDS eigen
+#  DEPENDS eigen 
 )
 
 ###########
@@ -100,10 +100,10 @@ catkin_package(
 # include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
-  ${EIGEN_INCLUDE_DIRS}
+#  ${EIGEN_INCLUDE_DIRS}
 )
 
-add_definitions(${EIGEN_DEFINITIONS})
+#add_definitions(${EIGEN_DEFINITIONS})
 
 ## Declare a cpp library
 # add_library(survey_snow_field

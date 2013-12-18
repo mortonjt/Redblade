@@ -74,7 +74,7 @@ void collectCornerPoints(std::vector<Coordinates>& cornerList){
 
   std::string confirm;
   Coordinates referenceCoord;
-  std::deque<Coordinates> selectPoints;
+  //  std::deque<Coordinates> selectPoints;
   Coordinates avg;
   int ii = 0;
 
@@ -91,11 +91,11 @@ void collectCornerPoints(std::vector<Coordinates>& cornerList){
       
       cornerList.push_back(Coordinates(avg.lat, avg.lon, avg.h));
 
-      //if this is the first point, make it the reference for all others
-      if(cornerList.size() == 0)
-	referenceCoord = Coordinates(avg.lat,avg.lon,avg.h);
+      // //if this is the first point, make it the reference for all others
+      // if(cornerList.size() == 0)
+      // 	referenceCoord = Coordinates(avg.lat,avg.lon,avg.h);
 
-      cornerList.back().setReference(referenceCoord);
+      // cornerList.back().setReference(referenceCoord);
       pointBuffer.clear();
       ii++;
     }//end if
