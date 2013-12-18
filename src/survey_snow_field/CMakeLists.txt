@@ -85,7 +85,7 @@ set(CMAKE_CXX_FLAGS "-std=c++0x")
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include
+#  INCLUDE_DIRS include
 #  LIBRARIES survey_snow_field
   CATKIN_DEPENDS roscpp sensor_msgs std_msgs
   DEPENDS eigen
