@@ -40,14 +40,14 @@ TEST(odometry_skid_steer, testCase1){
 
   ros::Time now(0);
 
-  redblade_ax2550::StampedEncoders front_encoder_msg;
+  ax2550::StampedEncoders front_encoder_msg;
   front_encoder_msg.header.stamp = now;
   front_encoder_msg.header.frame_id = "base_link";
   front_encoder_msg.encoders.time_delta = 0.01;
   front_encoder_msg.encoders.left_wheel = 10;
   front_encoder_msg.encoders.right_wheel = 10;
 
-  redblade_ax2550::StampedEncoders back_encoder_msg;
+  ax2550::StampedEncoders back_encoder_msg;
   back_encoder_msg.header.stamp = now;
   back_encoder_msg.header.frame_id = "base_link";
   back_encoder_msg.encoders.time_delta = 0.01;

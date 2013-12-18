@@ -1,5 +1,5 @@
 #include <ros/ros.h>
-#include "redblade_ax2550/StampedEncoders.h"
+#include "ax2550/StampedEncoders.h"
 #include <nav_msgs/Odometry.h>
 
 
@@ -21,8 +21,8 @@ class odometry_skid_steer{
   odometry_skid_steer(double rot_cov_, double pos_cov_);
   ~odometry_skid_steer();
 
-  static void getDeltaAnglePos(redblade_ax2550::StampedEncoders front_msg,
-			       redblade_ax2550::StampedEncoders back_msg,
+  static void getDeltaAnglePos(ax2550::StampedEncoders front_msg,
+			       ax2550::StampedEncoders back_msg,
 			       double& delta_time,
 			       double& distance_delta,
 			       double& theta_delta);

@@ -2,7 +2,7 @@
 #include <geometry_msgs/Twist.h>
 #include <string>
 #include <cmath>
-//#include "redblade_ax2550/StampedEncoders.h"
+//#include "ax2550/StampedEncoders.h"
 #include <tf/tf.h>
 #include "odometry_skid_steer.h"
 
@@ -12,17 +12,17 @@ nav_msgs::Odometry odom;
 ros::Publisher odom_pub;
 std::string odom_frame_id;
 
-redblade_ax2550::StampedEncoders front_encoders,back_encoders;
+ax2550::StampedEncoders front_encoders,back_encoders;
 
 bool front_recv = false;
 bool back_recv = false;
 
-void frontEncoderCallback(const redblade_ax2550::StampedEncoders& msg){
+void frontEncoderCallback(const ax2550::StampedEncoders& msg){
   front_encoders = msg;
   front_recv = true;
 }
 
-void backEncoderCallback(const redblade_ax2550::StampedEncoders& msg){
+void backEncoderCallback(const ax2550::StampedEncoders& msg){
   back_encoders = msg;
   back_recv = true;
 }
@@ -37,8 +37,8 @@ odometry_skid_steer::~odometry_skid_steer(){
 
 }
 
-void odometry_skid_steer::getDeltaAnglePos(redblade_ax2550::StampedEncoders front_msg,
-					   redblade_ax2550::StampedEncoders back_msg,
+void odometry_skid_steer::getDeltaAnglePos(ax2550::StampedEncoders front_msg,
+					   ax2550::StampedEncoders back_msg,
 					   double& delta_time,
 					   double& distance_delta,
 					   double& theta_delta){
