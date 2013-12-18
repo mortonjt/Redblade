@@ -18,7 +18,6 @@ find_package(catkin REQUIRED COMPONENTS
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
-
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
@@ -59,8 +58,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES snowplow_pid
+  INCLUDE_DIRS include
+  LIBRARIES odometry_skid_steer
   CATKIN_DEPENDS geometry_msgs roscpp sensor_msgs std_msgs nav_msgs redblade_ax2550
 #  DEPENDS system_lib
 )
@@ -74,15 +73,31 @@ catkin_package(
 # include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  include
 )
 
 ## Declare a cpp library
-# add_library(snowplow_pid
-#   src/${PROJECT_NAME}/snowplow_pid.cpp
-# )
+add_library(odometry_skid_steer
+  src/odometry_skid_steer.cpp
+)
 
 add_executable(odometry_skid_steer_node src/odometry_skid_steer.cpp)
-target_link_libraries(odometry_skid_steer_node ${catkin_LIBRARIES})
+target_link_libraries(odometry_skid_steer_node ${catkin_LIBRARIES} odometry_skid_steer)
+
+
+# ## Mark executables and/or libraries for installation
+# install(TARGETS odometry_skid_steer
+#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+# )
+
+# ## Mark cpp header files for installation
+# install(DIRECTORY include/${PROJECT_NAME}/
+#   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+#   FILES_MATCHING PATTERN "*.h"
+# #  PATTERN ".svn" EXCLUDE
+# )
 
 
 #############
@@ -125,10 +140,10 @@ target_link_libraries(odometry_skid_steer_node ${catkin_LIBRARIES})
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_snowplow_pid.cpp)
-# if(TARGET ${PROJECT_NAME}-test)
-#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
-# endif()
+catkin_add_gtest(${PROJECT_NAME}-test src/test_odometry_skid_steer.cpp)
+if(TARGET ${PROJECT_NAME}-test)
+  target_link_libraries(${PROJECT_NAME}-test odometry_skid_steer ${catkin_LIBRARIES})
+endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
