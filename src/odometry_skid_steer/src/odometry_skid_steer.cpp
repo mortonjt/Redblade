@@ -37,25 +37,27 @@ odometry_skid_steer::~odometry_skid_steer(){
 
 }
 
-void odometry_skid_steer::getDeltaAnglePos(ax2550::StampedEncoders front_msg,
-					   ax2550::StampedEncoders back_msg,
+void odometry_skid_steer::getDeltaAnglePos(const ax2550::StampedEncoders& front_msg,
+					   const ax2550::StampedEncoders& back_msg,
 					   double& delta_time,
 					   double& distance_delta,
 					   double& theta_delta){
-  double delta_time1 = front_encoders.encoders.time_delta;
-  double delta_front_left_encoders = front_encoders.encoders.left_wheel;
-  double delta_front_right_encoders = front_encoders.encoders.right_wheel;
+  std::cout<<"Front time delta "<<front_msg.encoders.time_delta<<std::endl;
+  std::cout<<"Back time delta "<<back_msg.encoders.time_delta<<std::endl;
+  double delta_time1 = front_msg.encoders.time_delta;
+  double delta_front_left_encoders = front_msg.encoders.left_wheel;
+  double delta_front_right_encoders = front_msg.encoders.right_wheel;
   
-  double delta_time2 = back_encoders.encoders.time_delta;
-  double delta_back_left_encoders = back_encoders.encoders.left_wheel;
-  double delta_back_right_encoders = back_encoders.encoders.right_wheel;
+  double delta_time2 = back_msg.encoders.time_delta;
+  double delta_back_left_encoders = back_msg.encoders.left_wheel;
+  double delta_back_right_encoders = back_msg.encoders.right_wheel;
 
   //Combine both wheels into "bigger" wheels such wheels
   double left_encoders  = (delta_front_left_encoders  + delta_back_left_encoders)/2;
   double right_encoders = (delta_front_right_encoders + delta_back_right_encoders)/2;
 
   delta_time = (delta_time1+delta_time2)/2;  // The average delta time
-  distance_delta = (left_encoders+right_encoders)/(clicks_per_m);
+  distance_delta = ((left_encoders+right_encoders)/2)/(clicks_per_m);
   theta_delta = (left_encoders-right_encoders)/wheel_base_width;
 }
 

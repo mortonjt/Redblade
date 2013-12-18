@@ -54,6 +54,10 @@ TEST(odometry_skid_steer, testCase1){
   back_encoder_msg.encoders.left_wheel = 10;
   back_encoder_msg.encoders.right_wheel = 10;
 
+  std::cout<<"Front time delta "<<front_encoder_msg.encoders.time_delta<<std::endl;
+  std::cout<<"Back time delta "<<back_encoder_msg.encoders.time_delta<<std::endl;
+
+
   double delta_time;
   double distance_delta;
   double theta_delta;
@@ -63,9 +67,9 @@ TEST(odometry_skid_steer, testCase1){
 			      delta_time,
 			      distance_delta,
 			      theta_delta);
-  EXPECT_EQ(0.01,delta_time);
-  EXPECT_EQ(10/clicks_per_m,distance_delta);
-  EXPECT_EQ(0,theta_delta);
+  EXPECT_NEAR(0.01,delta_time,0.0001);
+  EXPECT_NEAR(10/clicks_per_m,distance_delta,0.0001);
+  EXPECT_NEAR(0,theta_delta,0.0001);
 }
   
 //}
