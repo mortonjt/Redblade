@@ -50,7 +50,7 @@ void odometry_skid_steer::getDeltaAnglePos(redblade_ax2550::StampedEncoders fron
   double delta_back_left_encoders = back_encoders.encoders.left_wheel;
   double delta_back_right_encoders = back_encoders.encoders.right_wheel;
 
-  //Combine both wheels into "bigger" wheels
+  //Combine both wheels into "bigger" wheels such wheels
   double left_encoders  = (delta_front_left_encoders  + delta_back_left_encoders)/2;
   double right_encoders = (delta_front_right_encoders + delta_back_right_encoders)/2;
 
@@ -78,7 +78,7 @@ nav_msgs::Odometry odometry_skid_steer::getOdometry(){
     odom.twist.twist.linear.y = y_vel;
     odom.twist.twist.angular.z = theta_vel;
   
-    //TODO: covariance stuff
+    //TODO: covariance stuff lul
     odom.pose.covariance[0] = pos_cov;
     odom.pose.covariance[7] = pos_cov;
     odom.pose.covariance[14] = 1e100;
