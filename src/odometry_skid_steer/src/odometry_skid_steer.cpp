@@ -22,17 +22,17 @@ bool imu_init = false;
 geometry_msgs::Vector3 orientation;
 //geometry_msgs::Vector3 prev_orientation;
 
-ax2550::StampedEncoders front_encoders,back_encoders;
+redblade_ax2550::StampedEncoders front_encoders,back_encoders;
 
 bool front_recv = false;
 bool back_recv = false;
 
-void frontEncoderCallback(const ax2550::StampedEncoders& msg){
+void frontEncoderCallback(const redblade_ax2550::StampedEncoders& msg){
   front_encoders = msg;
   front_recv = true;
 }
 
-void backEncoderCallback(const ax2550::StampedEncoders& msg){
+void backEncoderCallback(const redblade_ax2550::StampedEncoders& msg){
   back_encoders = msg;
   back_recv = true;
 }
@@ -68,8 +68,8 @@ odometry_skid_steer::~odometry_skid_steer(){
 
 }
 
-void odometry_skid_steer::getVelocities(const ax2550::StampedEncoders& front_msg,
-					const ax2550::StampedEncoders& back_msg,
+void odometry_skid_steer::getVelocities(const redblade_ax2550::StampedEncoders& front_msg,
+					const redblade_ax2550::StampedEncoders& back_msg,
 					geometry_msgs::Twist& twist){
   double delta_time,left_encoders,right_encoders;
   getEncoders(front_msg,back_msg,left_encoders,right_encoders,delta_time);

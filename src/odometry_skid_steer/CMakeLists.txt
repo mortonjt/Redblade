@@ -12,7 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   nav_msgs
   tf
-  ax2550
+  redblade_ax2550
 )
 
 ## System dependencies are found with CMake's conventions
@@ -60,7 +60,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES odometry_skid_steer basic_odometry_skid_steer
-  CATKIN_DEPENDS geometry_msgs roscpp sensor_msgs std_msgs nav_msgs ax2550
+  CATKIN_DEPENDS geometry_msgs roscpp sensor_msgs std_msgs nav_msgs redblade_ax2550
 #  DEPENDS system_lib
 )
 

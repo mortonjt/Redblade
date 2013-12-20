@@ -1,5 +1,5 @@
 #include <ros/ros.h>
-#include "ax2550/StampedEncoders.h"
+#include "redblade_ax2550/StampedEncoders.h"
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/Vector3.h>
 #include <geometry_msgs/Twist.h>
@@ -27,45 +27,45 @@ class odometry_skid_steer{
   odometry_skid_steer(std::string odom_frame_id, double rot_cov_, double pos_cov_,double wheel_base_width,double eff_wheel_base_width);
   ~odometry_skid_steer();
 
-  void getVelocities(const ax2550::StampedEncoders& front_msg,
-		     const ax2550::StampedEncoders& back_msg,
+  void getVelocities(const redblade_ax2550::StampedEncoders& front_msg,
+		     const redblade_ax2550::StampedEncoders& back_msg,
 		     geometry_msgs::Twist& twist);
 
-  void getEncoders(const ax2550::StampedEncoders& front_msg,
-		   const ax2550::StampedEncoders& back_msg,
+  void getEncoders(const redblade_ax2550::StampedEncoders& front_msg,
+		   const redblade_ax2550::StampedEncoders& back_msg,
 		   double& delta_time,
 		   double& left_encoders, 
 		   double& right_encoders);
 
-  void getDeltas(const ax2550::StampedEncoders& front_msg,
-		 const ax2550::StampedEncoders& back_msg,
+  void getDeltas(const redblade_ax2550::StampedEncoders& front_msg,
+		 const redblade_ax2550::StampedEncoders& back_msg,
 		 const geometry_msgs::Vector3& orientation_msg,
 		 double& delta_time,
 		 double& distance_delta,
 		 double& theta_delta);
 
-  void getPosition(const ax2550::StampedEncoders& front_msg,
-		   const ax2550::StampedEncoders& back_msg,
+  void getPosition(const redblade_ax2550::StampedEncoders& front_msg,
+		   const redblade_ax2550::StampedEncoders& back_msg,
 		   const geometry_msgs::Vector3& orientation_msg,
 		   double& delta_time,
 		   double& distance_delta,
 		   double& theta_delta);
 
-  void update(const ax2550::StampedEncoders& front_msg,
-	      const ax2550::StampedEncoders& back_msg,
+  void update(const redblade_ax2550::StampedEncoders& front_msg,
+	      const redblade_ax2550::StampedEncoders& back_msg,
 	      const geometry_msgs::Vector3& orientation_msg,
 	      double delta_time,
 	      double distance_delta,
 	      double theta_delta);
 
-  nav_msgs::Odometry getOdometry(const ax2550::StampedEncoders& front_msg,
-				 const ax2550::StampedEncoders& back_msg,
+  nav_msgs::Odometry getOdometry(const redblade_ax2550::StampedEncoders& front_msg,
+				 const redblade_ax2550::StampedEncoders& back_msg,
 				 const geometry_msgs::Vector3& orientation_msg);
 };
 
 
-void odometry_skid_steer::getEncoders(const ax2550::StampedEncoders& front_msg,
-				      const ax2550::StampedEncoders& back_msg,
+void odometry_skid_steer::getEncoders(const redblade_ax2550::StampedEncoders& front_msg,
+				      const redblade_ax2550::StampedEncoders& back_msg,
 				      double& delta_time,
 				      double& left_encoders, 
 				      double& right_encoders){
@@ -86,8 +86,8 @@ void odometry_skid_steer::getEncoders(const ax2550::StampedEncoders& front_msg,
   
 };
 
-void odometry_skid_steer::getPosition(const ax2550::StampedEncoders& front_msg,
-				      const ax2550::StampedEncoders& back_msg,
+void odometry_skid_steer::getPosition(const redblade_ax2550::StampedEncoders& front_msg,
+				      const redblade_ax2550::StampedEncoders& back_msg,
 				      const geometry_msgs::Vector3& orientation_msg,
 				      double& delta_time,
 				      double& distance_delta,
@@ -103,8 +103,8 @@ void odometry_skid_steer::getPosition(const ax2550::StampedEncoders& front_msg,
 
 };
 /*Get incremental time, distance and heading*/
-void odometry_skid_steer::getDeltas(const ax2550::StampedEncoders& front_msg,
-				    const ax2550::StampedEncoders& back_msg,
+void odometry_skid_steer::getDeltas(const redblade_ax2550::StampedEncoders& front_msg,
+				    const redblade_ax2550::StampedEncoders& back_msg,
 				    const geometry_msgs::Vector3& orientation_msg,
 				    double& delta_time,
 				    double& distance_delta,
@@ -118,8 +118,8 @@ void odometry_skid_steer::getDeltas(const ax2550::StampedEncoders& front_msg,
 
 
 
-nav_msgs::Odometry odometry_skid_steer::getOdometry(const ax2550::StampedEncoders& front_msg,
-						    const ax2550::StampedEncoders& back_msg,
+nav_msgs::Odometry odometry_skid_steer::getOdometry(const redblade_ax2550::StampedEncoders& front_msg,
+						    const redblade_ax2550::StampedEncoders& back_msg,
 						    const geometry_msgs::Vector3& orientation_msg){
   double delta_time,distance_delta,theta_delta;
   geometry_msgs::Twist twist_vel;
@@ -174,8 +174,8 @@ nav_msgs::Odometry odometry_skid_steer::getOdometry(const ax2550::StampedEncoder
 };
 
 
-void odometry_skid_steer::update(const ax2550::StampedEncoders& front_msg,
-				 const ax2550::StampedEncoders& back_msg,
+void odometry_skid_steer::update(const redblade_ax2550::StampedEncoders& front_msg,
+				 const redblade_ax2550::StampedEncoders& back_msg,
 				 const geometry_msgs::Vector3& orientation_msg,
 				 double delta_time,
 				 double distance_delta,

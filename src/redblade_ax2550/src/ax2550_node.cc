@@ -1,7 +1,7 @@
 #include "ros/ros.h"
 #include "geometry_msgs/Twist.h"
 #include "nav_msgs/Odometry.h"
-#include <ax2550/StampedEncoders.h>
+#include <redblade_ax2550/StampedEncoders.h>
 #include "tf/tf.h"
 #include <tf/transform_broadcaster.h>
 
@@ -145,7 +145,7 @@ void queryEncoders() {
     right_v /= delta_time;
     // right_v *= encoder_poll_rate;
     */
-    ax2550::StampedEncoders encoder_msg;
+    redblade_ax2550::StampedEncoders encoder_msg;
     encoder_msg.header.stamp = now;
     encoder_msg.header.frame_id = "base_link";
     encoder_msg.encoders.time_delta = delta_time;
@@ -245,7 +245,7 @@ int main(int argc, char **argv) {
     ros::Rate encoder_rate(encoder_poll_rate);
     
     // Encoder Publisher
-    encoder_pub = n.advertise<ax2550::StampedEncoders>("encoders", 5);
+    encoder_pub = n.advertise<redblade_ax2550::StampedEncoders>("encoders", 5);
 
     // cmd_vel Subscriber
     ros::Subscriber sub = n.subscribe("cmd_vel", 1, cmd_velCallback);
