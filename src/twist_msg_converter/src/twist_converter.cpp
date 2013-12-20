@@ -1,8 +1,7 @@
 #include "twist_converter.h"
 
 static double clicks_per_m = 15768.6;
-static double wheel_base_width;
-static double wheel_base_length; //Distance between front and back set of wheels 
+static double wheel_base_width; //Width between the base wheels
 
 
 ros::Publisher robo_front_pub;
@@ -12,9 +11,11 @@ geometry_msgs::Twist cmd;
 geometry_msgs::Twist front_target;
 geometry_msgs::Twist back_target;
 
-twist_converter::twist_converter(double yL,double yR){
-  this->yL=yL;
-  this->yR=yR;
+twist_converter::twist_converter(double eff_wheel_base){
+  //Assumption: The instantaneous centers of rotation are symmetrical (aka yL = yR)
+  
+  this->yL=-eff_wheel_base/2;
+  this->yR=eff_wheel_base/2;
 }
 
 twist_converter::~twist_converter(){
@@ -28,6 +29,20 @@ void twist_converter::getVelocities(geometry_msgs::Twist& robot_twist,
   double w  = robot_twist.angular.z;
   double Vl = vx+yL*w;
   double Vr = vx+yR*w;
+  front_twist.linear.x = (Vl+Vr)/2.0;
+  front_twist.linear.y = 0;
+  front_twist.linear.z = 0;
+  front_twist.angular.x = 0; 
+  front_twist.angular.y = 0;
+  front_twist.angular.z = w;
+ 
+  back_twist.linear.x = (Vl+Vr)/2.0;
+  back_twist.linear.y = 0;
+  back_twist.linear.z = 0;
+  back_twist.angular.x = 0; 
+  back_twist.angular.y = 0;
+  back_twist.angular.z = w;
+  
 }
 
 void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& msg){
@@ -67,11 +82,12 @@ int main(int argc, char** argv){
   ros::init(argc, argv, "twist_conv_node");
   ros::NodeHandle n; //in the global namespace
   ros::NodeHandle nh("~");//local namespace, used for params
-  double yICR_L,yICR_R; //Instantaneous centers of rotation
-  n.param("left_instantaneous_center_of_rotation", yICR_L, 1.0);
-  n.param("right_instantaneous_center_of_rotation", yICR_R, 1.0);
-
-  twist_converter twistConv(yICR_L,yICR_R);
+  double eff_wheel_base; //Calculated from calibration
+  
+  n.param("effective_wheel_base_width", eff_wheel_base, 2.0);
+  n.param("wheel_base_width", wheel_base_width, 2.0);
+  
+  twist_converter twistConv(eff_wheel_base);
 
   //Subscribe to cmd_vel topic
   ros::Subscriber cmd_vel_sub = n.subscribe("cmd_vel", 1, cmd_velCallback);

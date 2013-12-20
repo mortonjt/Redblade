@@ -59,7 +59,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES odometry_skid_steer
+  LIBRARIES odometry_skid_steer basic_odometry_skid_steer
   CATKIN_DEPENDS geometry_msgs roscpp sensor_msgs std_msgs nav_msgs ax2550
 #  DEPENDS system_lib
 )
@@ -80,10 +80,15 @@ include_directories(
 add_library(odometry_skid_steer
   src/odometry_skid_steer.cpp
 )
+add_library(basic_odometry_skid_steer
+  src/basic_odometry_skid_steer.cpp
+)
 
 add_executable(odometry_skid_steer_node src/odometry_skid_steer.cpp)
-target_link_libraries(odometry_skid_steer_node ${catkin_LIBRARIES} odometry_skid_steer)
+add_executable(basic_odometry_skid_steer_node src/basic_odometry_skid_steer.cpp)
 
+target_link_libraries(odometry_skid_steer_node ${catkin_LIBRARIES} odometry_skid_steer)
+target_link_libraries(basic_odometry_skid_steer_node ${catkin_LIBRARIES} basic_odometry_skid_steer)
 
 # ## Mark executables and/or libraries for installation
 # install(TARGETS odometry_skid_steer
@@ -140,9 +145,14 @@ target_link_libraries(odometry_skid_steer_node ${catkin_LIBRARIES} odometry_skid
 #############
 
 ## Add gtest based cpp test target and link libraries
-catkin_add_gtest(${PROJECT_NAME}-test src/test_odometry_skid_steer.cpp)
+catkin_add_gtest(${PROJECT_NAME}-test test/test_odometry_skid_steer.cpp)
 if(TARGET ${PROJECT_NAME}-test)
   target_link_libraries(${PROJECT_NAME}-test odometry_skid_steer ${catkin_LIBRARIES})
+endif()
+
+catkin_add_gtest(${PROJECT_NAME}-test2 test/test_basic_odometry_skid_steer.cpp)
+if(TARGET ${PROJECT_NAME}-test2)
+  target_link_libraries(${PROJECT_NAME}-test2 basic_odometry_skid_steer ${catkin_LIBRARIES})
 endif()
 
 ## Add folders to be run by python nosetests
