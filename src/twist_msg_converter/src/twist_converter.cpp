@@ -29,6 +29,20 @@ void twist_converter::getVelocities(geometry_msgs::Twist& robot_twist,
   double w  = robot_twist.angular.z;
   double Vl = vx+yL*w;
   double Vr = vx+yR*w;
+  front_twist.linear.x = (Vl+Vr)/2.0;
+  front_twist.linear.y = 0;
+  front_twist.linear.z = 0;
+  front_twist.angular.x = 0; 
+  front_twist.angular.y = 0;
+  front_twist.angular.z = w;
+ 
+  back_twist.linear.x = (Vl+Vr)/2.0;
+  back_twist.linear.y = 0;
+  back_twist.linear.z = 0;
+  back_twist.angular.x = 0; 
+  back_twist.angular.y = 0;
+  back_twist.angular.z = w;
+  
 }
 
 void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& msg){
