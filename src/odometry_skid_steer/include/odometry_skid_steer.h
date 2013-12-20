@@ -25,7 +25,9 @@ class odometry_skid_steer{
 
   void getEncoders(const ax2550::StampedEncoders& front_msg,
 		   const ax2550::StampedEncoders& back_msg,
-		   double& left_encoders, double& right_encoders);
+		   double& delta_time,
+		   double& left_encoders, 
+		   double& right_encoders);
 
   void getDeltas(const ax2550::StampedEncoders& front_msg,
 		 const ax2550::StampedEncoders& back_msg,
@@ -34,11 +36,20 @@ class odometry_skid_steer{
 		 double& distance_delta,
 		 double& theta_delta);
 
+  void getPosition(const ax2550::StampedEncoders& front_msg,
+		   const ax2550::StampedEncoders& back_msg,
+		   const geometry_msgs::Vector3& orientation_msg,
+		   double& delta_time,
+		   double& distance_delta,
+		   double& theta_delta);
+
   void update(const ax2550::StampedEncoders& front_msg,
 	      const ax2550::StampedEncoders& back_msg,
 	      const geometry_msgs::Vector3& orientation_msg,
 	      double delta_time,
 	      double distance_delta,
 	      double theta_delta);
-  nav_msgs::Odometry getOdometry();
+  nav_msgs::Odometry getOdometry(const ax2550::StampedEncoders& front_msg,
+				 const ax2550::StampedEncoders& back_msg,
+				 const geometry_msgs::Vector3& orientation_msg);
 };
