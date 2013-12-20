@@ -38,7 +38,7 @@ add_executable(ax2550_node src/ax2550_node.cc)
 target_link_libraries(ax2550_node ax2550 ${catkin_LIBRARIES})
 add_dependencies(ax2550_node ax2550_generate_messages_cpp ${catkin_EXPORTED_LIBRARIES})
 
-install(TARGETS ax2550 _ax2550_node
+install(TARGETS ax2550 ax2550_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
