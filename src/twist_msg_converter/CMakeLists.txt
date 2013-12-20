@@ -78,11 +78,11 @@ include_directories(
 
 ## Declare a cpp library
 add_library(twist_msg_converter
-  src/twist_converter.cpp
+  src/twist_basic_converter.cpp
 )
 
 ## Declare a cpp executable
-add_executable(twist_converter src/twist_converter.cpp)
+add_executable(twist_converter src/twist_basic_converter.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
