@@ -1,6 +1,0 @@
-# goes in /etc/udev/rules.d/
-# make sure leading number in filename is lower than others
-# just keep adding lines for more devices
-
-KERNEL=="ttyUSB[0-9]*",ATTRS{manufacturer}=="FTDI",ATTRS{serial}=="FTB3RHP4",SYMLINK+="ttyFTDItop"
-KERNEL=="ttyUSB[0-9]*",ATTRS{manufacturer}=="FTDI",ATTRS{serial}=="FTG6VHVV",SYMLINK+="ttyFTDIbottom"

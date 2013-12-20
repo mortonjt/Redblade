@@ -1,26 +1,26 @@
 <launch>
-<node pkg="ax2550" type="ax2550_node" name="roboteq_front" output="screen">
-      <param name="serial_port" value="/dev/ttyUSB0"/>
+  <node pkg="redblade_ax2550" type="ax2550_node" name="roboteq_front" output="screen">
+      <param name="serial_port" value="/dev/ttyROBObottom"/>
       <param name="front_or_back" value="front"/>
-</node>
+  </node>
 
-<node pkg="ax2550" type="ax2550_node" name="roboteq_back" output="screen">
-       <param name="serial_port" value="/dev/ttyUSB1"/>
+  <node pkg="redblade_ax2550" type="ax2550_node" name="roboteq_back" output="screen">
+       <param name="serial_port" value="/dev/ttyROBOtop"/>
        <param name="front_or_back" value="back"/>
-</node>
+  </node>
 
-<node pkg="twist_msg_converter" type="twist_conv_node" name="twist_conv_node" output="screen">
+  <node pkg="twist_msg_converter" type="twist_converter" name="twist_converter" output="screen">
       <!-- <param name="serial_port" value="some_serial_port"/> -->
       <!-- <param name="front_or_back" value="back"/> -->
-</node>
+  </node>
 
-<node pkg="redblade_arduino" type="redblade_arduino_node" name="redblade_arduino_node" output="screen">
+  <node pkg="redblade_arduino" type="redblade_arduino_node" name="redblade_arduino_node" output="screen">
       <!-- <param name="front_or_back" value="back"/> -->
-</node>
+  </node>
 
-<node pkg="redblade_rc" type="redblade_rc_node" name="redblade_rc_node" output="screen">
+  <node pkg="redblade_rc" type="redblade_rc_node" name="redblade_rc_node" output="screen">
       <!-- <param name="serial_port" value="some_serial_port"/> -->
       <!-- <param name="front_or_back" value="back"/> -->
-</node>
+  </node>
 	
 </launch>

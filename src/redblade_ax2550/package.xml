@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package>
-  <name>ax2550</name>
+  <name>redblade_ax2550</name>
   <version>0.1.1</version>
   <description>Package which provides a library and a ROS ndoe for interfacing with the Roboteq AX2550 motor controller.</description>
 

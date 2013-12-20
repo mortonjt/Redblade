@@ -14,9 +14,9 @@ using namespace ax2550;
 using std::string;
 
 AX2550 *mc;
-ros::Publisher odom_pub;
+//ros::Publisher odom_pub;
 ros::Publisher encoder_pub;
-tf::TransformBroadcaster *odom_broadcaster;
+//tf::TransformBroadcaster *odom_broadcaster;
 
 static double ENCODER_RESOLUTION = 200*4;
 static double clicks_per_m = 15768.6;

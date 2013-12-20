@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(ax2550)
+project(redblade_ax2550)
 
 find_package(catkin REQUIRED
   COMPONENTS

@@ -117,7 +117,7 @@ void queueGPSCallback(const sensor_msgs::NavSatFix::ConstPtr& point){
 int main(int argc, char** argv){
   //Node setup
 
-  ros::init(argc, argv, "survey_snow_field");
+  ros::init(argc, argv, "survey_node");
   ros::NodeHandle n;//global namespace
   ros::NodeHandle nh("~");//local namespace, used for params
 
