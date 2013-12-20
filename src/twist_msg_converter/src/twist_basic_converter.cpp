@@ -1,11 +1,13 @@
 #include "ros/ros.h"
 #include "geometry_msgs/Twist.h"
+#include "geometry_msgs/Vector3.h"
 #include <string>
 #include <cmath>
 
 static double clicks_per_m = 15768.6;
 static double wheel_base_width;
 static double wheel_base_length;
+
 ros::Publisher robo_front_pub;
 ros::Publisher robo_back_pub;
 geometry_msgs::Twist front_target;
@@ -19,14 +21,14 @@ void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& msg){
   front_target.linear.z = msg->linear.z;
   front_target.angular.x = msg->angular.x;
   front_target.angular.y = msg->angular.y;
-  front_target.angular.z = msg->angular.z;
+  front_target.angular.z = msg->angular.z/2;
 
   back_target.linear.x = msg->linear.x;
   back_target.linear.y = msg->linear.y;
   back_target.linear.z = msg->linear.z;
   back_target.angular.x = msg->angular.x;
   back_target.angular.y = msg->angular.y;
-  back_target.angular.z = msg->angular.z;
+  back_target.angular.z = msg->angular.z/2;
 
 }
 

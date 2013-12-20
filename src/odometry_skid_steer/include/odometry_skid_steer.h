@@ -1,7 +1,7 @@
 #include <ros/ros.h>
-#include "redblade_ax2550/StampedEncoders.h"
+#include "ax2550/StampedEncoders.h"
 #include <nav_msgs/Odometry.h>
-
+#include <geometry_msgs/Vector3.h>
 
 //Constants
 static double wheel_circumference = 0.0;
@@ -18,15 +18,23 @@ class odometry_skid_steer{
   double rot_cov ;
   double pos_cov ;
 
+  long prev_fr_encoder,prev_fl_encoder,prev_br_encoder,prev_bl_encoder;
+  geometry_msgs::Vector3 prev_orientation;
+
   odometry_skid_steer(double rot_cov_, double pos_cov_);
   ~odometry_skid_steer();
 
-  static void getDeltaAnglePos(redblade_ax2550::StampedEncoders front_msg,
-			       redblade_ax2550::StampedEncoders back_msg,
-			       double& delta_time,
-			       double& distance_delta,
-			       double& theta_delta);
-  void update(double delta_time,
+  void getDeltaAnglePos(const ax2550::StampedEncoders& front_msg,
+			const ax2550::StampedEncoders& back_msg,
+			const geometry_msgs::Vector3& orientation_msg,
+			double& delta_time,
+			double& distance_delta,
+			double& theta_delta);
+
+  void update(const ax2550::StampedEncoders& front_msg,
+	      const ax2550::StampedEncoders& back_msg,
+	      const geometry_msgs::Vector3& orientation_msg,
+	      double delta_time,
 	      double distance_delta,
 	      double theta_delta);
   nav_msgs::Odometry getOdometry();
