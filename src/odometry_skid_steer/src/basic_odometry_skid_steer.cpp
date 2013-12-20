@@ -1,18 +1,10 @@
 //#include <ros/ros.h>
+#include <geometry_msgs/Twist.h>
 #include <string>
 #include <cmath>
 //#include "ax2550/StampedEncoders.h"
 #include <tf/tf.h>
 #include "odometry_skid_steer.h"
-
-
-//Constants
-static double wheel_circumference = 0.0;
-static double wheel_diameter = 0.0;
-static double clicks_per_m = 15768.6;
-static double wheel_base_width = 0.473;
-static double eff_wheel_base_length;
-static double wheel_base_length;
 
 ros::Time prev_time;
 nav_msgs::Odometry odom;
@@ -55,48 +47,11 @@ odometry_skid_steer::odometry_skid_steer(double rot_cov_, double pos_cov_){
   prev_orientation.x = 0;
   prev_orientation.y = 0;
   prev_orientation.z = 0;
-
 }
+
 odometry_skid_steer::~odometry_skid_steer(){
 
 }
-
-void odometry_skid_steer::getVelocities(const ax2550::StampedEncoders& front_msg,
-					const ax2550::StampedEncoders& back_msg,
-					geometry_msgs::Twist& twist){
-
-  double delta_time1 = front_msg.encoders.time_delta;
-  double delta_front_right_encoders = -1 * (front_msg.encoders.right_wheel - prev_fr_encoder);
-  double delta_front_left_encoders = front_msg.encoders.left_wheel-prev_fl_encoder;
-
-  double delta_time2 = back_msg.encoders.time_delta;
-  double delta_back_left_encoders =  back_msg.encoders.left_wheel - prev_br_encoder;
-  double delta_back_right_encoders = -1 * (back_msg.encoders.right_wheel - prev_bl_encoder);
-
-  ROS_INFO("Front Right Encoder Delta %f",delta_front_right_encoders);
-  ROS_INFO("Front Left Encoder Delta %f",delta_front_left_encoders);
-  ROS_INFO("Back Right Encoder Delta %f",delta_back_right_encoders);
-  ROS_INFO("Back Left Encoder Delta %f",delta_back_left_encoders);
-
-  //Combine both wheels into "bigger" wheels such wheels
-  double left_encoders  = (delta_front_left_encoders  + delta_back_left_encoders)/2;
-  double right_encoders = (delta_front_right_encoders + delta_back_right_encoders)/2;
-  
-  delta_time = (delta_time1+delta_time2)/2;  // The average delta time
-  double Vr = right_encoders/delta_time;
-  double Vl = left_encoders/delta_time;
-  double yL = -eff_wheel_base_width/2;
-  double yR =  eff_wheel_base_width/2;
-  double Vx = (Vr+Vl)/s - ((Vr-Vl)/(yR-yL))*(yR+yL)/2;
-  double w  = (Vr-Vl)/(yR-yL);
-  twist.linear.x = Vx;
-  twist.linear.y = 0;
-  twist.linear.z = 0;
-  twist.angular.x = 0;
-  twist.angular.y = 0;
-  twist.angular.z = w;
-}
-
 
 void odometry_skid_steer::getDeltaAnglePos(const ax2550::StampedEncoders& front_msg,
 					   const ax2550::StampedEncoders& back_msg,
@@ -225,8 +180,6 @@ int main(int argc, char** argv){
   n.param("position_covariance",pos_cov_, 1.0);
   n.param("odom_frame_id", odom_frame_id, std::string("odom"));
   n.param("wheel_base_length", wheel_base_length, 0.473);
-  n.param("wheel_base_width", wheel_base_width, 0.473);
-  n.param("effective_wheel_base_width", wheel_base_width, 2.0);
   odometry_skid_steer odomSS(rot_cov_,pos_cov_);
 
   //Start Spinner so that encoder Callbacks happen in a seperate thread

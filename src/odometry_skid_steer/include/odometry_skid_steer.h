@@ -2,13 +2,8 @@
 #include "ax2550/StampedEncoders.h"
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/Vector3.h>
+#include <geometry_msgs/Twist.h>
 
-//Constants
-static double wheel_circumference = 0.0;
-static double wheel_diameter = 0.0;
-static double clicks_per_m = 15768.6;
-static double wheel_base_width = 0.473;
-static double wheel_base_length;
 
 class odometry_skid_steer{
  public:
@@ -24,12 +19,20 @@ class odometry_skid_steer{
   odometry_skid_steer(double rot_cov_, double pos_cov_);
   ~odometry_skid_steer();
 
-  void getDeltaAnglePos(const ax2550::StampedEncoders& front_msg,
-			const ax2550::StampedEncoders& back_msg,
-			const geometry_msgs::Vector3& orientation_msg,
-			double& delta_time,
-			double& distance_delta,
-			double& theta_delta);
+  void getVelocities(const ax2550::StampedEncoders& front_msg,
+		     const ax2550::StampedEncoders& back_msg,
+		     geometry_msgs::Twist& twist);
+
+  void getEncoders(const ax2550::StampedEncoders& front_msg,
+		   const ax2550::StampedEncoders& back_msg,
+		   double& left_encoders, double& right_encoders);
+
+  void getDeltas(const ax2550::StampedEncoders& front_msg,
+		 const ax2550::StampedEncoders& back_msg,
+		 const geometry_msgs::Vector3& orientation_msg,
+		 double& delta_time,
+		 double& distance_delta,
+		 double& theta_delta);
 
   void update(const ax2550::StampedEncoders& front_msg,
 	      const ax2550::StampedEncoders& back_msg,
