@@ -57,8 +57,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  #INCLUDE_DIRS include
-#  LIBRARIES twist_msg_converter
+  INCLUDE_DIRS include
+  LIBRARIES twist_msg_converter
   CATKIN_DEPENDS geometry_msgs nav_msgs roscpp tf std_msgs
 #  DEPENDS system_lib
 )
@@ -72,19 +72,21 @@ catkin_package(
 # include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  include
 )
 
+
 ## Declare a cpp library
-# add_library(twist_msg_converter
-#   src/${PROJECT_NAME}/twist_msg_converter.cpp
-# )
+add_library(twist_msg_converter
+  src/twist_converter.cpp
+)
 
 ## Declare a cpp executable
 add_executable(twist_converter src/twist_converter.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
- add_dependencies(twist_converter twist_msg_converter_generate_messages_cpp)
+#add_dependencies(twist_converter twist_msg_converter_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
  target_link_libraries(twist_converter
