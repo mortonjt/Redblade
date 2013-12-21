@@ -2,7 +2,6 @@
 #include <string>
 #include <cmath>
 //#include "ax2550/StampedEncoders.h"
-#include <tf/tf.h>
 #include "odometry_skid_steer.h"
 
 
@@ -73,8 +72,8 @@ void odometry_skid_steer::getVelocities(const redblade_ax2550::StampedEncoders& 
 					geometry_msgs::Twist& twist){
   double delta_time,left_encoders,right_encoders;
   getEncoders(front_msg,back_msg,left_encoders,right_encoders,delta_time);
-  double Vr = right_encoders/delta_time;
-  double Vl = left_encoders/delta_time;
+  double Vr = (right_encoders/clicks_per_m)/delta_time;
+  double Vl = (left_encoders/clicks_per_m)/delta_time;
   double yL = -eff_wheel_base_width/2; //Left instantaneous center of rotation
   double yR =  eff_wheel_base_width/2; //Right instantaneous center of rotation
   double Vx = (Vr+Vl)/2 - ((Vr-Vl)/(yR-yL))*(yR+yL)/2;

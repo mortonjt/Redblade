@@ -35,39 +35,29 @@
 
 //The actual unittests
 // TEST(odometry_skid_steer, testDeltaAnglePos){
-
 //   odometry_skid_steer testOdomSS(0,0);
-
 //   ros::Time now(0);
-
 //   redblade_ax2550::StampedEncoders front_encoder_msg;
 //   front_encoder_msg.header.stamp = now;
 //   front_encoder_msg.header.frame_id = "base_link";
 //   front_encoder_msg.encoders.time_delta = 0.01;
 //   front_encoder_msg.encoders.left_wheel = 10;
 //   front_encoder_msg.encoders.right_wheel = -10;
-
 //   redblade_ax2550::StampedEncoders back_encoder_msg;
 //   back_encoder_msg.header.stamp = now;
 //   back_encoder_msg.header.frame_id = "base_link";
 //   back_encoder_msg.encoders.time_delta = 0.01;
 //   back_encoder_msg.encoders.left_wheel = 10;
 //   back_encoder_msg.encoders.right_wheel = -10;
-
 //   geometry_msgs::Vector3 orientation_msg; 
 //   orientation_msg.x = 0;
 //   orientation_msg.y = 0;
 //   orientation_msg.z = 0;
- 
-
 //   std::cout<<"Front time delta "<<front_encoder_msg.encoders.time_delta<<std::endl;
 //   std::cout<<"Back time delta "<<back_encoder_msg.encoders.time_delta<<std::endl;
-
-
 //   double delta_time;
 //   double distance_delta;
 //   double theta_delta;
-
 //   testOdomSS.getDeltaAnglePos(front_encoder_msg,
 // 			      back_encoder_msg,
 // 			      orientation_msg,
@@ -77,8 +67,7 @@
 //   EXPECT_NEAR(0.01,delta_time,0.0001);
 //   EXPECT_NEAR(10/clicks_per_m,distance_delta,0.0001);
 //   EXPECT_NEAR(0,theta_delta,0.0001);
-// }
-  
+// }  
 //}
 
 //The actual unittests
