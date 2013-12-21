@@ -40,14 +40,14 @@
 
 //   ros::Time now(0);
 
-//   ax2550::StampedEncoders front_encoder_msg;
+//   redblade_ax2550::StampedEncoders front_encoder_msg;
 //   front_encoder_msg.header.stamp = now;
 //   front_encoder_msg.header.frame_id = "base_link";
 //   front_encoder_msg.encoders.time_delta = 0.01;
 //   front_encoder_msg.encoders.left_wheel = 10;
 //   front_encoder_msg.encoders.right_wheel = -10;
 
-//   ax2550::StampedEncoders back_encoder_msg;
+//   redblade_ax2550::StampedEncoders back_encoder_msg;
 //   back_encoder_msg.header.stamp = now;
 //   back_encoder_msg.header.frame_id = "base_link";
 //   back_encoder_msg.encoders.time_delta = 0.01;
@@ -80,6 +80,87 @@
 // }
   
 //}
+
+//The actual unittests
+TEST(basic_odometry_skid_steer, testEncoders){
+  double wheel_base_width = 1.0;
+  odometry_skid_steer testOdomSS("odom_frame",0,0,wheel_base_width);
+  ros::Time now(0);
+
+  redblade_ax2550::StampedEncoders front_encoder_msg;
+  front_encoder_msg.header.stamp = now;
+  front_encoder_msg.header.frame_id = "base_link";
+  front_encoder_msg.encoders.time_delta = 0.01;
+  front_encoder_msg.encoders.left_wheel = 10;
+  front_encoder_msg.encoders.right_wheel = -10;
+
+  redblade_ax2550::StampedEncoders back_encoder_msg;
+  back_encoder_msg.header.stamp = now;
+  back_encoder_msg.header.frame_id = "base_link";
+  back_encoder_msg.encoders.time_delta = 0.01;
+  back_encoder_msg.encoders.left_wheel = 10;
+  back_encoder_msg.encoders.right_wheel = -10;
+
+  geometry_msgs::Vector3 orientation_msg; 
+  orientation_msg.x = 0;
+  orientation_msg.y = 0;
+  orientation_msg.z = 0;
+ 
+  std::cout<<"Front time delta "<<front_encoder_msg.encoders.time_delta<<std::endl;
+  std::cout<<"Back time delta "<<back_encoder_msg.encoders.time_delta<<std::endl;
+
+  double distance_delta;
+  double theta_delta;
+  geometry_msgs::Twist twist_vel;
+  double delta_time,left_encoders,right_encoders;
+  
+  testOdomSS.getEncoders(front_encoder_msg,back_encoder_msg,left_encoders,right_encoders,delta_time);
+  EXPECT_NEAR(10,left_encoders,0.0001);
+  EXPECT_NEAR(10,right_encoders,0.0001);
+  EXPECT_NEAR(0.01,delta_time,0.0001);
+}
+
+
+TEST(basic_odometry_skid_steer, testVelocity){
+  double wheel_base_width = 1.0;
+  odometry_skid_steer testOdomSS("odom_frame",0,0,wheel_base_width);
+  ros::Time now(0);
+
+  redblade_ax2550::StampedEncoders front_encoder_msg;
+  front_encoder_msg.header.stamp = now;
+  front_encoder_msg.header.frame_id = "base_link";
+  front_encoder_msg.encoders.time_delta = 0.01;
+  front_encoder_msg.encoders.left_wheel = 10;
+  front_encoder_msg.encoders.right_wheel = -10;
+
+  redblade_ax2550::StampedEncoders back_encoder_msg;
+  back_encoder_msg.header.stamp = now;
+  back_encoder_msg.header.frame_id = "base_link";
+  back_encoder_msg.encoders.time_delta = 0.01;
+  back_encoder_msg.encoders.left_wheel = 10;
+  back_encoder_msg.encoders.right_wheel = -10;
+
+  geometry_msgs::Vector3 orientation_msg; 
+  orientation_msg.x = 0;
+  orientation_msg.y = 0;
+  orientation_msg.z = 0;
+ 
+  std::cout<<"Front time delta "<<front_encoder_msg.encoders.time_delta<<std::endl;
+  std::cout<<"Back time delta "<<back_encoder_msg.encoders.time_delta<<std::endl;
+
+  double distance_delta;
+  double theta_delta;
+  geometry_msgs::Twist twist_vel;
+  double delta_time,left_encoders,right_encoders;
+  
+  testOdomSS.getEncoders(front_encoder_msg,back_encoder_msg,left_encoders,right_encoders,delta_time);
+  testOdomSS.getVelocities(front_encoder_msg,
+			   back_encoder_msg,
+			   twist_vel);  
+  EXPECT_NEAR((10/clicks_per_m)/delta_time,twist_vel.linear.x,0.0001);
+  EXPECT_GT(100,twist_vel.angular.z);
+}
+
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);

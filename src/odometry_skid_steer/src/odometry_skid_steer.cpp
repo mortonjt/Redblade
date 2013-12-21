@@ -99,21 +99,23 @@ int main(int argc, char** argv){
   ros::init(argc, argv, "odometry_skid_steer");
   ros::NodeHandle n; //in the global namespace
   ros::NodeHandle nh("~");//local namespace, used for params
-  std::string front_encoder_namespace,back_encoder_namespace;
+  std::string front_encoder_namespace,back_encoder_namespace,imu_namespace,odom_namespace;
   double rot_cov_,pos_cov_;
   double wheel_base_width,eff_wheel_base_width;
   //See odometry_skid_steer.h for all constants
   n.param("front_encoders", front_encoder_namespace, std::string("/front_encoders"));
   n.param("back_encoders", back_encoder_namespace, std::string("/back_encoders"));
+  n.param("imu", imu_namespace, std::string("/imu"));
   n.param("rotation_covariance",rot_cov_, 1.0);
   n.param("position_covariance",pos_cov_, 1.0);
   n.param("odom_frame_id", odom_frame_id, std::string("odom"));
+  n.param("odom", odom_frame_id, std::string("/odom"));
   n.param("wheel_base_width", wheel_base_width, 0.473);
   n.param("effective_wheel_base_width", eff_wheel_base_width, 2.0);
   odometry_skid_steer odomSS(odom_frame_id,rot_cov_,pos_cov_,wheel_base_width,eff_wheel_base_width);
 
   //Start Spinner so that encoder Callbacks happen in a seperate thread
-  ros::AsyncSpinner spinner(2);
+  ros::AsyncSpinner spinner(3);
   spinner.start();
 
   //Subscribe to front/back encoder topics
@@ -121,7 +123,10 @@ int main(int argc, char** argv){
   						  frontEncoderCallback);
   ros::Subscriber back_encoder_sub = n.subscribe(back_encoder_namespace, 1, 
   						 backEncoderCallback);
-  odom_pub = n.advertise<geometry_msgs::Twist>("roboteq_front/cmd_vel", 10);
+  ros::Subscriber imu_sub = n.subscribe(imu_namespace, 1, 
+					imuCallback);
+
+  odom_pub = n.advertise<nav_msgs::Odometry>(odom_namespace, 10);
   
   //Set up rate for cmd_vel topic to be published at
   ros::Rate cmd_vel_rate(40);//Hz
@@ -130,6 +135,8 @@ int main(int argc, char** argv){
   while(ros::ok()){
       if(front_recv and back_recv){
   	publish_loop(odomSS);
+	front_recv = false;
+	back_recv = false;
       }
     //sleep for a bit to stay at 40 hz
     cmd_vel_rate.sleep();

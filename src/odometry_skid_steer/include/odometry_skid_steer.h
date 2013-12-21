@@ -3,6 +3,7 @@
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/Vector3.h>
 #include <geometry_msgs/Twist.h>
+#include <tf/tf.h>
 
 
 static double clicks_per_m = 15768.6;
@@ -33,9 +34,9 @@ class odometry_skid_steer{
 
   void getEncoders(const redblade_ax2550::StampedEncoders& front_msg,
 		   const redblade_ax2550::StampedEncoders& back_msg,
-		   double& delta_time,
 		   double& left_encoders, 
-		   double& right_encoders);
+		   double& right_encoders,
+		   double& delta_time);
 
   void getDeltas(const redblade_ax2550::StampedEncoders& front_msg,
 		 const redblade_ax2550::StampedEncoders& back_msg,
@@ -66,9 +67,9 @@ class odometry_skid_steer{
 
 void odometry_skid_steer::getEncoders(const redblade_ax2550::StampedEncoders& front_msg,
 				      const redblade_ax2550::StampedEncoders& back_msg,
-				      double& delta_time,
 				      double& left_encoders, 
-				      double& right_encoders){
+				      double& right_encoders,
+				      double& delta_time){
   double delta_front_right_encoders = -1 * (front_msg.encoders.right_wheel - prev_fr_encoder);
   double delta_front_left_encoders = front_msg.encoders.left_wheel-prev_fl_encoder;
 
@@ -83,7 +84,9 @@ void odometry_skid_steer::getEncoders(const redblade_ax2550::StampedEncoders& fr
   //Combine both wheels into "bigger" wheels such wheels
   left_encoders  = (delta_front_left_encoders  + delta_back_left_encoders)/2;
   right_encoders = (delta_front_right_encoders + delta_back_right_encoders)/2;
-  
+  double delta_time1 = front_msg.encoders.time_delta;
+  double delta_time2 = back_msg.encoders.time_delta;
+  delta_time = (delta_time1+delta_time2)/2.0;
 };
 
 void odometry_skid_steer::getPosition(const redblade_ax2550::StampedEncoders& front_msg,
