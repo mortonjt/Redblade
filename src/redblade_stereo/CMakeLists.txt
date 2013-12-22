@@ -6,7 +6,6 @@ project(redblade_stereo)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   image_transport
-  pcl
   pcl_conversions
   pcl_ros
   sensor_msgs
@@ -83,9 +82,9 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES redblade_stereo
-#  CATKIN_DEPENDS image_transport pcl pcl_conversions pcl_ros sensor_msgs std_msgs
+  INCLUDE_DIRS include
+  LIBRARIES redblade_stereo
+  CATKIN_DEPENDS image_transport pcl_conversions pcl_ros sensor_msgs std_msgs
 #  DEPENDS system_lib
 )
 
@@ -98,24 +97,27 @@ catkin_package(
 # include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  include
 )
 
 ## Declare a cpp library
-# add_library(redblade_stereo
-#   src/${PROJECT_NAME}/redblade_stereo.cpp
-# )
+add_library(redblade_stereo
+  src/redblade_stereo.cpp
+)
 
 ## Declare a cpp executable
-# add_executable(redblade_stereo_node src/redblade_stereo_node.cpp)
+add_executable(redblade_stereo_node src/redblade_stereo.cpp)
 
-## Add cmake target dependencies of the executable/library
+## Add cmake target dependen of the executable/library
 ## as an example, message headers may need to be generated before nodes
-# add_dependencies(redblade_stereo_node redblade_stereo_generate_messages_cpp)
+#add_dependencies(redblade_stereo_node redblade_stereo_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(redblade_stereo_node
-#   ${catkin_LIBRARIES}
-# )
+target_link_libraries(redblade_stereo_node
+  ${catkin_LIBRARIES}
+)
+
+
 
 #############
 ## Install ##
