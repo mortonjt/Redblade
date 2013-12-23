@@ -30,14 +30,20 @@ redblade_stereo::~redblade_stereo(){}
 
 
 //Filters out ground using a passthrough filter
-void redblade_stereo::filterGround(pcl::PointCloud<pcl::PointXYZ>::Ptr points){
-  // pcl::PointCloud<pcl::PointXYZ>::Ptr filtered;
+void redblade_stereo::filterGround(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
+				   pcl::PointCloud<pcl::PointXYZ>::Ptr filtered){
+  //filtered->points.resize(cloud->width);
+  for(size_t i = 0; i<cloud->points.size();++i){
+    if(cloud->points[i].y<-maxHeight and -1*groundHeight){
+      filtered->push_back(cloud->points[i]);
+    }
+  }
+  
   // pcl::PassThrough<pcl::PointXYZ> pass;
   // pass.setInputCloud(points);
   // pass.setFilterFieldName("y");
   // pass.setFilterLimits(-maxHeight,-1*groundHeight);
   // pass.filter(*filtered);
-  // points = filtered;
 }
 void redblade_stereo::ransac(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
 			     pcl::PointCloud<pcl::PointXYZ>::Ptr pole){

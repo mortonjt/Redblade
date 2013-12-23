@@ -35,9 +35,11 @@ class redblade_stereo{
   redblade_stereo(int z);
   ~redblade_stereo();
   //Filters out ground using a passthrough filter
-  void filterGround(pcl::PointCloud<pcl::PointXYZ>::Ptr points);
-  
- 
+  void filterGround(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
+		    pcl::PointCloud<pcl::PointXYZ>::Ptr filtered);
+  //Filters out everything outside of 2 m
+  void filterBackground(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
+			pcl::PointCloud<pcl::PointXYZ>::Ptr filtered);
   //Finds the pole using the RANSAC algorithm
   void ransac(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
 	      pcl::PointCloud<pcl::PointXYZ>::Ptr pole);
