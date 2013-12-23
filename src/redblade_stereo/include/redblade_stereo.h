@@ -30,9 +30,9 @@ class redblade_stereo{
  public:
   double groundHeight; //maximum height of ground
   double maxHeight;
+  double viewingRadius;
 
-
-  redblade_stereo(int z);
+  redblade_stereo(int r, int z);
   ~redblade_stereo();
   //Filters out ground using a passthrough filter
   void filterGround(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
@@ -43,5 +43,13 @@ class redblade_stereo{
   //Finds the pole using the RANSAC algorithm
   void ransac(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
 	      pcl::PointCloud<pcl::PointXYZ>::Ptr pole);
+
+  //TODO: Need to handle scenario where pole isn't present
+  /*
+    Ideas
+    1) Reject the estimated line if too few points are present (e.g. 100 points)
+    2) Reject if the length of the line isn't vertical
+    3) Reject if the length of the line is waaay too long
+   */
   void findPole(pcl::PointCloud<pcl::PointXYZ>& points);
 };

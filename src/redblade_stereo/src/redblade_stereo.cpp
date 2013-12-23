@@ -20,8 +20,9 @@ z                               Basically, y is upside down
     y
  */
 
-redblade_stereo::redblade_stereo(int z){
+redblade_stereo::redblade_stereo(int r,int z){
   groundHeight = z;
+  viewingRadius = r;
   maxHeight = -3;  //Crop everything above 3 m
 }
 
@@ -34,16 +35,25 @@ void redblade_stereo::filterGround(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
 				   pcl::PointCloud<pcl::PointXYZ>::Ptr filtered){
   //filtered->points.resize(cloud->width);
   for(size_t i = 0; i<cloud->points.size();++i){
-    if(cloud->points[i].y<-maxHeight and -1*groundHeight){
+    if(cloud->points[i].y < -1*maxHeight and cloud->points[i].y > -1*groundHeight){
       filtered->push_back(cloud->points[i]);
     }
   }
-  
-  // pcl::PassThrough<pcl::PointXYZ> pass;
-  // pass.setInputCloud(points);
-  // pass.setFilterFieldName("y");
-  // pass.setFilterLimits(-maxHeight,-1*groundHeight);
-  // pass.filter(*filtered);
+}
+//Filters out ground using a passthrough filter
+void redblade_stereo::filterBackground(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
+				       pcl::PointCloud<pcl::PointXYZ>::Ptr filtered){
+  //filtered->points.resize(cloud->width);
+  for(size_t i = 0; i<cloud->points.size();++i){
+    double distance = \
+      sqrt(cloud->points[i].x*cloud->points[i].x+	\
+	   cloud->points[i].y*cloud->points[i].y+	\
+	   cloud->points[i].z*cloud->points[i].z);
+    std::cout<<"Distance "<<distance<<std::endl;
+    if( distance < viewingRadius){
+      filtered->push_back(cloud->points[i]);
+    }
+  }
 }
 void redblade_stereo::ransac(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
 			     pcl::PointCloud<pcl::PointXYZ>::Ptr pole){
