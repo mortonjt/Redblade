@@ -11,9 +11,12 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
 )
+#find_package(Boost REQUIRED thread signals)
+
+find_package(PCL REQUIRED QUIET COMPONENTS common)
 
 ## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
+find_package(Boost REQUIRED COMPONENTS system)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -82,7 +85,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include
+  INCLUDE_DIRS include ${PCL_COMMON_INCLUDE_DIRS}
   LIBRARIES redblade_stereo
   CATKIN_DEPENDS image_transport pcl_conversions pcl_ros sensor_msgs std_msgs
 #  DEPENDS system_lib
@@ -96,9 +99,16 @@ catkin_package(
 ## Your package locations should be listed before other locations
 # include_directories(include)
 include_directories(
+  SYSTEM
   ${catkin_INCLUDE_DIRS}
+  ${PCL_COMMON_INCLUDE_DIRS}
+  ${PCL_INCLUDE_DIRS}
+  ${Boost_INCLUDE_DIRS}
   include
 )
+
+#link_directories(${Boost_LIBRARY_DIRS})
+#link_directories(${catkin_LIBRARY_DIRS})
 
 ## Declare a cpp library
 add_library(redblade_stereo
@@ -106,7 +116,7 @@ add_library(redblade_stereo
 )
 
 ## Declare a cpp executable
-add_executable(redblade_stereo_node src/redblade_stereo.cpp)
+add_executable(redblade_stereo_node src/redblade_stereo_node.cpp)
 
 ## Add cmake target dependen of the executable/library
 ## as an example, message headers may need to be generated before nodes
@@ -115,6 +125,9 @@ add_executable(redblade_stereo_node src/redblade_stereo.cpp)
 ## Specify libraries to link a library or executable target against
 target_link_libraries(redblade_stereo_node
   ${catkin_LIBRARIES}
+  ${Boost_LIBRARIES}
+  ${PCL_LIBRARIES}
+  redblade_stereo
 )
 
 
@@ -159,10 +172,13 @@ target_link_libraries(redblade_stereo_node
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_redblade_stereo.cpp)
-# if(TARGET ${PROJECT_NAME}-test)
-#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
-# endif()
+catkin_add_gtest(${PROJECT_NAME}-test test/test_redblade_stereo.cpp)
+if(TARGET ${PROJECT_NAME}-test)
+   target_link_libraries(${PROJECT_NAME}-test redblade_stereo
+     ${Boost_LIBRARIES}
+     ${PCL_LIBRARIES}
+)
+endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)

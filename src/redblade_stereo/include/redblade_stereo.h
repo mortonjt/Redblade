@@ -12,7 +12,6 @@
 //#include <pcl/ros/conversions.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
-#include <pcl/impl/point_types.hpp>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/passthrough.h>
 #include <pcl/ModelCoefficients.h>
@@ -26,5 +25,15 @@
 
 class redblade_stereo{
  public:
-  redblade_stereo();
+  double groundHeight; //maximum height of ground
+  double maxHeight;
+
+
+  redblade_stereo(int z);
+  ~redblade_stereo();
+  //Filters out ground using a passthrough filter
+  void filterGround(pcl::PointCloud<pcl::PointXYZ>::Ptr points);
+  
+  //Finds the pole using the RANSAC algorithm
+  void findPole(pcl::PointCloud<pcl::PointXYZ>& points);
 };

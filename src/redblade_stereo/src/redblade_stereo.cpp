@@ -1,37 +1,46 @@
 #include "redblade_stereo.h"
 
-pcl::PointCloud<pcl::PointXYZRGB> cloud;
-ros::Publisher pub;
 
-// callback signature, assuming your points are pcl::PointXYZRGB type:
-void callback(const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr&){
-  //do some processing
+
+/*
+  Orientation
+z                               Basically, y is upside down
+^                               and z is pointing into the page
+ \
+  \
+   \
+    *----------------> x
+    |
+    |
+    |
+    |
+    |
+    |
+    v
+    y
+ */
+
+redblade_stereo::redblade_stereo(int z){
+  groundHeight = z;
+  maxHeight = -3;  //Crop everything above 3 m
 }
 
-int main(int argc, char** argv){
-  ros::init(argc, argv, "redblade_stereo");
-  ros::NodeHandle n; //in the global namespace
-  ros::NodeHandle nh("~");//local namespace, used for params
-  std::string front_encoder_namespace,back_encoder_namespace;
-  double rot_cov_,pos_cov_;
-  int queue_size;
-  std::string topic;
+redblade_stereo::~redblade_stereo(){}
 
-  //See odometry_skid_steer.h for all constants
-  n.param("queue_size", queue_size, 2);
-  n.param("stereo_namespace", topic, std::string("/stereo_camera"));
 
-  // create a templated subscriber
-  ros::Subscriber sub = nh.subscribe<pcl::PointCloud<pcl::PointXYZRGB> > (topic, queue_size, callback);
+
+//Filters out ground using a passthrough filter
+void redblade_stereo::filterGround(pcl::PointCloud<pcl::PointXYZ>::Ptr points){
+  // pcl::PointCloud<pcl::PointXYZ>::Ptr filtered;
+  // pcl::PassThrough<pcl::PointXYZ> pass;
+  // pass.setInputCloud(points);
+  // pass.setFilterFieldName("y");
+  // pass.setFilterLimits(-maxHeight,-1*groundHeight);
+  // pass.filter(*filtered);
+  // points = filtered;
+}
   
-  // create a templated publisher
-  pub = nh.advertise<pcl::PointCloud<pcl::PointXYZRGB> > (topic, queue_size);
+//Finds the pole using the RANSAC algorithm
+void redblade_stereo::findPole(pcl::PointCloud<pcl::PointXYZ>& points){
   
-  //publish cmd_vel topic every 25 ms (40 hz)
-  while(ros::ok()){
-    pub.publish(cloud);
-  }
-  return(0);
-
-  // and just publish the object directly
 }
