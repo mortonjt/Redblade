@@ -1,6 +1,5 @@
 #include "odometry_skid_steer.h"
 #include <gtest/gtest.h>
-
 // namespace{
 //   class test_odometry_skid_steer : public ::testing::Test{
 //   protected:

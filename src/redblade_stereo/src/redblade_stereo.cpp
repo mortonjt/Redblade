@@ -20,10 +20,15 @@ z                               Basically, y is upside down
     y
  */
 
-redblade_stereo::redblade_stereo(int r,int z){
+double maxHeight = -2; //Crop everything above 2 m
+double tolerance = 0.001;
+double sigSize = 100;//Anything below this isn't signficant
+
+
+redblade_stereo::redblade_stereo(int r,int z, int w){
   groundHeight = z;
   viewingRadius = r;
-  maxHeight = -3;  //Crop everything above 3 m
+  poleWidth = w;
 }
 
 redblade_stereo::~redblade_stereo(){}
@@ -43,7 +48,6 @@ void redblade_stereo::filterGround(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
 //Filters out ground using a passthrough filter
 void redblade_stereo::filterBackground(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
 				       pcl::PointCloud<pcl::PointXYZ>::Ptr filtered){
-  //filtered->points.resize(cloud->width);
   for(size_t i = 0; i<cloud->points.size();++i){
     double distance = \
       sqrt(cloud->points[i].x*cloud->points[i].x+	\
@@ -56,18 +60,31 @@ void redblade_stereo::filterBackground(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud
   }
 }
 void redblade_stereo::ransac(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
-			     pcl::PointCloud<pcl::PointXYZ>::Ptr pole){
+			     pcl::PointCloud<pcl::PointXYZ>::Ptr pole,
+			     Eigen::VectorXf& coeff){
   std::vector<int> inliers;
   pcl::SampleConsensusModelLine<pcl::PointXYZ>::Ptr 
     model(new pcl::SampleConsensusModelLine<pcl::PointXYZ>(in));
   pcl::RandomSampleConsensus<pcl::PointXYZ> ransac_obj(model);
-  ransac_obj.setDistanceThreshold(0.05);
+  ransac_obj.setDistanceThreshold(0.1);
   ransac_obj.computeModel();
   ransac_obj.getInliers(inliers);
   pcl::copyPointCloud<pcl::PointXYZ>(*in,inliers,*pole);
+  ransac_obj.getModelCoefficients(coeff);
 }
   
 //Finds the pole using the RANSAC algorithm
-void redblade_stereo::findPole(pcl::PointCloud<pcl::PointXYZ>& points){
-  
+bool redblade_stereo::findPole(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
+			       pcl::PointCloud<pcl::PointXYZ>::Ptr pole){
+  Eigen::VectorXf coeff;
+  coeff.resize(6);
+  ransac(in,pole,coeff);
+  if(coeff.size()==0){
+    return false;
+  }
+  if(abs(coeff[3])<tolerance and abs(coeff[5])<tolerance){//Vertical line test
+    if(pole->points.size()>sigSize){//significance test
+      return true;}
+  }
+  return false;
 }

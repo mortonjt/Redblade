@@ -2,7 +2,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-
+//#include <iostream.h>
 #include <stdint.h>
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
@@ -29,10 +29,10 @@
 class redblade_stereo{
  public:
   double groundHeight; //maximum height of ground
-  double maxHeight;
+  double poleWidth;
   double viewingRadius;
 
-  redblade_stereo(int r, int z);
+  redblade_stereo(int r, int z, int w);
   ~redblade_stereo();
   //Filters out ground using a passthrough filter
   void filterGround(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
@@ -42,7 +42,8 @@ class redblade_stereo{
 			pcl::PointCloud<pcl::PointXYZ>::Ptr filtered);
   //Finds the pole using the RANSAC algorithm
   void ransac(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
-	      pcl::PointCloud<pcl::PointXYZ>::Ptr pole);
+	      pcl::PointCloud<pcl::PointXYZ>::Ptr pole,
+	      Eigen::VectorXf& coeff);
 
   //TODO: Need to handle scenario where pole isn't present
   /*
@@ -51,5 +52,6 @@ class redblade_stereo{
     2) Reject if the length of the line isn't vertical
     3) Reject if the length of the line is waaay too long
    */
-  void findPole(pcl::PointCloud<pcl::PointXYZ>& points);
+  bool findPole(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
+		pcl::PointCloud<pcl::PointXYZ>::Ptr pole);
 };
