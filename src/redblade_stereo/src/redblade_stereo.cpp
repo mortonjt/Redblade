@@ -39,6 +39,17 @@ void redblade_stereo::filterGround(pcl::PointCloud<pcl::PointXYZ>::Ptr points){
   // pass.filter(*filtered);
   // points = filtered;
 }
+void redblade_stereo::ransac(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
+			     pcl::PointCloud<pcl::PointXYZ>::Ptr pole){
+  std::vector<int> inliers;
+  pcl::SampleConsensusModelLine<pcl::PointXYZ>::Ptr 
+    model(new pcl::SampleConsensusModelLine<pcl::PointXYZ>(in));
+  pcl::RandomSampleConsensus<pcl::PointXYZ> ransac_obj(model);
+  ransac_obj.setDistanceThreshold(0.05);
+  ransac_obj.computeModel();
+  ransac_obj.getInliers(inliers);
+  pcl::copyPointCloud<pcl::PointXYZ>(*in,inliers,*pole);
+}
   
 //Finds the pole using the RANSAC algorithm
 void redblade_stereo::findPole(pcl::PointCloud<pcl::PointXYZ>& points){

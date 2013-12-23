@@ -174,7 +174,9 @@ target_link_libraries(redblade_stereo_node
 ## Add gtest based cpp test target and link libraries
 catkin_add_gtest(${PROJECT_NAME}-test test/test_redblade_stereo.cpp)
 if(TARGET ${PROJECT_NAME}-test)
-   target_link_libraries(${PROJECT_NAME}-test redblade_stereo
+   target_link_libraries(${PROJECT_NAME}-test 
+     redblade_stereo     
+     ${catkin_LIBRARIES}
      ${Boost_LIBRARIES}
      ${PCL_LIBRARIES}
 )

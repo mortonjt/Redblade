@@ -23,6 +23,9 @@
 #include <pcl/filters/statistical_outlier_removal.h>
 #include <pcl/octree/octree.h>
 
+#include <pcl/sample_consensus/ransac.h>
+#include <pcl/sample_consensus/sac_model_line.h>
+
 class redblade_stereo{
  public:
   double groundHeight; //maximum height of ground
@@ -34,6 +37,9 @@ class redblade_stereo{
   //Filters out ground using a passthrough filter
   void filterGround(pcl::PointCloud<pcl::PointXYZ>::Ptr points);
   
+ 
   //Finds the pole using the RANSAC algorithm
+  void ransac(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
+	      pcl::PointCloud<pcl::PointXYZ>::Ptr pole);
   void findPole(pcl::PointCloud<pcl::PointXYZ>& points);
 };
