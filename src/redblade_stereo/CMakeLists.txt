@@ -88,7 +88,7 @@ catkin_package(
   INCLUDE_DIRS include ${PCL_COMMON_INCLUDE_DIRS}
   LIBRARIES redblade_stereo
   CATKIN_DEPENDS image_transport pcl_conversions pcl_ros sensor_msgs std_msgs
-#  DEPENDS system_lib
+  DEPENDS system_lib eigen
 )
 
 ###########
@@ -124,10 +124,10 @@ add_executable(redblade_stereo_node src/redblade_stereo_node.cpp)
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(redblade_stereo_node
+  redblade_stereo
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
   ${PCL_LIBRARIES}
-  redblade_stereo
 )
 
 

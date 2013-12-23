@@ -72,7 +72,6 @@ void redblade_stereo::ransac(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
   pcl::copyPointCloud<pcl::PointXYZ>(*in,inliers,*pole);
   ransac_obj.getModelCoefficients(coeff);
 }
-  
 //Finds the pole using the RANSAC algorithm
 bool redblade_stereo::findPole(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
 			       pcl::PointCloud<pcl::PointXYZ>::Ptr pole){
@@ -82,9 +81,9 @@ bool redblade_stereo::findPole(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
   if(coeff.size()==0){
     return false;
   }
-  if(abs(coeff[3])<tolerance and abs(coeff[5])<tolerance){//Vertical line test
-    if(pole->points.size()>sigSize){//significance test
-      return true;}
-  }
+  // if(abs(coeff[3])<tolerance and abs(coeff[5])<tolerance){//Vertical line test
+  if(pole->points.size()>sigSize){//significance test
+    return true;}
+  //}
   return false;
 }
