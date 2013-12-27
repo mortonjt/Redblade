@@ -82,6 +82,7 @@ public:
   ros::ServiceServer calibrate_serv_;
   ros::Publisher is_calibrated_pub_;
   ros::Publisher integrated_gyros_pub_;//bob
+  ros::Publisher integrated_gyros_stamped_pub_;  
   ros::Publisher orientation_pub_;//bob
 
   bool running;
@@ -149,8 +150,8 @@ public:
     is_calibrated_pub_ = imu_node_handle.advertise<std_msgs::Bool>("is_calibrated", 1, true);
     //added by bob
     integrated_gyros_pub_ = imu_node_handle.advertise<geometry_msgs::Vector3>("integrated_gyros", 100);
-    orientation_pub_ = imu_node_handle.advertise<sensor_msgs::MagneticField>("orientation", 100);
-    
+    integrated_gyros_stamped_pub_ = imu_node_handle.advertise<geometry_msgs::Vector3Stamped>("integrated_gyros_stamped", 100);
+    orientation_pub_ = imu_node_handle.advertise<sensor_msgs::MagneticField>("orientation", 100);    
 
     publish_is_calibrated();
 
@@ -373,6 +374,12 @@ public:
 
       //publish raw integrated gyro data (bob added)
       integrated_gyros_pub_.publish(integrated_gyros);
+
+      geometry_msgs::Vector3Stamped stamped_msg;
+      stamped_msg.vector = integrated_gyros;
+      stamped_msg.header.frame_id = "imu";
+      stamped_msg.header.stamp = ros::Time::now();
+      integrated_gyros_stamped_pub_.publish(stamped_msg);
       
       reading2.header = reading.header;
       reading2.magnetic_field_covariance = reading.orientation_covariance;

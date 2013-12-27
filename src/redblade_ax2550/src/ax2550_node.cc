@@ -149,9 +149,14 @@ void queryEncoders() {
     encoder_msg.header.stamp = now;
     encoder_msg.header.frame_id = "base_link";
     encoder_msg.encoders.time_delta = delta_time;
-    encoder_msg.encoders.left_wheel = encoder1;
-    encoder_msg.encoders.right_wheel = -encoder2;
-    
+    if(front_or_back == "front"){
+      encoder_msg.encoders.left_wheel = encoder1;
+      encoder_msg.encoders.right_wheel = -encoder2;
+    }else{
+      encoder_msg.encoders.left_wheel = -encoder1;
+      encoder_msg.encoders.right_wheel = encoder2;
+    }
+
     encoder_pub.publish(encoder_msg);
 
     /*double v = 0.0;
