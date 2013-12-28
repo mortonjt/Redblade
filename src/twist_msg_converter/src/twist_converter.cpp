@@ -12,10 +12,9 @@ geometry_msgs::Twist front_target;
 geometry_msgs::Twist back_target;
 
 twist_converter::twist_converter(double eff_wheel_base){
-  //Assumption: The instantaneous centers of rotation are symmetrical (aka yL = yR)
-  
-  this->yL=-eff_wheel_base/2;
+  //Assumption: The instantaneous centers of rotation are symmetrical (aka yL = yR)  
   this->yR=eff_wheel_base/2;
+  this->yL=-eff_wheel_base/2;
 }
 
 twist_converter::~twist_converter(){

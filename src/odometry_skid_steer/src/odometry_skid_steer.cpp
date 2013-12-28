@@ -74,10 +74,9 @@ void odometry_skid_steer::getVelocities(const redblade_ax2550::StampedEncoders& 
   getEncoders(front_msg,back_msg,left_encoders,right_encoders,delta_time);
   double Vr = (right_encoders/clicks_per_m)/delta_time;
   double Vl = (left_encoders/clicks_per_m)/delta_time;
-  double yL = -eff_wheel_base_width/2; //Left instantaneous center of rotation
-  double yR =  eff_wheel_base_width/2; //Right instantaneous center of rotation
-  double Vx = (Vr+Vl)/2 - ((Vr-Vl)/(yR-yL))*(yR+yL)/2;
-  double w  = (Vr-Vl)/(yR-yL);
+  double Vx = (Vr+Vl)/2;
+  //double w  = (Vr-Vl)/(eff_wheel_base_width);
+  double w = orientation.z;
   twist.linear.x = Vx;
   twist.linear.y = 0;
   twist.linear.z = 0;
@@ -110,7 +109,7 @@ int main(int argc, char** argv){
   n.param("odom_frame_id", odom_frame_id, std::string("odom"));
   n.param("odom", odom_frame_id, std::string("/odom"));
   n.param("wheel_base_width", wheel_base_width, 0.473);
-  n.param("effective_wheel_base_width", eff_wheel_base_width, 2.0);
+  n.param("effective_wheel_base_width", eff_wheel_base_width, 1.0);
   odometry_skid_steer odomSS(odom_frame_id,rot_cov_,pos_cov_,wheel_base_width,eff_wheel_base_width);
 
   //Start Spinner so that encoder Callbacks happen in a seperate thread
