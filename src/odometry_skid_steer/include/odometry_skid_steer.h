@@ -54,10 +54,7 @@ class odometry_skid_steer{
 
   void update(const redblade_ax2550::StampedEncoders& front_msg,
 	      const redblade_ax2550::StampedEncoders& back_msg,
-	      const geometry_msgs::Vector3& orientation_msg,
-	      double delta_time,
-	      double distance_delta,
-	      double theta_delta);
+	      const geometry_msgs::Vector3& orientation_msg);
 
   nav_msgs::Odometry getOdometry(const redblade_ax2550::StampedEncoders& front_msg,
 				 const redblade_ax2550::StampedEncoders& back_msg,
@@ -65,21 +62,23 @@ class odometry_skid_steer{
 };
 
 
+
 void odometry_skid_steer::getEncoders(const redblade_ax2550::StampedEncoders& front_msg,
 				      const redblade_ax2550::StampedEncoders& back_msg,
 				      double& left_encoders, 
 				      double& right_encoders,
 				      double& delta_time){
-  double delta_front_right_encoders = -1 * (front_msg.encoders.right_wheel - prev_fr_encoder);
-  double delta_front_left_encoders = front_msg.encoders.left_wheel-prev_fl_encoder;
+  double delta_front_right_encoders = front_msg.encoders.right_wheel- prev_fr_encoder;
+  double delta_front_left_encoders  = front_msg.encoders.left_wheel - prev_fl_encoder;
 
-  double delta_back_left_encoders =  back_msg.encoders.left_wheel - prev_br_encoder;
-  double delta_back_right_encoders = -1 * (back_msg.encoders.right_wheel - prev_bl_encoder);
+  double delta_back_left_encoders   = back_msg.encoders.left_wheel  - prev_br_encoder;
+  double delta_back_right_encoders  = back_msg.encoders.right_wheel - prev_bl_encoder;
 
-  ROS_INFO("Front Right Encoder Delta %f",delta_front_right_encoders);
-  ROS_INFO("Front Left Encoder Delta %f",delta_front_left_encoders);
-  ROS_INFO("Back Right Encoder Delta %f",delta_back_right_encoders);
-  ROS_INFO("Back Left Encoder Delta %f",delta_back_left_encoders);
+	   
+  /* ROS_INFO("Front Right Encoder Delta %f",delta_front_right_encoders); */
+  /* ROS_INFO("Back Right Encoder Delta %f",delta_back_right_encoders); */
+  /* ROS_INFO("Front Left Encoder Delta %f",delta_front_left_encoders); */
+  /* ROS_INFO("Back Left Encoder Delta %f",delta_back_left_encoders); */
 
   //Combine both wheels into "bigger" wheels such wheels
   left_encoders  = (delta_front_left_encoders  + delta_back_left_encoders)/2;
@@ -168,10 +167,7 @@ nav_msgs::Odometry odometry_skid_steer::getOdometry(const redblade_ax2550::Stamp
 
   update(front_msg,
 	 back_msg,
-	 orientation_msg,
-	 delta_time,
-	 distance_delta,
-	 theta_delta);
+	 orientation_msg);
   
   return odom;
 };
@@ -179,10 +175,7 @@ nav_msgs::Odometry odometry_skid_steer::getOdometry(const redblade_ax2550::Stamp
 
 void odometry_skid_steer::update(const redblade_ax2550::StampedEncoders& front_msg,
 				 const redblade_ax2550::StampedEncoders& back_msg,
-				 const geometry_msgs::Vector3& orientation_msg,
-				 double delta_time,
-				 double distance_delta,
-				 double theta_delta){
+				 const geometry_msgs::Vector3& orientation_msg){
   prev_fr_encoder  = front_msg.encoders.right_wheel;
   prev_fl_encoder  = front_msg.encoders.left_wheel;
   prev_br_encoder  = back_msg.encoders.right_wheel;

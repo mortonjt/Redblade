@@ -11,6 +11,7 @@ nav_msgs::Odometry odom;
 std::string odom_frame_id;
 bool imu_init = false;
 bool front_recv = false, back_recv=false;
+
 geometry_msgs::Vector3 orientation;
 geometry_msgs::Vector3 prev_orientation;
 geometry_msgs::Twist cmd_velocity;
@@ -21,41 +22,48 @@ ros::Publisher cmd_vel_pub;
 
 void frontEncoderCallback(const redblade_ax2550::StampedEncoders& msg){
   front_encoders = msg;
+  front_encoders.encoders.right_wheel *= -1;
+  front_encoders.encoders.left_wheel  *= -1;
   front_recv = true;
+  //std::cout<<"Front right: "<<msg.encoders.right_wheel<<" Front left: "<<msg.encoders.left_wheel<<std::endl;
+  //ROS_INFO("Front encoders received");
 }
 
 void backEncoderCallback(const redblade_ax2550::StampedEncoders& msg){
   back_encoders = msg;
   back_recv = true;
+  //std::cout<<"Back right: "<<msg.encoders.right_wheel<<" Back left: "<<msg.encoders.left_wheel<<std::endl;
+  //ROS_INFO("Back encoders received");
 }
 
-void imuCallback(const geometry_msgs::Vector3::ConstPtr& msg){
-  orientation.x = msg->x;
-  orientation.y = msg->y;
-  orientation.z = msg->z;
+void imuCallback(const geometry_msgs::Vector3Stamped::ConstPtr& msg){
+  orientation.x = msg->vector.x;
+  orientation.y = msg->vector.y;
+  orientation.z = msg->vector.z;
   imu_init = true;    
-
+  //ROS_INFO("Imu message received");
 }
 
-void publish_loop(odometry_skid_steer odomSS,double &theta, double &intVr, double &intVl){  
+void estimate(odometry_skid_steer& odomSS,double &theta, double &intVr, double &intVl){  
   double delta_time,left_encoders,right_encoders;
   double dTheta = orientation.z - prev_orientation.z;
   odomSS.getEncoders(front_encoders,back_encoders,left_encoders,right_encoders,delta_time);
-  double Vr = (right_encoders/clicks_per_m)/delta_time;
-  double Vl = (left_encoders/clicks_per_m)/delta_time;
+  intVr = right_encoders/clicks_per_m;
+  intVl = left_encoders/clicks_per_m;
   theta+=dTheta;
-  intVl+=delta_time*Vl;
-  intVr+=delta_time*Vr;
   double eff_wheel_base_width = (intVr-intVl)/theta;
+  ROS_INFO("dTheta %f theta %f",dTheta,theta);
   ROS_INFO("Effective Wheel Base Width %f",eff_wheel_base_width);
-  cmd_velocity.linear.x = 0;
-  cmd_velocity.linear.y = 0;
-  cmd_velocity.linear.z = 0;
-  cmd_velocity.angular.x = 0;
-  cmd_velocity.angular.y = 0;
-  cmd_velocity.angular.z = 1;
-  cmd_vel_pub.publish(cmd_velocity);
+  ROS_INFO("Front Right %ld Back Right %ld Front Left %ld Back Left %ld",
+  	   odomSS.prev_fr_encoder,
+  	   odomSS.prev_br_encoder,
+   	   odomSS.prev_fl_encoder,
+  	   odomSS.prev_bl_encoder);
+  
   prev_orientation = orientation;
+  odomSS.update(front_encoders,
+		back_encoders,
+		orientation);
 }
 
 
@@ -68,11 +76,10 @@ int main(int argc, char** argv){
   double wheel_base_width;
   std::string cmd_namespace;
   //See odometry_skid_steer.h for all constants
-  n.param("front_encoders", front_encoder_namespace, std::string("/front_encoders"));
-  n.param("back_encoders", back_encoder_namespace, std::string("/back_encoders"));
-  n.param("imu", imu_namespace, std::string("/imu"));
-  n.param("wheel_base_width", wheel_base_width, 0.473);
-  n.param("cmd_vel", cmd_namespace, std::string("/cmd_vel"));
+  nh.param("front_encoders", front_encoder_namespace, std::string("/front_encoders"));
+  nh.param("back_encoders", back_encoder_namespace, std::string("/back_encoders"));
+  nh.param("imu", imu_namespace, std::string("/imu"));
+  nh.param("wheel_base_width", wheel_base_width, 0.473);
 
   double theta = 0; //rotation angle
   double intVr = 0, intVl = 0; //integral of Vr and Vl
@@ -89,20 +96,18 @@ int main(int argc, char** argv){
   						 backEncoderCallback);
   ros::Subscriber imu_sub = n.subscribe(imu_namespace, 1, 
 					imuCallback);
-  cmd_vel_pub = n.advertise<geometry_msgs::Twist>(cmd_namespace, 10);
-  
-  //Set up rate for cmd_vel topic to be published at
-  ros::Rate cmd_vel_rate(40);//Hz
 
+  ROS_INFO("front_encoder_namespace %s",front_encoder_namespace.c_str());
+  ROS_INFO("back_encoder_namespace %s",back_encoder_namespace.c_str());
+  ROS_INFO("imu_namespace %s",imu_namespace.c_str());
+  ROS_INFO("Started calibration");
   //publish cmd_vel topic every 25 ms (40 hz)
   while(ros::ok()){
-      if(front_recv and back_recv and imu_init){
-	publish_loop(odomSS,theta,intVr,intVl);
-  	front_recv = false;
-	back_recv = false;
-      }
-    //sleep for a bit to stay at 40 hz
-    cmd_vel_rate.sleep();
+    if(front_recv and back_recv and imu_init){
+      estimate(odomSS,theta,intVr,intVl);
+      front_recv = false;
+      back_recv = false;
+    }
   }
 
   spinner.stop();
