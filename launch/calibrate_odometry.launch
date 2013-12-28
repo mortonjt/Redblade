@@ -1,0 +1,9 @@
+<launch>
+  <node pkg="odometry_skid_steer" type="calibrate_skid_steer" name="calibrate_odometry" output="screen">
+    <param name="front_encoders" value="/roboteq_front/encoders"/>
+    <param name="back_encoders" value="/roboteq_back/encoders"/>
+    <param name="imu" value="/imu/integrated_gyros_stamped"/>
+  </node>
+
+	
+</launch>
