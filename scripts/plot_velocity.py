@@ -1,7 +1,7 @@
 from pylab import *
 
 import rosbag
-
+import bisect
 clicks_per_m = 15768.6;
 
 def getLinearGPSVelocity(paired_msgs):
@@ -11,7 +11,7 @@ def getLinearGPSVelocity(paired_msgs):
     dTime = float(cur_time-prev_time)
     distance = sqrt( (cur_x-prev_x)*(cur_x-prev_x)+\
                      (cur_y-prev_y)*(cur_y-prev_y) )
-    return distance/dTime,int(cur_time)
+    return distance/dTime,cur_time
 
 def getLinearEncoderVelocity(paired_msgs):
     prev_msg,cur_msg = paired_msgs
@@ -28,7 +28,8 @@ def getLinearEncoderVelocity(paired_msgs):
                       cur_back.encoders.right_wheel)/(2.0*clicks_per_m)
     left_vel = (cur_left_pos-prev_left_pos)/dTime
     right_vel = (cur_right_pos-prev_right_pos)/dTime
-    return (left_vel+right_vel)/2.0,cur_front.header.stamp.secs
+    time = cur_front.header.stamp.secs+cur_front.header.stamp.nsecs/10**9
+    return (left_vel+right_vel)/2.0,time
 
 def movingAverage(gps_windows):
     x_avg = sum([msg.pose.pose.position.x for msg in gps_windows])/len(gps_windows)
@@ -36,8 +37,51 @@ def movingAverage(gps_windows):
     time = sum([msg.header.stamp.secs+msg.header.stamp.nsecs/10**9
                 for msg in gps_windows])/float(len(gps_windows))
     return x_avg,y_avg,time
-    
-    
+
+def weightedMovingAverage(gps_windows):
+    n = len(gps_windows)
+    x_avg = sum([gps_windows[i].pose.pose.position.x*(n-i)
+                 for i in range(0,len(gps_windows))])/sum(range(0,n))
+    y_avg = sum([gps_windows[i].pose.pose.position.y*(n-i)
+                 for i in range(0,len(gps_windows))])/sum(range(0,n))
+    time = sum([msg.header.stamp.secs+msg.header.stamp.nsecs/10**9
+                for msg in gps_windows])/n
+    return x_avg,y_avg,time
+
+def exponentialMovingAverage(gps_msgs,alpha=0.5):
+    Sx = [gps_msgs[0].pose.pose.position.x]*(len(gps_msgs))
+    Sy = [gps_msgs[0].pose.pose.position.y]*(len(gps_msgs))
+    time = [msg.header.stamp.secs+msg.header.stamp.nsecs/10.0**9 for msg in gps_msgs]
+    for i in range(1,len(gps_msgs)):
+        Sx[i] = alpha*gps_msgs[i-1].pose.pose.position.x+\
+                (1-alpha)*Sx[i-1]
+        Sy[i] = alpha*gps_msgs[i-1].pose.pose.position.y+\
+                (1-alpha)*Sy[i-1]
+    return zip(Sx,Sy,time)
+
+"""
+Filter encoders based on GPS measurements
+Only accept the closest encoder reads to GPS measurements in with respect to time
+"""
+def filterEncoders(encoders,gps):
+    encoderVels,encoder_times = zip(*encoders)
+    gpsVels,gps_times = zip(*gps)
+    gpsIndexs = range(0,len(gps_times))
+    encoderIndexs = []
+    times = set(encoder_times)
+    for i in gpsIndexs:
+        tmp = list(times)
+        index=bisect.bisect_left(tmp,gps_times[i])
+        print len(tmp),index
+        times.remove(tmp[index])
+        encoderIndexs.append(index)
+    #gpsIndexs,encoderIndexs = gpsDict.keys(),gpsDict.values()
+    print gpsDict
+    #print max(encoderIndexs),len(encoderIndexs),len(gpsIndexs)
+    gpsVels = [gpsVels[i] for i in gpsIndexs]
+    encoderVels = [encoderVels[i] for i in encoderIndexs]
+    return gpsVels,encoderVels
+
 bagFile = "/home/jamie/Downloads/gps_test3/2013-12-28-16-58-58.bag"
 front_encoders = "/roboteq_front/encoders"
 back_encoders = "/roboteq_back/encoders"
@@ -53,28 +97,25 @@ gps_msgs = [msg for topic,msg,t in bag.read_messages(topics=[gps])]
 ##Speeds from encoder readings
 roboteq_msgs = zip(front_msgs,back_msgs)
 paired_msgs = zip(roboteq_msgs[:-1],roboteq_msgs[1:]) #previous paired with current msg
-encoderVels = map( getLinearEncoderVelocity, paired_msgs )
+encoderPairs = map( getLinearEncoderVelocity, paired_msgs ) #Has both velocity and time
 
 ##Speeds from gps readings
-gps_windows = zip(gps_msgs[0:-5],
-                  gps_msgs[1:-4],
-                  gps_msgs[2:-3],
-                  gps_msgs[3:-2],
-                  gps_msgs[4:-1],
-                  gps_msgs[5:])
-
-gps_avgs = map(movingAverage,gps_windows)
+# gps_windows = zip(gps_msgs[0:-5],
+#                   gps_msgs[1:-4],
+#                   gps_msgs[2:-3],
+#                   gps_msgs[3:-2],
+#                   gps_msgs[4:-1],
+#                   gps_msgs[5:])
+# gps_avgs = map(weightedMovingAverage,gps_windows)
+gps_avgs = exponentialMovingAverage(gps_msgs)
 paired_msgs = zip(gps_avgs[:-1],gps_avgs[1:])
-gpsVels = map(getLinearGPSVelocity,paired_msgs)
-#Get only the first velocity seen at each second
-gpsVelsDict = {t[1]:t[0] for t in gpsVels }
-encoderVelsDict = {t[1]:t[0] for t in encoderVels }
+gpsPairs = map(getLinearGPSVelocity,paired_msgs) #Has both velocity and time
 
-gpsVels = gpsVelsDict.values()
-encoderVels = encoderVelsDict.values()[:-1]
+gpsVels,gpsTime = zip(*gpsPairs)
+encoderVels,gpsVels = filterEncoders(encoderPairs,gpsPairs)
+
 
 f = figure(1)
-print len(encoderVels),len(gpsVels)
 plot(encoderVels,gpsVels,'ob')
 title('Encoder vs GPS velocity')
 xlabel('Encoder Velocities')
@@ -88,5 +129,13 @@ title('Encoder vs Error')
 xlabel('Encoder Velocities')
 ylabel('Velocity Error')
 g.show()
+
+t = figure(3)
+plot(gpsTime,gpsVels,'ob')
+title('GPS velocity vs Time')
+xlabel('Time')
+ylabel('GPS Velocities')
+t.show()
+
 
 raw_input()

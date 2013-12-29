@@ -17,16 +17,16 @@ def parse(bag,out,front_encoder,back_encoder,front_cmd_vel,back_cmd_vel,imu,gps)
     for topic,msg,t in bag.read_messages(topics=[front_encoder,back_encoder,front_cmd_vel,back_cmd_vel,imu,gps]):
         if topic==front_encoder:
             front_encoder_out.write("%d,%d,%d,%d,%d\n"%(msg.header.stamp.secs,
-                                                msg.header.stamp.nsecs,
-                                                msg.encoders.time_delta,
-                                                msg.encoders.left_wheel,
-                                                msg.encoders.right_wheel))
+                                                        msg.header.stamp.nsecs,
+                                                        msg.encoders.time_delta,
+                                                        msg.encoders.left_wheel,
+                                                        msg.encoders.right_wheel))
         elif topic==back_encoder:
             back_encoder_out.write("%d,%d,%d,%d,%d\n"%(msg.header.stamp.secs,
-                                               msg.header.stamp.nsecs,
-                                               msg.encoders.time_delta,
-                                               msg.encoders.left_wheel,
-                                               msg.encoders.right_wheel))
+                                                       msg.header.stamp.nsecs,
+                                                       msg.encoders.time_delta,
+                                                       msg.encoders.left_wheel,
+                                                       msg.encoders.right_wheel))
         if topic==front_cmd_vel:
             front_cmd_out.write("%f,%f,%f,%f,%f,%f\n"%(msg.linear.x,
                                                        msg.linear.y,
