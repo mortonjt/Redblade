@@ -1,0 +1,1 @@
+rosbag record /imu/data /imu/integrated_gyros_stamped /roboteq_back/cmd_vel_stamped /roboteq_back/encoders /roboteq_front/cmd_vel_stamped /roboteq_front/encoders /gps /fix
