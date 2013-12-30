@@ -52,6 +52,7 @@ AX2550::AX2550 (string port)
 : port_(""), serial_port_(NULL), serial_listener_(1),
   connected_(false), synced_(false)
 {
+  this->front_or_back = "front";
   this->port_ = port;
   // Set default callbacks
   this->info = defaultInfo;
