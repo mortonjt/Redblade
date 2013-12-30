@@ -28,19 +28,25 @@ def parse(bag,out,front_encoder,back_encoder,front_cmd_vel,back_cmd_vel,imu,gps)
                                                        msg.encoders.left_wheel,
                                                        msg.encoders.right_wheel))
         if topic==front_cmd_vel:
-            front_cmd_out.write("%f,%f,%f,%f,%f,%f\n"%(msg.linear.x,
-                                                       msg.linear.y,
-                                                       msg.linear.z,
-                                                       msg.angular.x,
-                                                       msg.angular.y,
-                                                       msg.angular.z))
+            front_cmd_out.write("%d,%d,%f,%f,%f,%f,%f,%f\n"%(
+                                                       msg.header.stamp.secs,
+                                                       msg.header.stamp.nsecs,
+                                                       msg.twist.linear.x,
+                                                       msg.twist.linear.y,
+                                                       msg.twist.linear.z,
+                                                       msg.twist.angular.x,
+                                                       msg.twist.angular.y,
+                                                       msg.twist.angular.z))
         elif topic==back_cmd_vel:
-            back_cmd_out.write("%f,%f,%f,%f,%f,%f\n"%(msg.linear.x,
-                                                      msg.linear.y,
-                                                      msg.linear.z,
-                                                      msg.angular.x,
-                                                      msg.angular.y,
-                                                      msg.angular.z))
+            back_cmd_out.write("%d,%d,%f,%f,%f,%f,%f,%f\n"%(
+                                                       msg.header.stamp.secs,
+                                                       msg.header.stamp.nsecs,
+                                                       msg.twist.linear.x,
+                                                       msg.twist.linear.y,
+                                                       msg.twist.linear.z,
+                                                       msg.twist.angular.x,
+                                                       msg.twist.angular.y,
+                                                       msg.twist.angular.z))
         elif topic==imu:
             imu_out.write("%d,%d,%f,%f,%f\n"%(msg.header.stamp.secs,
                                               msg.header.stamp.nsecs,
@@ -78,10 +84,10 @@ if __name__=="__main__":
         '--back_encoder_topic',type=str,required=False,default="/encoders_back",
         help='name of back encoder topic')
     parser.add_argument(\
-        '--front_cmd_vel_topic',type=str,required=False,default="/roboteq_front/cmd_vel",
+        '--front_cmd_vel_topic',type=str,required=False,default="/roboteq_front/cmd_vel_stamped",
         help='name of front cmd_vel topic')
     parser.add_argument(\
-        '--back_cmd_vel_topic',type=str,required=False,default="/roboteq_back/cmd_vel",
+        '--back_cmd_vel_topic',type=str,required=False,default="/roboteq_back/cmd_vel_stamped",
         help='name of back cmd_vel topic')
     parser.add_argument(\
         '--imu_topic',type=str,required=False,default="/imu/integrated_gyros_stamped",
