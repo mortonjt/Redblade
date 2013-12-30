@@ -7,12 +7,12 @@ Note:
 imu_topic must spit out Vector3Stamped
 """
 def parse(bag,out,front_encoder,back_encoder,front_cmd_vel,back_cmd_vel,imu,gps):
-    front_encoder_out = open("%s.front_encoder.cvs"%(out),'w')
-    back_encoder_out  = open("%s.back_encoder.cvs"%(out),'w')
-    front_cmd_out     = open("%s.front_cmd_vel.cvs"%(out),'w')
-    back_cmd_out      = open("%s.back_cmd_vel.cvs"%(out),'w')
-    imu_out           = open("%s.imu.cvs"%(out),'w')
-    gps_out           = open("%s.gps.cvs"%(out),'w')
+    front_encoder_out = open("%s.front_encoder.csv"%(out),'w')
+    back_encoder_out  = open("%s.back_encoder.csv"%(out),'w')
+    front_cmd_out     = open("%s.front_cmd_vel.csv"%(out),'w')
+    back_cmd_out      = open("%s.back_cmd_vel.csv"%(out),'w')
+    imu_out           = open("%s.imu.csv"%(out),'w')
+    gps_out           = open("%s.gps.csv"%(out),'w')
 
     for topic,msg,t in bag.read_messages(topics=[front_encoder,back_encoder,front_cmd_vel,back_cmd_vel,imu,gps]):
         if topic==front_encoder:
