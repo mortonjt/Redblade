@@ -72,10 +72,10 @@ if __name__=="__main__":
         '--out',type=str,required=False,default="out",
         help='basename of output file(s)')
     parser.add_argument(\
-        '--front_encoder_topic',type=str,required=False,default="/roboteq_front/encoders",
+        '--front_encoder_topic',type=str,required=False,default="/roboteq_front/encoders_front",
         help='name of front encoder topic')
     parser.add_argument(\
-        '--back_encoder_topic',type=str,required=False,default="/roboteq_back/encoders",
+        '--back_encoder_topic',type=str,required=False,default="/roboteq_back/encoders_back",
         help='name of back encoder topic')
     parser.add_argument(\
         '--front_cmd_vel_topic',type=str,required=False,default="/roboteq_front/cmd_vel",
