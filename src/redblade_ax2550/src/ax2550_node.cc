@@ -81,15 +81,15 @@ void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& msg) {
 void controlLoop() {
     // ROS_INFO("Relative move commands: %f %f", target_speed, target_direction);
     try {
-    	mc->move(target_speed, target_direction);
+            mc->move(target_speed, target_direction);
     } catch(const std::exception &e) {
-    	if (string(e.what()).find("did not receive") != string::npos
+            if (string(e.what()).find("did not receive") != string::npos
          || string(e.what()).find("failed to receive an echo") != string::npos) {
             ROS_WARN("Error commanding the motors: %s", e.what());
-    	} else {
+            } else {
             ROS_ERROR("Error commanding the motors: %s", e.what());
             mc->disconnect();
-    	}
+            }
     }
 }
 
@@ -126,7 +126,7 @@ void queryEncoders() {
         if (string(e.what()).find("failed to receive ") != string::npos
          && error_count != 10) {
             error_count += 1;
-            ROS_WARN("Error reading the Encoders: %s", e.what());    
+            ROS_WARN("Error reading the Encoders: %s", e.what());
         } else {
             ROS_ERROR("Error reading the Encoders: %s", e.what());
             mc->disconnect();
@@ -139,12 +139,12 @@ void queryEncoders() {
     
     // Convert to mps for each wheel from delta encoder ticks
     /*double left_v = encoder1 * 2*M_PI / ENCODER_RESOLUTION;
-    left_v /= delta_time;
-    // left_v *= encoder_poll_rate;
-    double right_v = -encoder2 * 2*M_PI / ENCODER_RESOLUTION;
-    right_v /= delta_time;
-    // right_v *= encoder_poll_rate;
-    */
+left_v /= delta_time;
+// left_v *= encoder_poll_rate;
+double right_v = -encoder2 * 2*M_PI / ENCODER_RESOLUTION;
+right_v /= delta_time;
+// right_v *= encoder_poll_rate;
+*/
     redblade_ax2550::StampedEncoders encoder_msg;
     encoder_msg.header.stamp = now;
     encoder_msg.header.frame_id = "base_link";
@@ -160,64 +160,55 @@ void queryEncoders() {
     encoder_pub.publish(encoder_msg);
 
     /*double v = 0.0;
-    double w = 0.0;
-    
-    double r_L = wheel_diameter/2.0;
-    double r_R = wheel_diameter/2.0;
-    
-    v += r_L/2.0 * left_v;
-    v += r_R/2.0 * right_v;
+double w = 0.0;
+double r_L = wheel_diameter/2.0;
+double r_R = wheel_diameter/2.0;
+v += r_L/2.0 * left_v;
+v += r_R/2.0 * right_v;
 
-    w += r_R/wheel_base_length * right_v;
-    w -= r_L/wheel_base_length * left_v;
+w += r_R/wheel_base_length * right_v;
+w -= r_L/wheel_base_length * left_v;
 
-    
-    // Update the states based on model and input
-    prev_x += delta_time * v
-                          * cos(prev_w + delta_time * (w/2.0));
-    
-    prev_y += delta_time * v
-                          * sin(prev_w + delta_time * (w/2.0));
-    prev_w += delta_time * w;
-    prev_w = wrapToPi(prev_w);
-    
-    // ROS_INFO("%f", prev_w);
-    
-    geometry_msgs::Quaternion quat = tf::createQuaternionMsgFromYaw(prev_w);
-    
-    // Populate the msg
-    nav_msgs::Odometry odom_msg;
-    odom_msg.header.stamp = now;
-    odom_msg.header.frame_id = odom_frame_id;
-    odom_msg.pose.pose.position.x = prev_x;
-    odom_msg.pose.pose.position.y = prev_y;
-    odom_msg.pose.pose.orientation = quat;
-    odom_msg.pose.covariance[0] = pos_cov;
-    odom_msg.pose.covariance[7] = pos_cov;
-    odom_msg.pose.covariance[14] = 1e100;
-    odom_msg.pose.covariance[21] = 1e100;
-    odom_msg.pose.covariance[28] = 1e100;
-    odom_msg.pose.covariance[35] = rot_cov;
-    
-    // odom_msg.twist.twist.linear.x = v/delta_time;
-    odom_msg.twist.twist.linear.x = v;
-    // odom_msg.twist.twist.angular.z = w/delta_time;
-    odom_msg.twist.twist.angular.z = w;
-    
-    odom_pub.publish(odom_msg);
-    */ 
+// Update the states based on model and input
+prev_x += delta_time * v
+* cos(prev_w + delta_time * (w/2.0));
+prev_y += delta_time * v
+* sin(prev_w + delta_time * (w/2.0));
+prev_w += delta_time * w;
+prev_w = wrapToPi(prev_w);
+// ROS_INFO("%f", prev_w);
+geometry_msgs::Quaternion quat = tf::createQuaternionMsgFromYaw(prev_w);
+// Populate the msg
+nav_msgs::Odometry odom_msg;
+odom_msg.header.stamp = now;
+odom_msg.header.frame_id = odom_frame_id;
+odom_msg.pose.pose.position.x = prev_x;
+odom_msg.pose.pose.position.y = prev_y;
+odom_msg.pose.pose.orientation = quat;
+odom_msg.pose.covariance[0] = pos_cov;
+odom_msg.pose.covariance[7] = pos_cov;
+odom_msg.pose.covariance[14] = 1e100;
+odom_msg.pose.covariance[21] = 1e100;
+odom_msg.pose.covariance[28] = 1e100;
+odom_msg.pose.covariance[35] = rot_cov;
+// odom_msg.twist.twist.linear.x = v/delta_time;
+odom_msg.twist.twist.linear.x = v;
+// odom_msg.twist.twist.angular.z = w/delta_time;
+odom_msg.twist.twist.angular.z = w;
+odom_pub.publish(odom_msg);
+*/
     // TODO: Add TF broadcaster
     // geometry_msgs::TransformStamped odom_trans;
-    //     odom_trans.header.stamp = now;
-    //     odom_trans.header.frame_id = "odom";
-    //     odom_trans.child_frame_id = "base_footprint";
-    // 
-    //     odom_trans.transform.translation.x = prev_x;
-    //     odom_trans.transform.translation.y = prev_y;
-    //     odom_trans.transform.translation.z = 0.0;
-    //     odom_trans.transform.rotation = quat;
-    //     
-    //     odom_broadcaster->sendTransform(odom_trans);
+    // odom_trans.header.stamp = now;
+    // odom_trans.header.frame_id = "odom";
+    // odom_trans.child_frame_id = "base_footprint";
+    //
+    // odom_trans.transform.translation.x = prev_x;
+    // odom_trans.transform.translation.y = prev_y;
+    // odom_trans.transform.translation.z = 0.0;
+    // odom_trans.transform.rotation = quat;
+    //
+    // odom_broadcaster->sendTransform(odom_trans);
 }
 
 int main(int argc, char **argv) {
@@ -270,7 +261,7 @@ int main(int argc, char **argv) {
         } catch(std::exception &e) {
             ROS_ERROR("Failed to connect to the AX2550: %s", e.what());
             if (mc != NULL) {
-            	mc->disconnect();
+                    mc->disconnect();
             }
         }
         int count = 0;
@@ -282,19 +273,19 @@ int main(int argc, char **argv) {
             } else {
                 count += 1;
             }
-			encoder_rate.sleep();
+                        encoder_rate.sleep();
         }
         if (mc != NULL) {
-        	delete mc;
+                delete mc;
         }
         mc = NULL;
         if(!ros::ok())
             break;
         ROS_INFO("Will try to reconnect to the AX2550 in 5 seconds.");
         for (int i = 0; i < 100; ++i) {
-        	ros::Duration(5.0/100.0).sleep();
-        	if (!ros::ok())
-        		break;
+                ros::Duration(5.0/100.0).sleep();
+                if (!ros::ok())
+                        break;
         }
         target_speed = 0.0;
         target_direction = 0.0;

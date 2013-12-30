@@ -87,6 +87,8 @@ namespace ax2550 {
     LoggingCallback debug;
     LoggingCallback info;
     LoggingCallback warn;
+    std::string front_or_back;
+
   private:
     // Serial stuff
     std::string port_;

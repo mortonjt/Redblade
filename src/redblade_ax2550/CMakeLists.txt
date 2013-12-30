@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(redblade_ax2550)
 
+#Added by RJ for threading
+set(CMAKE_CXX_FLAGS "-std=c++0x")
+
 find_package(catkin REQUIRED
   COMPONENTS
     geometry_msgs
@@ -35,10 +38,15 @@ target_link_libraries(ax2550 ${serial_LIBRARIES} ${serial_utils_LIBRARIES} ${Boo
 
 ## ax2550 ROS Node
 add_executable(ax2550_node src/ax2550_node.cc)
-target_link_libraries(ax2550_node ax2550 ${catkin_LIBRARIES})
-add_dependencies(ax2550_node ax2550_generate_messages_cpp ${catkin_EXPORTED_LIBRARIES})
+add_executable(ax2550_awd_node src/ax2550_awd_node.cc)
 
-install(TARGETS ax2550 ax2550_node
+target_link_libraries(ax2550_node ax2550 ${catkin_LIBRARIES})
+target_link_libraries(ax2550_awd_node ax2550 ${catkin_LIBRARIES})
+
+add_dependencies(ax2550_node ax2550_generate_messages_cpp ${catkin_EXPORTED_LIBRARIES})
+add_dependencies(ax2550_awd_node ax2550_generate_messages_cpp ${catkin_EXPORTED_LIBRARIES})
+
+install(TARGETS ax2550 ax2550_node ax2550_awd_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
