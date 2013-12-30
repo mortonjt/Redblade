@@ -1,6 +1,18 @@
 import math
 clicks_per_m = 15768.6;
 
+def calculateAngularImuVelocity(paired_msgs):
+    prev_msg,cur_msg = paired_msgs
+    prev_z,prev_time = prev_msg
+    cur_z,cur_time = cur_msg
+    dTime = float(cur_time-prev_time)%math.pi
+    return (cur_z-prev_z)/dTime
+
+def getAngularImuVelocities(imu_z,time):
+    msgs  = zip(imu_z,time)
+    pairs = zip(msgs[:-1],msgs[1:])
+    return map(calculateAngularImuVelocity,pairs)
+
 def calculateLinearGPSVelocity(paired_msgs):
     prev_msg,cur_msg = paired_msgs
     prev_x,prev_y,prev_time = prev_msg
