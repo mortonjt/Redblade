@@ -99,7 +99,7 @@ void rcCallback(const geometry_msgs::Vector3::ConstPtr& msg) {
     msg_out.linear.z = 0;
     msg_out.angular.x = 0;
     msg_out.angular.y = 0;
-    msg_out.angular.z = ((right_-left_)/wheelbase)*roboteqUnits/angresolution;
+    msg_out.angular.z = -(((right_-left_)/wheelbase)*roboteqUnits/angresolution);
 
     arduinoRC_pub.publish(msg_out);
 

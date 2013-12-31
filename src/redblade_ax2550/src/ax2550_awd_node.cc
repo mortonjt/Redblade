@@ -280,6 +280,10 @@ int main(int argc, char **argv) {
     std::string port_front, port_back;
     n.param("serial_port_front", port_front, std::string("/dev/motor_controller"));
     n.param("serial_port_back", port_back, std::string("/dev/motor_controller"));
+
+    std::string cmd_vel_front_namespace,cmd_vel_back_namespace;
+    n.param("cmd_vel_front", cmd_vel_front_namespace, std::string("/dev/motor_controller"));
+    n.param("cmd_vel_back", cmd_vel_back_namespace, std::string("/dev/motor_controller"));
    
     // Setup Encoder polling, might not need this, we should take it out later probably
     n.param("encoder_poll_rate", encoder_poll_rate, 25.0);
@@ -298,8 +302,8 @@ int main(int argc, char **argv) {
     n.param("wheel_base_length", wheel_base_length, 0.473);
 
     // cmd_vel Subscriber
-    ros::Subscriber sub_front = nh.subscribe("cmd_vel_front", 1, cmd_vel_frontCallback);
-    ros::Subscriber sub_back = nh.subscribe("cmd_vel_back", 1, cmd_vel_backCallback);
+    ros::Subscriber sub_front = nh.subscribe(cmd_vel_front_namespace, 1, cmd_vel_frontCallback);
+    ros::Subscriber sub_back = nh.subscribe(cmd_vel_back_namespace, 1, cmd_vel_backCallback);
    
     // Spinner (2 threads, 1 for each callback)
     ros::AsyncSpinner spinner(2);

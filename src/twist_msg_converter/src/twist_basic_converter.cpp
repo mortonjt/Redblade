@@ -24,33 +24,38 @@ void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& msg){
   front_target.linear.z = msg->linear.z;
   front_target.angular.x = msg->angular.x;
   front_target.angular.y = msg->angular.y;
-  front_target.angular.z = msg->angular.z*2;
-
-  back_target.linear.x = msg->linear.x;
-  back_target.linear.y = msg->linear.y;
-  back_target.linear.z = msg->linear.z;
-  back_target.angular.x = msg->angular.x;
-  back_target.angular.y = msg->angular.y;
-  back_target.angular.z = msg->angular.z*2;
-
-}
-
-void Arduino_RC_Callback(const geometry_msgs::Twist::ConstPtr& msg) {
-  //for now, we're just going to push the overall linear and angular velocity through
-  //to each of the motor controllers, we'll figure out what's actually happening later
-  front_target.linear.x = msg->linear.x;
-  front_target.linear.y = msg->linear.y;
-  front_target.linear.z = msg->linear.z;
-  front_target.angular.x = msg->angular.x;
-  front_target.angular.y = msg->angular.y;
-  front_target.angular.z = msg->angular.z*2;
+  front_target.angular.z = -msg->angular.z*2;
   
   back_target.linear.x = -msg->linear.x;
   back_target.linear.y = msg->linear.y;
   back_target.linear.z = msg->linear.z;
   back_target.angular.x = msg->angular.x;
   back_target.angular.y = msg->angular.y;
-  back_target.angular.z = msg->angular.z*2;
+  back_target.angular.z = -msg->angular.z*2;
+  
+}
+
+void Arduino_RC_Callback(const geometry_msgs::Twist::ConstPtr& msg) {
+  /*Note to self/others so I don't forget: The input to this function (msg)
+    will include a linear and angular velocity. These angular velocities 
+    represent what we actually want the robot to do. For the robot to 
+    acheive this, we'll need to negate the stuff going to different roboteqs
+    and do other weird stuff.
+   */
+  
+  front_target.linear.x = msg->linear.x;
+  front_target.linear.y = msg->linear.y;
+  front_target.linear.z = msg->linear.z;
+  front_target.angular.x = msg->angular.x;
+  front_target.angular.y = msg->angular.y;
+  front_target.angular.z = -msg->angular.z*2;
+  
+  back_target.linear.x = -msg->linear.x;
+  back_target.linear.y = msg->linear.y;
+  back_target.linear.z = msg->linear.z;
+  back_target.angular.x = msg->angular.x;
+  back_target.angular.y = msg->angular.y;
+  back_target.angular.z = -msg->angular.z*2;
   
 }
 
