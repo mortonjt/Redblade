@@ -1,0 +1,32 @@
+
+<launch>
+
+  <node pkg="b110_testing" type="gps_record_node" name="gps_recorder" output="screen">
+        <!--DON'T PUT AN EXTENSION ON FILENAME, ONLY USE UNIQUE IDENTIFIER-->
+	<param name="filename" value="/home/redblade/GPSDATA/firstTest"/>
+  </node>
+
+  <node pkg="nmea_navsat_driver" type="nmea_serial_driver" name="B110_1" output="screen" >
+  	<param name="port" value="/dev/ttyUSB0" />
+	<param name="baud" value="115200" />
+	<param name="frame_id" value="B110_1" />
+	<param name="useRMC" value="False" />
+  </node>
+
+<!--
+  <node pkg="nmea_navsat_driver" type="nmea_serial_driver" name="B110_2" output="screen" >
+  	<param name="port" value="/dev/ttyUSB1" />
+	<param name="baud" value="115200" />
+	<param name="frame_id" value="B110_2" />
+	<param name="useRMC" value="False" />
+  </node>
+
+  <node pkg="nmea_navsat_driver" type="nmea_serial_driver" name="HiperLitePlus" output="screen" >
+  	<param name="port" value="/dev/ttyUSB2" />
+	<param name="baud" value="115200" />
+	<param name="frame_id" value="HiperLitePlus" />
+	<param name="useRMC" value="False" />
+  </node>
+-->
+
+</launch>
