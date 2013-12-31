@@ -61,45 +61,45 @@ Wolfarth for the lack of comments.
 double distance_to_goal(geometry_msgs::Pose2D &dest, geometry_msgs::Pose2D &start){
   double x1, y1, x2, y2, x, y;
   double mS, mD, bD, quad_correct, d;
-  return sqrt( (start.x-dest.x)*(start.x-dest.x)+	\
-	       (start.y-dest.y)*(start.y-dest.y));
+  /*  return sqrt( (start.x-dest.x)*(start.x-dest.x)+	\
+      (start.y-dest.y)*(start.y-dest.y));*/
   
   
-  // //handling zero slope
-  // if(dest.y-start.y == 0){
-  //   if(dest.x > start.x){
-  //     d = dest.x - x;
-  //   }else{
-  //     d = x - dest.x;
-  //   }
-  // }else if(dest.x-start.x == 0){//handling undef. slope
-  //   if(dest.y > start.y){
-  //     d = dest.y - y;
-  //   }else{
-  //     d = y - dest.y;
-  //   }
-  // }else{//handle all other cases with non-zero, defined slope
-  //   //convert to local reference frame: current point is origin
-  //   x1 = start.x - x;
-  //   y1 = start.y - y;
-  //   x2 = dest.x - x;
-  //   y2 = dest.y - y;
-  //   x = 0; y = 0;
+  //handling zero slope
+  if(dest.y-start.y == 0){
+    if(dest.x > start.x){
+      d = dest.x - x;
+    }else{
+      d = x - dest.x;
+    }
+  }else if(dest.x-start.x == 0){//handling undef. slope
+    if(dest.y > start.y){
+      d = dest.y - y;
+    }else{
+      d = y - dest.y;
+    }
+  }else{//handle all other cases with non-zero, defined slope
+    //convert to local reference frame: current point is origin
+    x1 = start.x - x;
+    y1 = start.y - y;
+    x2 = dest.x - x;
+    y2 = dest.y - y;
+    x = 0; y = 0;
 
-  //   //calculate slope and equation of perpendicular line
-  //   mS = (y1-y2) / (x1-x2);
-  //   mD = -1/mS;
-  //   bD = y2 - (mD*x2);
+    //calculate slope and equation of perpendicular line
+    mS = (y1-y2) / (x1-x2);
+    mD = -1/mS;
+    bD = y2 - (mD*x2);
 
-  //   quad_correct = atan2(y2-y1,x2-x1);
-  //   if(quad_correct < 0){
-  //     quad_correct = -1;
-  //   }else{
-  //     quad_correct = 1;
-  //   }
+    quad_correct = atan2(y2-y1,x2-x1);
+    if(quad_correct < 0){
+      quad_correct = -1;
+    }else{
+      quad_correct = 1;
+    }
     
-  //   d = quad_correct * (((x*mD) - y + bD) / sqrt(pow(mD,2) + 1.0));
-  // }
+    d = quad_correct * (((x*mD) - y + bD) / sqrt(pow(mD,2) + 1.0));
+  }
 
   return d;
 }
@@ -116,13 +116,13 @@ bool ye_ol_pid(){
 
   //TODO: implement a check for stuck method here
   
-  //if this is the first time this method has been called, let's just send her in a straight line
-  //for a very short peiod of time
-  // if(vel_targets.linear.x == 0){
-  //   vel_targets.linear.x = FAST_SPEED * (forward?(1):(-1));// m/s
-  //   vel_targets.angular.z = 0;//straight line, no turnin
-  //   return false;//we ain't done yet
-  // }
+  /*if this is the first time this method has been called, let's just send her in a straight line
+    for a very short peiod of time*/
+  if(vel_targets.linear.x == 0){
+    vel_targets.linear.x = FAST_SPEED * (forward?(1):(-1));// m/s
+    vel_targets.angular.z = 0;//straight line, no turnin
+    return false;//we ain't done yet
+  }
   
   //calculate error
   desired_heading = M_PI/2-atan2(dest.y-cur_pos.y,
@@ -156,11 +156,11 @@ bool ye_ol_pid(){
   //set upper limit for angular velocity
   //TODO: i actually have no idea what this number should be, gonna need to figure that out
 
-  // if(pid > 0.5){
-  //   pid = 0.5;
-  // }else if(pid < -0.5){
-  //   pid = -0.5;
-  // }
+  if(pid > 0.5){
+    pid = 0.5;
+  }else if(pid < -0.5){
+    pid = -0.5;
+  }
 
   //check to see if we've reached our destination
   //distance = distance_to_goal(dest, start);
