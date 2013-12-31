@@ -20,10 +20,10 @@
       <!-- <param name="front_or_back" value="back"/> -->
   </node>
 
-  <node name="imu_node" pkg="microstrain_3dmgx2_imu" type="imu_node" cwd="node" output="screen">
-    <param name="port"  type="string" value="/dev/ttyACM1" />		
+  <!-- <node name="imu_node" pkg="microstrain_3dmgx2_imu" type="imu_node" cwd="node" output="screen"> -->
+  <!--   <param name="port"  type="string" value="/dev/ttyACM1" />		 -->
   
-  </node>
+  <!-- </node> -->
   <node pkg="nmea_navsat_driver" type="nmea_serial_driver" name="Topcon_DGPS" output="screen" >
     <param name="port" value="/dev/ttyDGPS" />
     <param name="baud" value="115200" /> 

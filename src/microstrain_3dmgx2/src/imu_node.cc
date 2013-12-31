@@ -492,8 +492,8 @@ public:
     data.linear_acceleration.z = accel[2];
  
     data.angular_velocity.x = angrate[0];
-    data.angular_velocity.y = angrate[1];
-    data.angular_velocity.z = angrate[2];
+    data.angular_velocity.y = -angrate[1];
+    data.angular_velocity.z = -angrate[2];
 
     //this matrix in this file is different than the old file, maybe ROS fucks fixed it
     tf::Quaternion quat;
@@ -509,8 +509,8 @@ public:
     data.header.stamp = ros::Time::now().fromNSec(time);
     //Any reason why 0.01?
     x_orientation_ = wrapToPi(x_orientation_ + data.angular_velocity.y * .01);
-    y_orientation_ = wrapToPi(y_orientation_ - data.angular_velocity.x * .01);
-    z_orientation_ = wrapToPi(z_orientation_ - data.angular_velocity.z * .01);
+    y_orientation_ = wrapToPi(y_orientation_ + data.angular_velocity.x * .01);
+    z_orientation_ = wrapToPi(z_orientation_ + data.angular_velocity.z * .01);
 
     //fuck the filtered orientation output by the imu, we're gonna use integrated gyros instead
     quat.setRPY(x_orientation_, y_orientation_, z_orientation_);
