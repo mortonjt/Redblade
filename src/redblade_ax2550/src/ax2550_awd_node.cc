@@ -10,6 +10,7 @@
 #include <thread>
 
 #include "ax2550/ax2550.h"
+#include "odometry_skid_steer.h"
 
 using namespace ax2550;
 using std::string;
@@ -18,6 +19,7 @@ AX2550 *mc_front;
 AX2550 *mc_back;
 ros::Publisher encoder_pub_front;
 ros::Publisher encoder_pub_back;
+ros::Publisher odom_pub;
 
 static double ENCODER_RESOLUTION = 200*4;
 static double clicks_per_m = 15768.6;
@@ -32,6 +34,8 @@ double target_speed_front = 0.0;
 double target_direction_front = 0.0;
 double target_speed_back = 0.0;
 double target_direction_back = 0.0;
+bool init = false; //indicates if odometry has been initialized
+geometry_msgs::Vector3 orientation; //imu orientation
 
 double rot_cov = 0.0;
 double pos_cov = 0.0;
@@ -52,6 +56,12 @@ double wrapToPi(double angle) {
     }
     angle -= M_PI;
     return angle;
+}
+
+void imuCallback(const geometry_msgs::Vector3::ConstPtr& msg){
+  orientation.x = msg->x;
+  orientation.y = msg->y;
+  orientation.z = msg->z;
 }
 
 void cmd_vel_frontCallback(const geometry_msgs::Twist::ConstPtr& msg) {
@@ -208,66 +218,11 @@ void queryEncoders(AX2550* mc, redblade_ax2550::StampedEncoders& encoder_msg) {
 
     //encoder_pub.publish(encoder_msg);
 
-    /*double v = 0.0;
-    double w = 0.0;
-    
-    double r_L = wheel_diameter/2.0;
-    double r_R = wheel_diameter/2.0;
-    
-    v += r_L/2.0 * left_v;
-    v += r_R/2.0 * right_v;
-
-    w += r_R/wheel_base_length * right_v;
-    w -= r_L/wheel_base_length * left_v;
-
-    
-    // Update the states based on model and input
-    prev_x += delta_time * v
-                          * cos(prev_w + delta_time * (w/2.0));
-    
-    prev_y += delta_time * v
-                          * sin(prev_w + delta_time * (w/2.0));
-    prev_w += delta_time * w;
-    prev_w = wrapToPi(prev_w);
-    
-    // ROS_INFO("%f", prev_w);
-    
-    geometry_msgs::Quaternion quat = tf::createQuaternionMsgFromYaw(prev_w);
-    
-    // Populate the msg
-    nav_msgs::Odometry odom_msg;
-    odom_msg.header.stamp = now;
-    odom_msg.header.frame_id = odom_frame_id;
-    odom_msg.pose.pose.position.x = prev_x;
-    odom_msg.pose.pose.position.y = prev_y;
-    odom_msg.pose.pose.orientation = quat;
-    odom_msg.pose.covariance[0] = pos_cov;
-    odom_msg.pose.covariance[7] = pos_cov;
-    odom_msg.pose.covariance[14] = 1e100;
-    odom_msg.pose.covariance[21] = 1e100;
-    odom_msg.pose.covariance[28] = 1e100;
-    odom_msg.pose.covariance[35] = rot_cov;
-    
-    // odom_msg.twist.twist.linear.x = v/delta_time;
-    odom_msg.twist.twist.linear.x = v;
-    // odom_msg.twist.twist.angular.z = w/delta_time;
-    odom_msg.twist.twist.angular.z = w;
-    
-    odom_pub.publish(odom_msg);
-    */ 
-    // TODO: Add TF broadcaster
-    // geometry_msgs::TransformStamped odom_trans;
-    //     odom_trans.header.stamp = now;
-    //     odom_trans.header.frame_id = "odom";
-    //     odom_trans.child_frame_id = "base_footprint";
-    // 
-    //     odom_trans.transform.translation.x = prev_x;
-    //     odom_trans.transform.translation.y = prev_y;
-    //     odom_trans.transform.translation.z = 0.0;
-    //     odom_trans.transform.rotation = quat;
-    //     
-    //     odom_broadcaster->sendTransform(odom_trans);
 }
+
+
+
+
 
 int main(int argc, char **argv) {
     // Node setup
@@ -276,22 +231,27 @@ int main(int argc, char **argv) {
     ros::NodeHandle nh;    //global
     prev_time = ros::Time::now();
 
+    
     // Serial port parameters
     std::string port_front, port_back;
     n.param("serial_port_front", port_front, std::string("/dev/motor_controller"));
     n.param("serial_port_back", port_back, std::string("/dev/motor_controller"));
 
-    std::string cmd_vel_front_namespace,cmd_vel_back_namespace;
+    std::string cmd_vel_front_namespace,cmd_vel_back_namespace,imu_namespace;
     n.param("cmd_vel_front", cmd_vel_front_namespace, std::string("/front_cmd_vel"));
     n.param("cmd_vel_back", cmd_vel_back_namespace, std::string("/rear_cmd_vel"));
+    n.param("imu", imu_namespace, std::string("/imu/integrated_gyros"));
    
     // Setup Encoder polling, might not need this, we should take it out later probably
     n.param("encoder_poll_rate", encoder_poll_rate, 25.0);
+    n.param("pos_cov", pos_cov, 1.0);
+    n.param("rot_cov", rot_cov, 1.0);
     ros::Rate encoder_rate(encoder_poll_rate);
    
     // Encoder Publishers
     encoder_pub_front = nh.advertise<redblade_ax2550::StampedEncoders>("encoders_front", 5);
     encoder_pub_back = nh.advertise<redblade_ax2550::StampedEncoders>("encoders_back", 5);
+    odom_pub = nh.advertise<nav_msgs::Odometry>("odom", 5);
 
     // Wheel diameter parameter
     n.param("wheel_diameter", wheel_diameter, 0.395);
@@ -304,11 +264,14 @@ int main(int argc, char **argv) {
     // cmd_vel Subscriber
     ros::Subscriber sub_front = nh.subscribe(cmd_vel_front_namespace, 1, cmd_vel_frontCallback);
     ros::Subscriber sub_back = nh.subscribe(cmd_vel_back_namespace, 1, cmd_vel_backCallback);
-   
+    ros::Subscriber sub_imu = nh.subscribe(imu_namespace, 1, imuCallback);
+    
+    odometry_skid_steer odomSS(std::string("base_link"),rot_cov,pos_cov,wheel_base_length);
+    
     // Spinner (2 threads, 1 for each callback)
     ros::AsyncSpinner spinner(2);
     spinner.start();
-
+    
     while(ros::ok()) {
         ROS_INFO("AX2550 connecting to port %s", port_front.c_str());
         try {
@@ -361,42 +324,47 @@ int main(int argc, char **argv) {
 	    // time delta is being used as an error flag if queries exit early(wow, such good coding practices,amaze)
 	    if(encoder_msg_front.encoders.time_delta == 0 && 
 	       encoder_msg_back.encoders.time_delta == 0){
-	          encoder_msg_front.header.stamp = now;
-		  encoder_msg_front.encoders.time_delta = delta_time;
-		  encoder_msg_back.header.stamp = now;
-		  encoder_msg_back.encoders.time_delta = delta_time;
-
-		  encoder_pub_front.publish(encoder_msg_front);
-		  encoder_pub_back.publish(encoder_msg_front);
+	      
+	      encoder_msg_front.header.stamp = now;
+	      encoder_msg_front.encoders.time_delta = delta_time;
+	      encoder_msg_back.header.stamp = now;
+	      encoder_msg_back.encoders.time_delta = delta_time;
+	      
+	      encoder_pub_front.publish(encoder_msg_front);
+	      encoder_pub_back.publish(encoder_msg_back);
+	      //Publish odometry
+	      nav_msgs::Odometry odom = odomSS.getOdometry(encoder_msg_front,encoder_msg_back,orientation); 
+	      
+	      odom_pub.publish(odom);
 	    }
-
+	    
 	    // enter control loop every other query
             if (count == 1) {
-	        std::thread control_front(controlLoop_front);
-		std::thread control_back(controlLoop_back);
-		control_front.join();
-		control_back.join();
-                count = 0;
+	      std::thread control_front(controlLoop_front);
+	      std::thread control_back(controlLoop_back);
+	      control_front.join();
+	      control_back.join();
+	      count = 0;
             } else {
-                count += 1;
+	      count += 1;
             }
 	    
 	    // encoder_rate.sleep();
         }
         if (mc_front != NULL || mc_back != NULL) {
-        	delete mc_front;
-		delete mc_back;
+	  delete mc_front;
+	  delete mc_back;
         }
         mc_front = NULL;
 	mc_back = NULL;
 
         if(!ros::ok())
-            break;
+	  break;
         ROS_INFO("Will try to reconnect to the AX2550 in 5 seconds.");
         for (int i = 0; i < 100; ++i) {
-        	ros::Duration(5.0/100.0).sleep();
-        	if (!ros::ok())
-        		break;
+	  ros::Duration(5.0/100.0).sleep();
+	  if (!ros::ok())
+	    break;
         }
         target_speed_front = 0.0;
         target_direction_front = 0.0;
