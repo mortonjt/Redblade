@@ -54,8 +54,8 @@ void redblade_ekf::makeProcess(){
 }
 
 void redblade_ekf::makeMeasure(){
-  z(1) = x(1);
-  z(2) = x(2); 
+  z(1) = x(1) + (cos(x(3))*(0.21));//0.21 is the distance from center of rotation to gps
+  z(2) = x(2) + (sin(x(3))*(0.21)); 
   z(3) = x(4);
   z(4) = x(3) + x(6);
   z(5) = x(5);
@@ -197,14 +197,14 @@ void redblade_ekf::makeQ(){
 void redblade_ekf::makeH(){
   H(1,1) = 1.0;
   H(1,2) = 0.0;
-  H(1,3) = 0.0;
+  H(1,3) = -sin(x(3))*(0.21);
   H(1,4) = 0.0;
   H(1,5) = 0.0;
   H(1,6) = 0.0;
   
   H(2,1) = 0.0;
   H(2,2) = 1.0;
-  H(2,3) = 0.0;
+  H(2,3) = cos(x(3))*(0.21);
   H(2,4) = 0.0;
   H(2,5) = 0.0;
   H(2,6) = 0.0;
