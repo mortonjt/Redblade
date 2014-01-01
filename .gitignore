@@ -4,3 +4,4 @@ build
 kalman
 *.png
 devel
+*.pyc
