@@ -282,8 +282,8 @@ int main(int argc, char **argv) {
     n.param("serial_port_back", port_back, std::string("/dev/motor_controller"));
 
     std::string cmd_vel_front_namespace,cmd_vel_back_namespace;
-    n.param("cmd_vel_front", cmd_vel_front_namespace, std::string("/dev/motor_controller"));
-    n.param("cmd_vel_back", cmd_vel_back_namespace, std::string("/dev/motor_controller"));
+    n.param("cmd_vel_front", cmd_vel_front_namespace, std::string("/front_cmd_vel"));
+    n.param("cmd_vel_back", cmd_vel_back_namespace, std::string("/rear_cmd_vel"));
    
     // Setup Encoder polling, might not need this, we should take it out later probably
     n.param("encoder_poll_rate", encoder_poll_rate, 25.0);
@@ -358,7 +358,7 @@ int main(int argc, char **argv) {
 	    prev_time = now;
 
 	    //publish encoder msgs
-	    // time delta is being used as an error flag if queries exit early
+	    // time delta is being used as an error flag if queries exit early(wow, such good coding practices,amaze)
 	    if(encoder_msg_front.encoders.time_delta == 0 && 
 	       encoder_msg_back.encoders.time_delta == 0){
 	          encoder_msg_front.header.stamp = now;

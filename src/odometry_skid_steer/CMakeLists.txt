@@ -86,11 +86,11 @@ add_library(odometry_skid_steer
 
 add_executable(odometry_skid_steer_node src/odometry_skid_steer.cpp)
 #add_executable(basic_odometry_skid_steer_node src/basic_odometry_skid_steer.cpp)
-add_executable(calibrate_skid_steer src/calibration.cpp)
+#add_executable(calibrate_skid_steer src/calibration.cpp)
 
 target_link_libraries(odometry_skid_steer_node ${catkin_LIBRARIES} odometry_skid_steer)
 #target_link_libraries(basic_odometry_skid_steer_node ${catkin_LIBRARIES} basic_odometry_skid_steer)
-target_link_libraries(calibrate_skid_steer ${catkin_LIBRARIES} basic_odometry_skid_steer)
+#target_link_libraries(calibrate_skid_steer ${catkin_LIBRARIES} basic_odometry_skid_steer)
 
 # ## Mark executables and/or libraries for installation
 # install(TARGETS odometry_skid_steer

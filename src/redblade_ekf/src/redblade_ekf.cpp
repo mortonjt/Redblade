@@ -21,7 +21,7 @@ using namespace std;
 redblade_ekf::redblade_ekf() {
   //arduino = new Arduino("/dev/ttyACM0");
   setDim(6, 0, 6, 5, 5);//6 states, 0 inputs, 6 process noise RV, 5 measurements, 5 measurement noise RV
-  dt = 0.2;//i have no idea what this needs to be
+  dt = 0.2;//time step of our slowest sensor, i.e. gps, i.e. 5 Hz
   beta_linear = 0.1;
   beta_angular = 0.1;
   sigma_w1 = sqrt(0.0025);//was .000025

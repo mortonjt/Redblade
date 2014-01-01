@@ -30,12 +30,13 @@ class odometry_skid_steer{
 
   void getVelocities(const redblade_ax2550::StampedEncoders& front_msg,
 		     const redblade_ax2550::StampedEncoders& back_msg,
+		     double theta_delta,
 		     geometry_msgs::Twist& twist);
 
   void getEncoders(const redblade_ax2550::StampedEncoders& front_msg,
 		   const redblade_ax2550::StampedEncoders& back_msg,
 		   double& left_encoders, 
--		   double& right_encoders,
+		   double& right_encoders,
 		   double& delta_time);
 
   void getDeltas(const redblade_ax2550::StampedEncoders& front_msg,

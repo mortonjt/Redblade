@@ -35,8 +35,8 @@ ros::Publisher ekf_odom_pub;
 nav_msgs::Odometry ekf_odom;
 ros::Publisher ekf_2d_pub;
 geometry_msgs::Pose2D pose;
-ros::Publisher cmd_vel_pub;
-geometry_msgs::Twist cmd_vel;
+//ros::Publisher cmd_vel_pub;
+//geometry_msgs::Twist cmd_vel;
 
 //tf::TransformBroadcaster* odom_broadcaster;
 
@@ -137,30 +137,33 @@ void gpsCallback(const nav_msgs::Odometry::ConstPtr& gps_msg){
     //publish the message
     ekf_odom_pub.publish(ekf_odom);
 
+    //this was needed for the nav_stack, probably not needed now, scared to get rid of it yet though
     if(!theta_covar_thresh_reached){
-      cmd_vel.linear.x = 0.75;
+      /*cmd_vel.linear.x = 0.75;
       cmd_vel.linear.y = 0.0;
       cmd_vel.linear.z = 0.0;
       cmd_vel.angular.x = 0.0;
       cmd_vel.angular.y = 0.0;
       cmd_vel.angular.z = 0.0;
 
-      cmd_vel_pub.publish(cmd_vel);
+      cmd_vel_pub.publish(cmd_vel);*/
 
+      //if our headings covariance is less than 0.05
       if(P(3,3) < 0.05){
 	theta_covar_thresh_reached = true;
 	ROS_INFO("EKF theta heading initialized, publishing transform for SLAM now.\n");
 	
-	cmd_vel.linear.x = 0.0;
+	/*cmd_vel.linear.x = 0.0;
 	cmd_vel.linear.y = 0.0;
 	cmd_vel.linear.z = 0.0;
 	cmd_vel.angular.x = 0.0;
 	cmd_vel.angular.y = 0.0;
 	cmd_vel.angular.z = 0.0;
 	
-	cmd_vel_pub.publish(cmd_vel);
+	cmd_vel_pub.publish(cmd_vel);*/
       }
     }else{
+      //this stuff isn't even necessary, i don't know why i'm keeping it
       
       //publish the transfrom from odom_combined -> base_footprint
       geometry_msgs::TransformStamped odom_trans;
@@ -197,7 +200,7 @@ int main(int argc, char **argv){
 
   ekf_2d_pub = n.advertise<geometry_msgs::Pose2D>("redblade_ekf/2d_pose",10);
   ekf_odom_pub = n.advertise<nav_msgs::Odometry>("redblade_ekf/odom", 10);
-  cmd_vel_pub = n.advertise<geometry_msgs::Twist>("cmd_vel", 2);
+  //cmd_vel_pub = n.advertise<geometry_msgs::Twist>("cmd_vel", 2);
   
   daters.open("ekf_data_collect_2.txt");
   heading_offset = 0;
@@ -229,7 +232,7 @@ int main(int argc, char **argv){
  
   ros::Subscriber imu_sub = n.subscribe ("/imu/integrated_gyros", 1, imuCallback);
   ros::Subscriber gps_sub = n.subscribe ("/gps", 1, gpsCallback);
-  ros::Subscriber odom_sub = n.subscribe ("/redblade/odom", 10, odomCallback);
+  ros::Subscriber odom_sub = n.subscribe ("/redblade_odom", 10, odomCallback);
 
   ros::spin();
 

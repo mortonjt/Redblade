@@ -4,7 +4,6 @@
 //#include "ax2550/StampedEncoders.h"
 #include "odometry_skid_steer.h"
 
-
 //Constants
 // static double wheel_circumference = 0.0;
 // static double wheel_diameter = 0.0;
@@ -36,13 +35,13 @@ void backEncoderCallback(const redblade_ax2550::StampedEncoders& msg){
   back_recv = true;
 }
 
-void imuCallback(const sensor_msgs::Imu::ConstPtr& msg){
+void imuCallback(const geometry_msgs::Vector3::ConstPtr& msg){
   if(!imu_init){
     imu_init = true;    
   }
-  // orientation.x = msg->x;
-  // orientation.y = msg->y;
-  // orientation.z = msg->z;
+  orientation.x = msg->x;
+  orientation.y = msg->y;
+  orientation.z = msg->z;
   
 }
 
@@ -66,6 +65,7 @@ void odometry_skid_steer::getEncoders(const redblade_ax2550::StampedEncoders& fr
   //Combine both wheels into "bigger" wheels such wheels
   left_encoders  = (delta_front_left_encoders  + delta_back_left_encoders)/2;
   right_encoders = (delta_front_right_encoders + delta_back_right_encoders)/2;
+  ros::Time now = ros::Time::now();
   delta_time = (now - prev_time).toSec();
   //set prev_time to now so it can be used in next itertaion of loop
   
@@ -98,8 +98,7 @@ void odometry_skid_steer::getDeltas(const redblade_ax2550::StampedEncoders& fron
   getEncoders(front_msg,back_msg,left_encoders,right_encoders,delta_time);
   distance_delta = ((left_encoders+right_encoders)/2)/(clicks_per_m);
   //compute the change in theta with the imu z gyro
-  double theta_delta = 0;
-  if(change_in_encoder1 == 0 && change_in_encoder2 == 0){
+  if(left_encoders==0 and right_encoders==0){
     theta_delta = 0;
   }else{
     theta_delta = (orientation.z - prev_orientation.z);
@@ -110,7 +109,6 @@ void odometry_skid_steer::getDeltas(const redblade_ax2550::StampedEncoders& fron
       theta_delta += 2*M_PI;
     }
   }
-  //compute the velocity of theta
 };
 
 
@@ -118,7 +116,7 @@ void odometry_skid_steer::getDeltas(const redblade_ax2550::StampedEncoders& fron
 nav_msgs::Odometry odometry_skid_steer::getOdometry(const redblade_ax2550::StampedEncoders& front_msg,
 						    const redblade_ax2550::StampedEncoders& back_msg,
 						    const geometry_msgs::Vector3& orientation_msg){
-  double delta_time,distance_delta,theta_delta;
+  double delta_time=0,distance_delta=0,theta_delta=0;
   geometry_msgs::Twist twist_vel;
   getDeltas(front_msg,
 	    back_msg,
@@ -134,6 +132,7 @@ nav_msgs::Odometry odometry_skid_steer::getOdometry(const redblade_ax2550::Stamp
 	      theta_delta);
   getVelocities(front_msg,
 		back_msg,
+		theta_delta,
 		twist_vel);
 
   //next, we'll publish the odometry message over ROS
@@ -178,6 +177,7 @@ void odometry_skid_steer::update(const redblade_ax2550::StampedEncoders& front_m
   prev_orientation.x = orientation_msg.x;
   prev_orientation.y = orientation_msg.y;
   prev_orientation.z = orientation_msg.z;
+  ros::Time now = ros::Time::now();
   prev_time = now;
 
 };
@@ -207,6 +207,7 @@ odometry_skid_steer::~odometry_skid_steer(){
 
 void odometry_skid_steer::getVelocities(const redblade_ax2550::StampedEncoders& front_msg,
 					const redblade_ax2550::StampedEncoders& back_msg,
+					double theta_delta,
 					geometry_msgs::Twist& twist){
   double delta_time,left_encoders,right_encoders;
   getEncoders(front_msg,back_msg,left_encoders,right_encoders,delta_time);
