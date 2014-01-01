@@ -10,6 +10,11 @@ abline(Reduced)
 Reduced = lm(cmdVels~ImuVels)
 summary(Reduced)
 
+plot(Reduced$fitted,rstandard(Reduced),xlab="Fitted Values",ylab="Standardized Residuals")
+qqnorm(rstandard(Reduced))
+qqline(rstandard(Reduced))
+
+
 
 line1.0data = read.table("/home/jamie/Downloads/angular_test3/trimmed_line1.0.csv",header=FALSE)
 cmdVels = line1.0data$V1
@@ -22,3 +27,7 @@ abline(Reduced)
 
 Reduced = lm(cmdVels~ImuVels)
 summary(Reduced)
+
+plot(Reduced$fitted,rstandard(Reduced),xlab="Fitted Values",ylab="Standardized Residuals")
+qqnorm(rstandard(Reduced))
+qqline(rstandard(Reduced))
