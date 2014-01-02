@@ -92,7 +92,7 @@ def parse(bag,out,front_encoder,back_encoder,front_cmd_vel,back_cmd_vel,imu,gps,
             ekf_out.write(",".join( map( str ,msg.pose.covariance)))
             ekf_out.write(",".join( map( str ,msg.twist.covariance))+"\n")
         elif topic==ekf2d:
-            ekf_2d_out.write("%f,%f,%f,"%(msg.x,
+            ekf_2d_out.write("%f,%f,%f\n"%(msg.x,
                                           msg.y,
                                           msg.theta))
 
