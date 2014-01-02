@@ -12,6 +12,7 @@
 
 std::string waypoints_filename;
 std::vector<std::vector<double> > waypoints;
+int waypoint_number;
 
 void split_to_double(const std::string &s, char delim, std::vector<double> &elements){
   std::stringstream ss(s);
@@ -43,11 +44,11 @@ bool read_in_waypoints(){
 
 bool next_waypoints(snowplow_pid::request_next_waypoints::Request &req,
 		    snowplow_pid::request_next_waypoints::Response &res){
-  res.start.x = 0;
-  res.start.y = 0;
-  res.dest.x = 0;
-  res.dest.y = 10;
-  res.forward = 1;
+  res.start.x = waypoints[waypoint_number][0];
+  res.start.y = waypoints[waypoint_number][1];
+  res.dest.x = waypoints[waypoint_number+1][0];
+  res.dest.y = waypoints[waypoint_number+1][1];
+  res.forward = waypoints[waypoint_number+1][2];
   ROS_INFO("Next waypoints request received");
   return true;
 }
@@ -57,7 +58,8 @@ int main(int argc, char** argv){
   ros::NodeHandle n;
   ros::NodeHandle nh("~");
   std::vector<std::string> testList;
-  
+  waypoint_number = 0;
+
   //TODO: add waypoints vector and populate this vector with waypoints
   //read in from some file that was passed in as a parameter
   nh.param("waypoints_filename", waypoints_filename, std::string("waypoints.txt"));

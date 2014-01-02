@@ -14,8 +14,7 @@ double FAST_SPEED, SLOW_SPEED, KP, KI, KD, KP_SLOW, KI_SLOW, KD_SLOW;
 //global stuff
 ros::Publisher cmd_vel_pub;
 geometry_msgs::Twist vel_targets;
-geometry_msgs::Vector3 current_imu;
-nav_msgs::Odometry current_gps;
+geometry_msgs::Pose2D cur_pos;
 bool imu_init = false;
 ros::ServiceClient waypoint_client;
 
@@ -61,9 +60,10 @@ Wolfarth for the lack of comments.
 double distance_to_goal(geometry_msgs::Pose2D &dest, geometry_msgs::Pose2D &start){
   double x1, y1, x2, y2, x, y;
   double mS, mD, bD, quad_correct, d;
-  /*  return sqrt( (start.x-dest.x)*(start.x-dest.x)+	\
-      (start.y-dest.y)*(start.y-dest.y));*/
-  
+
+  //set current position
+  x = cur_pos.x;
+  y = cur_pos.y;
   
   //handling zero slope
   if(dest.y-start.y == 0){
@@ -108,11 +108,15 @@ double distance_to_goal(geometry_msgs::Pose2D &dest, geometry_msgs::Pose2D &star
 bool ye_ol_pid(){
   //local variables
   double desired_heading, kp_corr, ki_corr, kd_corr, pid, distance;
-  double current_heading = current_imu.z;
+  //double current_heading = current_imu.z;
+  double current_heading = cur_pos.theta;
 
-  geometry_msgs::Pose2D cur_pos;
-  cur_pos.x = current_gps.pose.pose.position.x;
-  cur_pos.y = current_gps.pose.pose.position.y;
+  //geometry_msgs::Pose2D cur_pos;
+  //cur_pos.x = current_pose.x;
+  //cur_pos.y = current_pose.y;
+  
+  // cur_pos.x = current_gps.pose.pose.position.x;
+  // cur_pos.y = current_gps.pose.pose.position.y;
 
   //TODO: implement a check for stuck method here
   
@@ -121,14 +125,15 @@ bool ye_ol_pid(){
   if(vel_targets.linear.x == 0){
     vel_targets.linear.x = FAST_SPEED * (forward?(1):(-1));// m/s
     vel_targets.angular.z = 0;//straight line, no turnin
+    usleep(100000);
     return false;//we ain't done yet
   }
   
   //calculate error
-  desired_heading = M_PI/2-atan2(dest.y-cur_pos.y,
-  			       dest.x-cur_pos.x);
-  // desired_heading = atan2(dest.y-cur_pos.y,
-  // 			  dest.x-cur_pos.x);
+  // desired_heading = M_PI/2-atan2(dest.y-cur_pos.y,
+  // 			       dest.x-cur_pos.x);
+  desired_heading = atan2(dest.y-cur_pos.y,
+			  dest.x-cur_pos.x);
   wrap_pi(desired_heading);
   if(!forward){
     current_heading -= M_PI;
@@ -155,12 +160,14 @@ bool ye_ol_pid(){
 
   //set upper limit for angular velocity
   //TODO: i actually have no idea what this number should be, gonna need to figure that out
+  ROS_INFO("PID %f",pid);
 
   if(pid > 0.5){
     pid = 0.5;
   }else if(pid < -0.5){
     pid = -0.5;
   }
+  ROS_INFO("PID %f",pid);
 
   //check to see if we've reached our destination
   //distance = distance_to_goal(dest, start);
@@ -195,54 +202,39 @@ bool ye_ol_pid(){
   return false;
 }
 
-//Callback for the imu
-void imuCallback(const geometry_msgs::Vector3::ConstPtr& imu_msg){
-  if(!imu_init){
-    imu_init = true;
-  }
-  current_imu = *imu_msg;
-}
-
-// void imuCallback(const sensor_msgs::Imu::ConstPtr& imu_msg){
-//   if(!imu_init){
-//     imu_init = true;
-//   }
-//   current_imu = imu_msg->angular_velocity;
-// }
-
-void gpsCallback(const nav_msgs::Odometry::ConstPtr& gps_msg){
-  ROS_INFO("GPS Callback");
+void poseCallback(const geometry_msgs::Pose2D::ConstPtr& pose_msg){
+  ROS_INFO("Pose Callback");
   
-  if(imu_init){//if the imu isn't publishing yet, we are just gonna ignore this message
-    //copy this info
-    current_gps = *gps_msg;
+  //if(imu_init){//if the imu isn't publishing yet, we are just gonna ignore this message
+  //copy this info
+  cur_pos = *pose_msg;
 
-    //do the ol pid dance
-    if(ye_ol_pid()){
-      usleep(100000);
-      //TODO: use service to grab the next waypoint
-      snowplow_pid::request_next_waypoints srv;
-      if(waypoint_client.call(srv)){
-	start = srv.response.start;
-	dest = srv.response.dest;
-	forward = srv.response.forward;
-	//ROS_INFO("Start: %f Dest: %f Fwd: %f",start,dest,forward);
-      }else{
-	ROS_ERROR("Failed to call service request_next_waypoints");
-      }
-      
-      //TODO: make robot turn here to face the next waypoint
-      
-      //reinitialize all errors to zero
-      previous_error = 0;
-      sum_of_errors = 0;
-      total_num_of_errors = 0;
-      error = 0;
-      linear_vel = FAST_SPEED;
+  //do the ol pid dance
+  if(ye_ol_pid()){
+    usleep(100000);
+    //TODO: use service to grab the next waypoint
+    snowplow_pid::request_next_waypoints srv;
+    if(waypoint_client.call(srv)){
+      start = srv.response.start;
+      dest = srv.response.dest;
+      forward = srv.response.forward;
+      ROS_INFO("Start: (%f,%f) Dest: (%f,%f) Fwd: %d",start.x,start.y,dest.x,dest.y,forward);
+    }else{
+      ROS_ERROR("Failed to call service request_next_waypoints");
     }
-
+      
+    //TODO: make robot turn here to face the next waypoint
+      
+    //reinitialize all errors to zero
+    previous_error = 0;
+    sum_of_errors = 0;
+    total_num_of_errors = 0;
+    error = 0;
+    linear_vel = FAST_SPEED;
   }
+
 }
+
 
 //This method is called every 25 ms and will publish a Twist message for the robot
 void publish_loop(){
@@ -255,7 +247,7 @@ int main(int argc, char** argv){
   ros::NodeHandle n;//global namespace
   ros::NodeHandle nh("~");//local namespace, used for params
   
-  std::string gps_namespace,imu_namespace,cmd_vel_namespace;
+  std::string pose_namespace,cmd_vel_namespace;
 
   //read in pid parameters
   nh.param("FAST_SPEED", FAST_SPEED, 0.0);
@@ -266,25 +258,17 @@ int main(int argc, char** argv){
   nh.param("KP_SLOW", KP_SLOW, 0.0);
   nh.param("KI_SLOW", KI_SLOW, 0.0);
   nh.param("KD_SLOW", KD_SLOW, 0.0);
-  nh.param("gps",gps_namespace,std::string("/gps"));
-  nh.param("imu",imu_namespace,std::string("/imu/integrated_gyros"));
+  nh.param("pose",pose_namespace,std::string("/redblade_ekf/2d_pose"));
   nh.param("cmd_vel",cmd_vel_namespace,std::string("/cmd_vel"));
   ROS_INFO("FAST: %f\tSLOW: %f\tKP: %f\t", FAST_SPEED, SLOW_SPEED, KP);
-  ROS_INFO("gps_namespace: %s\t imu_namespace: %s cmd_vel_namespace %s", 
-	   gps_namespace.c_str(), imu_namespace.c_str(), cmd_vel_namespace.c_str());
-
+  ROS_INFO("Pose Namespace %s",pose_namespace.c_str());
 
   //Start spinner so that callbacks happen in a seperate thread
   //~~~~~~~~~~HEY BOP, are you trying to give each callback a dedicated thread?
   //because I don't think that's what's happening here.
-  ros::AsyncSpinner spinner(2);//2 threads
-  spinner.start();
-
-  //Subscribe to GPS topic
-  ros::Subscriber gps_sub = n.subscribe(gps_namespace, 1, gpsCallback);
-
-  //Subscribe to IMU topic
-  ros::Subscriber imu_sub = n.subscribe(imu_namespace, 1, imuCallback);
+  
+  //Subscribe to Pose topic
+  ros::Subscriber pose_sub = n.subscribe(pose_namespace, 1, poseCallback);
 
   //set up service to grab waypoints
   waypoint_client = n.serviceClient<snowplow_pid::request_next_waypoints>("request_next_waypoints");
@@ -314,8 +298,7 @@ int main(int argc, char** argv){
     publish_loop();
     
     cmd_vel_rate.sleep();
+    ros::spinOnce();
   }
   
-  //Sttaahhhhhhp
-  spinner.stop();
 }

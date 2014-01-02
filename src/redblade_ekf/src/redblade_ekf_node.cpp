@@ -118,6 +118,7 @@ void gpsCallback(const nav_msgs::Odometry::ConstPtr& gps_msg){
 	daters << P(i,j) << ",";
       }
     }
+    daters << (ros::Time::now()).toNSec();
     daters << "\n";
 
     //set the position and position covariance calculated with EKF
