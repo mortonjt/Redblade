@@ -88,7 +88,8 @@ void gpsCallback(const nav_msgs::Odometry::ConstPtr& gps_msg){
     z(4) = current_imu.z + heading_offset*2*M_PI;
     z(5) = current_odom.twist.twist.angular.z;
     //ofstream daters("ekf_data_collect.txt",std::ofstream::app);
-    daters << z(1) << "," << z(2) << "," << z(3) << "," << z(4) << "," << z(5) << "\n";
+    daters << (ros::Time::now()).toSec() << ",";
+    daters << z(1) << "," << z(2) << "," << z(3) << "," << z(4) << "," << z(5) << ",";
     //ROS_INFO("%lf, %lf, %lf, %lf, %lf", z(1), z(2), z(3), z(4), z(5));
     
     ekf.step(u, z);
@@ -101,12 +102,23 @@ void gpsCallback(const nav_msgs::Odometry::ConstPtr& gps_msg){
     pose.theta = x(3);    
     ekf_2d_pub.publish(pose);
 
+    for(int i = 1; i < 7; i++){
+      daters << x(i) << ",";
+    }
+    //daters << x(1) << "," << x(2) << "," << x(3) << "," << x(4) << x(5) << x(6);
+
     //construct Odometry message and publish
     ekf_odom.header.stamp = ros::Time::now();
     ekf_odom.header.frame_id = "odom_combined";
  
     //grab covariance from EKF
     P = ekf.calculateP();
+    for(int i = 1; i < 7; i++){
+      for(int j = 1; j < 7; j++){
+	daters << P(i,j) << ",";
+      }
+    }
+    daters << "\n";
 
     //set the position and position covariance calculated with EKF
     geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(x(3));
@@ -202,7 +214,8 @@ int main(int argc, char **argv){
   ekf_odom_pub = n.advertise<nav_msgs::Odometry>("redblade_ekf/odom", 10);
   //cmd_vel_pub = n.advertise<geometry_msgs::Twist>("cmd_vel", 2);
   
-  daters.open("ekf_data_collect_2.txt");
+  daters.open("/home/redblade/Documents/Redblade/ekf_data_collect.txt");
+  //daters << "Test";
   heading_offset = 0;
 
   //initialize ekf
@@ -210,8 +223,8 @@ int main(int argc, char **argv){
   const unsigned m = 5;//number of measures
   
   //initial covariance of estimate
-  static const double _P0[] = {0.0025, 0.0, 0.0, 0.0, 0.0, 0.0,
-			     0.0, 0.0025, 0.0, 0.0, 0.0, 0.0,
+  static const double _P0[] = {400, 0.0, 0.0, 0.0, 0.0, 0.0,
+			     0.0, 400, 0.0, 0.0, 0.0, 0.0,
 			     0.0, 0.0, pow(1.57,2), 0.0, 0.0, 0.0,
 			     0.0, 0.0, 0.0, .25, 0.0, 0.0,
 			     0.0, 0.0, 0.0, 0.0, 0.0625, 0.0,
@@ -232,7 +245,7 @@ int main(int argc, char **argv){
  
   ros::Subscriber imu_sub = n.subscribe ("/imu/integrated_gyros", 1, imuCallback);
   ros::Subscriber gps_sub = n.subscribe ("/gps", 1, gpsCallback);
-  ros::Subscriber odom_sub = n.subscribe ("/redblade_odom", 10, odomCallback);
+  ros::Subscriber odom_sub = n.subscribe ("/odom", 10, odomCallback);
 
   ros::spin();
 
