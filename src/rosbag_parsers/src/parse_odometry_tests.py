@@ -6,13 +6,16 @@ import argparse
 Note:
 imu_topic must spit out Vector3Stamped
 """
-def parse(bag,out,front_encoder,back_encoder,front_cmd_vel,back_cmd_vel,imu,gps):
+def parse(bag,out,front_encoder,back_encoder,front_cmd_vel,back_cmd_vel,imu,gps,odom,ekf,ekf2d):
     front_encoder_out = open("%s.front_encoder.csv"%(out),'w')
     back_encoder_out  = open("%s.back_encoder.csv"%(out),'w')
     front_cmd_out     = open("%s.front_cmd_vel.csv"%(out),'w')
     back_cmd_out      = open("%s.back_cmd_vel.csv"%(out),'w')
     imu_out           = open("%s.imu.csv"%(out),'w')
     gps_out           = open("%s.gps.csv"%(out),'w')
+    odom_out          = open("%s.odom.csv"%(out),'w')
+    ekf_out           = open("%s.ekf.csv"%(out),'w')
+    ekf_2d_out        = open("%s.ekf2dpose.csv"%(out),'w')
 
     for topic,msg,t in bag.read_messages(topics=[front_encoder,back_encoder,front_cmd_vel,back_cmd_vel,imu,gps]):
         if topic==front_encoder:
@@ -59,7 +62,39 @@ def parse(bag,out,front_encoder,back_encoder,front_cmd_vel,back_cmd_vel,imu,gps)
                                              msg.pose.pose.position.x,
                                              msg.pose.pose.position.y,
                                              msg.pose.pose.position.z))
-            gps_out.write(",".join( map( str ,msg.twist.covariance))+"\n")
+            gps_out.write(",".join( map( str ,msg.pose.covariance))+"\n")
+        elif topic==odom:
+            odom_out.write("%d,%d,%f,%f,%f,"%(msg.header.stamp.secs,
+                                             msg.header.stamp.nsecs,
+                                             msg.pose.pose.position.x,
+                                             msg.pose.pose.position.y,
+                                             msg.pose.pose.position.z,
+                                             msg.twist.twist.linear.x,
+                                             msg.twist.twist.linear.y,
+                                             msg.twist.twist.linear.z,
+                                             msg.twist.twist.angular.x,
+                                             msg.twist.twist.angular.y,
+                                             msg.twist.twist.angular.z))
+            odom_out.write(",".join( map( str ,msg.pose.covariance)))
+            odom_out.write(",".join( map( str ,msg.twist.covariance))+"\n")
+        elif topic==ekf:
+            ekf_out.write("%d,%d,%f,%f,%f,"%(msg.header.stamp.secs,
+                                             msg.header.stamp.nsecs,
+                                             msg.pose.pose.position.x,
+                                             msg.pose.pose.position.y,
+                                             msg.pose.pose.position.z,
+                                             msg.twist.twist.linear.x,
+                                             msg.twist.twist.linear.y,
+                                             msg.twist.twist.linear.z,
+                                             msg.twist.twist.angular.x,
+                                             msg.twist.twist.angular.y,
+                                             msg.twist.twist.angular.z))
+            ekf_out.write(",".join( map( str ,msg.pose.covariance)))
+            ekf_out.write(",".join( map( str ,msg.twist.covariance))+"\n")
+        elif topic==ekf2d:
+            ekf_2d_out.write("%f,%f,%f,"%(msg.x,
+                                          msg.y,
+                                          msg.theta))
 
     front_encoder_out.close()
     back_encoder_out.close()  
@@ -95,6 +130,15 @@ if __name__=="__main__":
     parser.add_argument(\
         '--gps_topic',type=str,required=False,default="/gps",
         help='name of gps topic')
+    parser.add_argument(\
+        '--odom_topic',type=str,required=False,default="/odom",
+        help='name of odom topic')
+    parser.add_argument(\
+        '--ekf_topic',type=str,required=False,default="/redblade_ekf/odom",
+        help='name of ekf topic')
+    parser.add_argument(\
+        '--ekf_2d_topic',type=str,required=False,default="/redblade_ekf/2d_pos",
+        help='name of ekf topic')
     args = parser.parse_args()
         
     bag = rosbag.Bag(args.input_rosbag)
@@ -105,4 +149,7 @@ if __name__=="__main__":
           args.front_cmd_vel_topic,
           args.back_cmd_vel_topic,
           args.imu_topic,
-          args.gps_topic)
+          args.gps_topic,
+          args.odom_topic,
+          args.ekf_topic,
+          args.ekf_2d_topic)
