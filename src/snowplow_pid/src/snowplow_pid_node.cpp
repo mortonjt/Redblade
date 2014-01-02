@@ -57,7 +57,7 @@ double get_d_correction(double error){
 not even attempt to explain the black magic that this method does. i blame Ryan
 Wolfarth for the lack of comments. 
 */
-double distance_to_goal(geometry_msgs::Pose2D &dest, geometry_msgs::Pose2D &start){
+double distance_to_goal(){
   double x1, y1, x2, y2, x, y;
   double mS, mD, bD, quad_correct, d;
 
@@ -170,8 +170,7 @@ bool ye_ol_pid(){
   ROS_INFO("PID %f",pid);
 
   //check to see if we've reached our destination
-  //distance = distance_to_goal(dest, start);
-  distance = distance_to_goal(dest, cur_pos);
+  distance = distance_to_goal();
   ROS_INFO("Distance %f",distance);
   ROS_INFO("Current (%f,%f) Dest (%f,%f)",
 	   cur_pos.x,cur_pos.y,
@@ -272,6 +271,17 @@ int main(int argc, char** argv){
 
   //set up service to grab waypoints
   waypoint_client = n.serviceClient<snowplow_pid::request_next_waypoints>("request_next_waypoints");
+
+  //grab the inital waypoint
+  snowplow_pid::request_next_waypoints srv;
+  if(waypoint_client.call(srv)){
+    start = srv.response.start;
+    dest = srv.response.dest;
+    forward = srv.response.forward;
+    ROS_INFO("Start: (%f,%f) Dest: (%f,%f) Fwd: %d",start.x,start.y,dest.x,dest.y,forward);
+  }else{
+    ROS_ERROR("Failed to call service request_next_waypoints");
+  }
 
   //Set up cmd_vel publisher
   cmd_vel_pub = n.advertise<geometry_msgs::Twist>(cmd_vel_namespace, 10);

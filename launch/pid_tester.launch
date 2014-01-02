@@ -13,7 +13,7 @@
   <node pkg="snowplow_pid" type="snowplow_pid_node" name="snowplow_pid_node" output="screen">
     <param name="FAST_SPEED" value="0.75"/>
     <param name="SLOW_SPEED" value="0.2"/>
-    <param name="KP" value="0.5"/>
+    <param name="KP" value="1.0"/>
     <param name="KI" value="0.0"/>
     <param name="KD" value="0.0"/>	
     <param name="KP_SLOW" value="0.0"/>	
