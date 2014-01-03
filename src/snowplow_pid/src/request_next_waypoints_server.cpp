@@ -44,13 +44,21 @@ bool read_in_waypoints(){
 
 bool next_waypoints(snowplow_pid::request_next_waypoints::Request &req,
 		    snowplow_pid::request_next_waypoints::Response &res){
-  res.start.x = waypoints[waypoint_number][0];
-  res.start.y = waypoints[waypoint_number][1];
-  res.dest.x = waypoints[waypoint_number+1][0];
-  res.dest.y = waypoints[waypoint_number+1][1];
-  res.forward = waypoints[waypoint_number+1][2];
+  //check to make sure we have a valid waypoint to give, if not, loop back to beginning
+  //TODO
+
+  //populate waypoints
+  res.start.x = waypoints[(waypoint_number)%(waypoints.size())][0];
+  res.start.y = waypoints[(waypoint_number)%(waypoints.size())][1];
+  res.forward = waypoints[(waypoint_number)%(waypoints.size())][2];
+  res.dest.x = waypoints[(waypoint_number+1)%(waypoints.size())][0];
+  res.dest.y = waypoints[(waypoint_number+1)%(waypoints.size())][1];
+  res.forward = waypoints[(waypoint_number+1)%(waypoints.size())][2];
   ROS_INFO("Next waypoints request received");
-  return true;
+  
+  waypoint_number++;
+  
+return true;
 }
 
 int main(int argc, char** argv){

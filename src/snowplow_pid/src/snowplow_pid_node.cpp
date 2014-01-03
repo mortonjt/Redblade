@@ -1,3 +1,4 @@
+
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Vector3.h>
@@ -29,6 +30,7 @@ double sum_of_errors;
 double total_num_of_errors;
 double error;
 double linear_vel;
+bool forward_or_turn;//1 forward
 
 
 //keeps angles between -pi and pi so i don't have to
@@ -51,6 +53,50 @@ double get_d_correction(double error){
   double d_corr = error - previous_error;
   previous_error = error;
   return d_corr;
+}
+
+//Turning method
+double turn_to_heading(){
+
+  double desired_heading = atan2(dest.y-start.y,
+				 dest.x-start.x);
+  wrap_pi(desired_heading);
+  if(!forward){
+    desired_heading -= M_PI;
+    wrap_pi(desired_heading);
+  }
+  
+  vel_targets.linear.x = 0;
+  vel_targets.angular.z = 0;
+  usleep(50000);
+  double error = desired_heading - cur_pos.theta;
+  wrap_pi(error);
+
+  if(error > 0){
+    vel_targets.linear.x = 0;
+    vel_targets.angular.z = 0.2;
+  }else{
+    vel_targets.linear.x = 0;
+    vel_targets.angular.z = -0.2;
+  }
+
+  // iterate until within a certain threshold
+  //TODO: make this threshold a parameter
+  while(abs(error) > 0.15){  
+    error = desired_heading - cur_pos.theta;
+    usleep(10000);
+  }
+
+  //we're done, set motor speeds back to zero
+  vel_targets.linear.x = 0;
+  vel_targets.angular.z = 0;
+  
+  //give the motors time to stop, set forward_or_turn back to 1
+  //so that the robot continues on it's way in ye_old_pid()
+  usleep(500000);
+  forward_or_turn = 1;
+  
+  return 0;
 }
 
 /*returns the distance from end point with some magic sprinkled in (no, i will
@@ -141,9 +187,9 @@ bool ye_ol_pid(){
   }
   error = desired_heading - current_heading;
   wrap_pi(error);
-  ROS_INFO("Error %f",error);
-  ROS_INFO("Current Heading %f",current_heading);
-  ROS_INFO("Desired Heading %f",desired_heading);
+  /*ROS_INFO("Error %f",error);
+    ROS_INFO("Current Heading %f",current_heading);
+    ROS_INFO("Desired Heading %f",desired_heading);*/
 
   //calculate p, i, and d correction factors
   total_num_of_errors += 1;
@@ -160,21 +206,25 @@ bool ye_ol_pid(){
 
   //set upper limit for angular velocity
   //TODO: i actually have no idea what this number should be, gonna need to figure that out
-  ROS_INFO("PID %f",pid);
+  //ROS_INFO("PID %f",pid);
 
   if(pid > 0.5){
     pid = 0.5;
   }else if(pid < -0.5){
     pid = -0.5;
   }
-  ROS_INFO("PID %f",pid);
+  //ROS_INFO("PID %f",pid);
 
   //check to see if we've reached our destination
   distance = distance_to_goal();
-  ROS_INFO("Distance %f",distance);
+  /*ROS_INFO("Distance %f",distance);
   ROS_INFO("Current (%f,%f) Dest (%f,%f)",
 	   cur_pos.x,cur_pos.y,
-	   dest.x,dest.y);
+	   dest.x,dest.y);*/
+  ROS_INFO("Error: %f\tCurrent Heading: %f\t Desired Heading: %f",(error*(180/M_PI)),(current_heading*(180/M_PI)),(desired_heading*(180/M_PI)));
+  ROS_INFO("PID: %f\tDistance: %f\t Current (%f, %f), Desination (%f, %f)\n",pid,distance,cur_pos.x,cur_pos.y,dest.x,dest.y);
+
+  
 
   if(distance < 0.1){
     //set desired linear and angular velocities
@@ -195,41 +245,42 @@ bool ye_ol_pid(){
   if(distance < 0.75){
     linear_vel = SLOW_SPEED;
   }
-  ROS_INFO("vel_targets linear: %f",vel_targets.linear.x);
-  ROS_INFO("vel_targets angular %f",vel_targets.angular.z);
+  //ROS_INFO("vel_targets linear: %f",vel_targets.linear.x);
+  //ROS_INFO("vel_targets angular %f",vel_targets.angular.z);
 
   return false;
 }
 
 void poseCallback(const geometry_msgs::Pose2D::ConstPtr& pose_msg){
-  ROS_INFO("Pose Callback");
-  
-  //if(imu_init){//if the imu isn't publishing yet, we are just gonna ignore this message
-  //copy this info
+  //grab the current ekf readings
   cur_pos = *pose_msg;
 
-  //do the ol pid dance
-  if(ye_ol_pid()){
-    usleep(100000);
-    //TODO: use service to grab the next waypoint
-    snowplow_pid::request_next_waypoints srv;
-    if(waypoint_client.call(srv)){
-      start = srv.response.start;
-      dest = srv.response.dest;
-      forward = srv.response.forward;
-      ROS_INFO("Start: (%f,%f) Dest: (%f,%f) Fwd: %d",start.x,start.y,dest.x,dest.y,forward);
-    }else{
-      ROS_ERROR("Failed to call service request_next_waypoints");
+  if(forward_or_turn){
+    //do the ol pid dance
+    if(ye_ol_pid()){
+      usleep(1000000);
+      //TODO: use service to grab the next waypoint
+      snowplow_pid::request_next_waypoints srv;
+      if(waypoint_client.call(srv)){
+	start = srv.response.start;
+	dest = srv.response.dest;
+	forward = srv.response.forward;
+	ROS_INFO("Start: (%f,%f) Dest: (%f,%f) Fwd: %d",start.x,start.y,dest.x,dest.y,forward);
+      }else{
+	ROS_ERROR("Failed to call service request_next_waypoints");
+      }
+      //start robot turning when this method is done turning it will set
+      //forward_or_turn back to 1
+      forward_or_turn = 0;
+      turn_to_heading();
+    
+      //reinitialize all errors to zero
+      previous_error = 0;
+      sum_of_errors = 0;
+      total_num_of_errors = 0;
+      error = 0;
+      linear_vel = FAST_SPEED;
     }
-      
-    //TODO: make robot turn here to face the next waypoint
-      
-    //reinitialize all errors to zero
-    previous_error = 0;
-    sum_of_errors = 0;
-    total_num_of_errors = 0;
-    error = 0;
-    linear_vel = FAST_SPEED;
   }
 
 }
@@ -282,6 +333,7 @@ int main(int argc, char** argv){
   }else{
     ROS_ERROR("Failed to call service request_next_waypoints");
   }
+  forward_or_turn = 1;//
 
   //Set up cmd_vel publisher
   cmd_vel_pub = n.advertise<geometry_msgs::Twist>(cmd_vel_namespace, 10);
