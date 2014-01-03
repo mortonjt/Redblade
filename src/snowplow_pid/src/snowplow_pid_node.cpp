@@ -56,47 +56,40 @@ double get_d_correction(double error){
 }
 
 //Turning method
-double turn_to_heading(){
-
+bool turn_to_heading(){
+  ROS_INFO("Start Turning to Correct Heading");
   double desired_heading = atan2(dest.y-start.y,
 				 dest.x-start.x);
+  
   wrap_pi(desired_heading);
   if(!forward){
     desired_heading -= M_PI;
     wrap_pi(desired_heading);
   }
   
-  vel_targets.linear.x = 0;
-  vel_targets.angular.z = 0;
   usleep(50000);
   double error = desired_heading - cur_pos.theta;
   wrap_pi(error);
 
   if(error > 0){
     vel_targets.linear.x = 0;
-    vel_targets.angular.z = 0.2;
+    vel_targets.angular.z = 0.3;
   }else{
     vel_targets.linear.x = 0;
-    vel_targets.angular.z = -0.2;
+    vel_targets.angular.z = -0.3;
   }
+
+  ROS_INFO("Desired heading %lf Current Heading %lf Error %lf",desired_heading,cur_pos.theta,error);
 
   // iterate until within a certain threshold
   //TODO: make this threshold a parameter
-  while(abs(error) > 0.15){  
-    error = desired_heading - cur_pos.theta;
-    usleep(10000);
+  if(fabs(error) < 0.15){
+    ROS_INFO("Final Error: %lf fabs(error) %lf abs(error) %lf",error,fabs(error),abs(error));
+    vel_targets.linear.x = 0;
+    vel_targets.angular.z = 0;
+    return true;
   }
-
-  //we're done, set motor speeds back to zero
-  vel_targets.linear.x = 0;
-  vel_targets.angular.z = 0;
-  
-  //give the motors time to stop, set forward_or_turn back to 1
-  //so that the robot continues on it's way in ye_old_pid()
-  usleep(500000);
-  forward_or_turn = 1;
-  
-  return 0;
+  return false;
 }
 
 /*returns the distance from end point with some magic sprinkled in (no, i will
@@ -152,6 +145,7 @@ double distance_to_goal(){
 
 //returns true when destination is reached
 bool ye_ol_pid(){
+  ROS_INFO("Ye Old Pid");
   //local variables
   double desired_heading, kp_corr, ki_corr, kd_corr, pid, distance;
   //double current_heading = current_imu.z;
@@ -254,7 +248,7 @@ bool ye_ol_pid(){
 void poseCallback(const geometry_msgs::Pose2D::ConstPtr& pose_msg){
   //grab the current ekf readings
   cur_pos = *pose_msg;
-
+  ROS_INFO("Forward or Turn %d",forward_or_turn);
   if(forward_or_turn){
     //do the ol pid dance
     if(ye_ol_pid()){
@@ -269,10 +263,7 @@ void poseCallback(const geometry_msgs::Pose2D::ConstPtr& pose_msg){
       }else{
 	ROS_ERROR("Failed to call service request_next_waypoints");
       }
-      //start robot turning when this method is done turning it will set
-      //forward_or_turn back to 1
       forward_or_turn = 0;
-      turn_to_heading();
     
       //reinitialize all errors to zero
       previous_error = 0;
@@ -280,6 +271,10 @@ void poseCallback(const geometry_msgs::Pose2D::ConstPtr& pose_msg){
       total_num_of_errors = 0;
       error = 0;
       linear_vel = FAST_SPEED;
+    }
+  }else{//we turnin'
+    if(turn_to_heading()){
+      forward_or_turn = 1;
     }
   }
 

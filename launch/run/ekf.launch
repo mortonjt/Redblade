@@ -1,0 +1,47 @@
+<launch>
+  <arg name="filename"/>
+
+  <node pkg="nmea_navsat_driver" type="nmea_serial_driver" name="Topcon_DGPS" output="screen" >
+    <param name="port" value="/dev/ttyDGPS" />
+    <param name="baud" value="115200" /> 
+    <param name="frame_id" value="TopconDGPS" />
+    <param name="useRMC" value="False" /> 
+  </node> 
+
+
+  <node name="gps_conv" pkg="gps_common" type="gps_conv_node" >
+    <remap from="odom" to="gps"/>		 
+    <param name="filepath" value="/home/redblade/Documents/Redblade/config/" />
+    <param name="rot_covariance" value="99999" />
+    <param name="frame_id" value="base_footprint" />
+  </node>
+
+  <node name="imu_node" pkg="microstrain_3dmgx2_imu" type="imu_node" cwd="node" output="screen">
+    <param name="port"  type="string" value="/dev/ttyACM1" />		
+    
+  </node>
+  
+    <node pkg="redblade_ax2550" type="ax2550_awd_node" name="roboteq_back" output="screen">
+    <param name="serial_port_back" value="/dev/ttyROBOtop"/>
+    <param name="serial_port_front" value="/dev/ttyROBObottom"/>
+    <param name="cmd_vel_front" value="/roboteq_front/cmd_vel"/>
+    <param name="cmd_vel_back" value="/roboteq_back/cmd_vel"/>
+  </node>
+  
+
+  <node pkg="twist_msg_converter" type="twist_converter" name="twist_converter" output="screen">
+    <!-- <param name="serial_port" value="some_serial_port"/> -->
+    <!-- <param name="front_or_back" value="back"/> -->
+  </node>
+
+
+  <node name="redblade_ekf" pkg="redblade_ekf" type="redblade_ekf_node" cwd="node" output="screen">
+  </node>
+
+  
+
+  <node pkg="rosbag" type="record" name="rosbag_rec" 
+	args="-O /home/redblade/ROBOTEQDATA/pid_test/$(arg filename) /cmd_vel /encoders_back /encoders_front /gps /fix /imu/data /imu/integrated_gyros /imu/integrated_gyros_stamped /roboteq_back/cmd_vel_stamped /roboteq_front/cmd_vel_stamped /odom /redblade_ekf/odom /redblade_ekf/2d_pose">
+  </node>
+</launch>
+ 
