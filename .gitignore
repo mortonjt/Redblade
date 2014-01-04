@@ -8,3 +8,4 @@ devel
 *.rosinstall*
 *.tgz
 *.zip
+src/b110_testing
