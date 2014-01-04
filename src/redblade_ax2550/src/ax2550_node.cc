@@ -273,7 +273,7 @@ int main(int argc, char **argv) {
             } else {
                 count += 1;
             }
-                        encoder_rate.sleep();
+	    encoder_rate.sleep();
         }
         if (mc != NULL) {
                 delete mc;
