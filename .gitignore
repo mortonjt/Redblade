@@ -5,3 +5,6 @@ kalman
 *.png
 devel
 *.pyc
+*.rosinstall*
+*.tgz
+*.zip

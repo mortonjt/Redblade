@@ -8,15 +8,19 @@ void callback(const sensor_msgs::PointCloud2ConstPtr& input){
   
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,filteredGround,filteredBackground,pole;
   sensor_msgs::PointCloud2 output;
+  geometry_msgs::Point polePoint;
   pcl::fromROSMsg(*input,*cloud);
   //First filter out ground
   redStereo->filterGround(cloud,filteredGround);
   //Then filter out background
   redStereo->filterGround(cloud,filteredBackground);
   //Finally obtain pole location
-  redStereo->findPole(cloud,pole);
-  pcl::toROSMsg(*pole,output);
-  pub.publish(output);   
+  bool found_pole = redStereo->findPole(cloud,pole);
+  if(found_pole){
+    redStereo->cloud2point(pole,polePoint);
+    pub.publish(polePoint);   
+  }
+  //pcl::toROSMsg(*pole,output);
 }
 
 int main(int argc, char** argv){
@@ -30,12 +34,12 @@ int main(int argc, char** argv){
 
   //See odometry_skid_steer.h for all constants
   n.param("queue_size", queue_size, 2);
-  n.param("stereo_namespace", topic, std::string("/stereo_camera"));
-  n.param("pole_namespace", topic, std::string("/pole"));
+  n.param("stereo_namespace", stereo_namespace, std::string("/stereo_camera/points2"));
+  n.param("pole_namespace", pole_namespace, std::string("/pole"));
   n.param("ground_height", height, 0.2);
   n.param("viewing_radius", radius, 2.0);
   n.param("pole_width", width, 0.05);
-  
+  ROS_INFO("Stereo Namespace %s",stereo_namespace.c_str());
  //redblade_stereo redStereo(radius,height,width);
  redStereo = new redblade_stereo(radius,height,width);
 
@@ -43,6 +47,6 @@ int main(int argc, char** argv){
  ros::Subscriber sub = nh.subscribe<sensor_msgs::PointCloud2> (stereo_namespace, queue_size, callback);
   
   // create a templated publisher
-  pub = nh.advertise<sensor_msgs::PointCloud2> (pole_namespace, queue_size);
+ pub = nh.advertise<geometry_msgs::Point> (pole_namespace, queue_size);
   ros::spin();
 }

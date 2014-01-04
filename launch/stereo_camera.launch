@@ -8,9 +8,6 @@
     <param name="stereo_method" value="Interlaced" />
     <param name="camera_info_url_left" value="" />
     <param name="camera_info_url_right" value="" />
-    <param name="frame_rate" value="5"/>
-    <param name="auto_frame_rate_feature" value="1864"/>
-    <param name="frame_rate_feature" value="1864"/>
 
   </node>
 

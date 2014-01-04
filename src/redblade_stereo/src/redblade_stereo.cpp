@@ -72,6 +72,30 @@ void redblade_stereo::ransac(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
   pcl::copyPointCloud<pcl::PointXYZ>(*in,inliers,*pole);
   ransac_obj.getModelCoefficients(coeff);
 }
+
+/*
+  When point is publish, use a new orientation
+  x
+  ^
+  |
+  | 
+  |
+  ^---------->y
+ */
+
+void redblade_stereo::cloud2point(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
+				  geometry_msgs::Point point){
+  double totalx=0,totaly=0;
+  for(size_t i = 0; i<in->points.size();++i){
+    totalx+= in->points[i].z;
+    totaly+= in->points[i].x;
+  }
+  //Just average
+  point.x = totalx/((double)in->points.size());
+  point.y = totaly/((double)in->points.size());
+  point.z = 0; //TODO: Do we want to put in a point for the pole?
+}
+
 //Finds the pole using the RANSAC algorithm
 bool redblade_stereo::findPole(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
 			       pcl::PointCloud<pcl::PointXYZ>::Ptr pole){
