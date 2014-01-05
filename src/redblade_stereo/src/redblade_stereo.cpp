@@ -22,7 +22,7 @@ z                               Basically, y is upside down
 
 double maxHeight = 2; 
 double tolerance = 0.7;
-double sigSize = 100;//Anything below this isn't signficant
+double sigSize = 250;//Anything below this isn't signficant
 
 
 redblade_stereo::redblade_stereo(double r,double z, double w){
@@ -80,6 +80,22 @@ void redblade_stereo::filterBackground(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud
   }
   filtered->points.resize(numFiltered);  
 }
+
+ int redblade_stereo::cluster(pcl::PointCloud<pcl::PointXYZ>::Ptr in,double tolerance){
+  pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>);
+  tree->setInputCloud(in);
+  std::vector<pcl::PointIndices> cluster_indices;
+  pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
+  ec.setClusterTolerance(tolerance);
+  ec.setMinClusterSize(10);
+  ec.setMaxClusterSize(25000);
+  ec.setSearchMethod(tree);
+  ec.setInputCloud(in);
+  ec.extract(cluster_indices);
+  return cluster_indices.size();
+}
+
+
 void redblade_stereo::ransac(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
 			     pcl::PointCloud<pcl::PointXYZ>::Ptr pole,
 			     Eigen::VectorXf& coeff){
@@ -120,18 +136,24 @@ void redblade_stereo::cloud2point(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
 //Finds the pole using the RANSAC algorithm
 bool redblade_stereo::findPole(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
 			       pcl::PointCloud<pcl::PointXYZ>::Ptr pole){
-  ROS_INFO("Size of input cloud %d",in->points.size());
+  //ROS_INFO("Size of input cloud %d",in->points.size());
   Eigen::VectorXf coeff;
   coeff.resize(6);
   ransac(in,pole,coeff);
   if(coeff.size()==0){
     return false;
   }
-  ROS_INFO("Model Coefficients (x:%f,y:%f,z:%f)+(dx:%f,dy:%f,dz:%f)",
-	   coeff[0],coeff[1],coeff[2],coeff[3],coeff[4],coeff[5]);
-  if(fabs(coeff[4])>tolerance){//Vertical line test
-    if(pole->points.size()>sigSize){//significance test
-      return true;}
-  }
+  
+  // ROS_INFO("Model Coefficients (x:%f,y:%f,z:%f)+(dx:%f,dy:%f,dz:%f)",
+  // 	   coeff[0],coeff[1],coeff[2],coeff[3],coeff[4],coeff[5]);
+  if(fabs(coeff[4])>tolerance){     //Vertical line test
+    if(pole->points.size()>sigSize){//Significance test
+      int clusters = cluster(pole,0.01); //1 cm
+      if(clusters==1){              //Test to see if the line is one contiguous segment
+	// ROS_INFO("Model Coefficients (x:%f,y:%f,z:%f)+(dx:%f,dy:%f,dz:%f)",
+	// 	  coeff[0],coeff[1],coeff[2],coeff[3],coeff[4],coeff[5]);
+	// ROS_INFO("Size of line %d, Number of clusters %d",
+	// 	 pole->points.size(),clusters);
+	return true;}}}
   return false;
 }

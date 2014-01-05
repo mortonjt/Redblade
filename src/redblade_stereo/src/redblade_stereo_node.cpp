@@ -7,7 +7,7 @@ redblade_stereo* redStereo;
 
 // callback signature, assuming your points are pcl::PointXYZ type:
 void callback(const sensor_msgs::PointCloud2ConstPtr& input){
-  ROS_INFO("Point Cloud 2 Callback");  
+  //ROS_INFO("Point Cloud 2 Callback");  
   pcl::PointCloud<pcl::PointXYZ> cloud;
   //pcl::PointCloud<pcl::PointXYZ>::Ptr filteredGround,filteredBackground,pole;
   sensor_msgs::PointCloud2 test,line;
@@ -21,31 +21,31 @@ void callback(const sensor_msgs::PointCloud2ConstPtr& input){
 
   sensor_msgs::PointCloud2 output;
   geometry_msgs::Point polePoint;
-  ROS_INFO("Converting point clouds");
+  //ROS_INFO("Converting point clouds");
   pcl::fromROSMsg(*input,cloud);
   
   //First filter out ground
-  ROS_INFO("Filtering background");
+  //ROS_INFO("Filtering background");
   redStereo->filterBackground(cloud.makeShared(),filteredGround);
   //Then filter out background
-  ROS_INFO("Filtering ground");
+  //ROS_INFO("Filtering ground");
   redStereo->filterGround(filteredGround,filteredBackground);
   pcl::toROSMsg(*filteredBackground,test);
   test.header = input->header;
   test_pub.publish(test);
   //Finally obtain pole location
-  ROS_INFO("Locating Pole");
+  //ROS_INFO("Locating Pole");
   bool found_pole = redStereo->findPole(filteredBackground,pole);
   if(found_pole){
     pcl::toROSMsg(*pole,line);
     line.header = input->header;
     line_pub.publish(line);
        
-    ROS_INFO("Condensing Pole into Pole");
+    //ROS_INFO("Condensing Pole into Pole");
     redStereo->cloud2point(pole,polePoint);
     pub.publish(polePoint);   
   }else{
-    ROS_INFO("No Pole Found");
+    //ROS_INFO("No Pole Found");
   }
 }
 
