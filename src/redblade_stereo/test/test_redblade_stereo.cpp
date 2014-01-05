@@ -192,12 +192,40 @@ TEST(redblade_stereo,testFindPole4){
   cloud->points.resize(cloud->width*cloud->height);
   for(size_t i = 0; i<cloud->points.size(); ++i){//Place straight line
     cloud->points[i].x = 0;
-    cloud->points[i].y = (float)i/20.0+10;
+    cloud->points[i].y = ((float)i)/1000.0+10;
     cloud->points[i].z = 0;    
   }
   redblade_stereo testRS(radius,height,width);
   bool result = testRS.findPole(cloud,line);
   EXPECT_TRUE(result);
+}
+
+TEST(redblade_stereo,testFindPole5){
+  double radius = 1.0;
+  double height = 1.0;
+  double width = 0.05;
+  boost::shared_ptr<pcl::PointCloud<pcl::PointXYZ> > 
+    cloud(new pcl::PointCloud<pcl::PointXYZ>());
+  boost::shared_ptr<pcl::PointCloud<pcl::PointXYZ> > 
+    line(new pcl::PointCloud<pcl::PointXYZ>());
+  cloud->width = 300;
+  cloud->height = 1;
+  cloud->points.resize(cloud->width*cloud->height);
+  for(size_t i = 0; i<150; ++i){//Place straight line
+    cloud->points[i].x = 0;
+    cloud->points[i].y = ((float)i)/1000.0+10;
+    cloud->points[i].z = 0;    
+  }
+
+  for(size_t i = 150; i<cloud->points.size(); ++i){//Place straight line
+    cloud->points[i].x = 0;
+    cloud->points[i].y = ((float)i)/1000.0+100;
+    cloud->points[i].z = 0;    
+  }
+
+  redblade_stereo testRS(radius,height,width);
+  bool result = testRS.findPole(cloud,line);
+  EXPECT_FALSE(result);
 }
 
 
