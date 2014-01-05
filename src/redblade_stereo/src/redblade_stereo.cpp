@@ -25,7 +25,7 @@ double tolerance = 0.001;
 double sigSize = 100;//Anything below this isn't signficant
 
 
-redblade_stereo::redblade_stereo(int r,int z, int w){
+redblade_stereo::redblade_stereo(double r,double z, double w){
   groundHeight = z;
   viewingRadius = r;
   poleWidth = w;
@@ -38,26 +38,47 @@ redblade_stereo::~redblade_stereo(){}
 //Filters out ground using a passthrough filter
 void redblade_stereo::filterGround(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
 				   pcl::PointCloud<pcl::PointXYZ>::Ptr filtered){
+  int numFiltered = 0;
+  //filtered->points.resize(cloud->width*cloud->height);
   //filtered->points.resize(cloud->width);
   for(size_t i = 0; i<cloud->points.size();++i){
-    if(cloud->points[i].y < -1*maxHeight and cloud->points[i].y > -1*groundHeight){
-      filtered->push_back(cloud->points[i]);
+    //if(cloud->points[i].y < -1*maxHeight and cloud->points[i].y > -1*groundHeight){
+    if(cloud->points[i].y < groundHeight){
+	ROS_INFO("x %f, y %f, z %f",
+		 cloud->points[i].x,
+		 cloud->points[i].y,
+		 cloud->points[i].z);
+	//filtered->points[numFiltered++] = cloud->points[i];
+	filtered->points.push_back(cloud->points[i]);
+      }
     }
-  }
+    //filtered->points.resize(numFiltered);  
 }
+
+
+
 //Filters out ground using a passthrough filter
 void redblade_stereo::filterBackground(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
 				       pcl::PointCloud<pcl::PointXYZ>::Ptr filtered){
+  int numFiltered = 0;
+  filtered->points.resize(cloud->width*cloud->height);
+
   for(size_t i = 0; i<cloud->points.size();++i){
     double distance = \
       sqrt(cloud->points[i].x*cloud->points[i].x+	\
 	   cloud->points[i].y*cloud->points[i].y+	\
 	   cloud->points[i].z*cloud->points[i].z);
-    std::cout<<"Distance "<<distance<<std::endl;
     if( distance < viewingRadius){
-      filtered->push_back(cloud->points[i]);
+      // ROS_INFO("x %f, y %f, z %f Distance %f",
+      // 	       cloud->points[i].x,
+      // 	       cloud->points[i].y,
+      // 	       cloud->points[i].z,
+      // 	       distance);
+      //filtered->points.push_back(cloud->points[i]);
+      filtered->points[numFiltered++] = cloud->points[i];
     }
   }
+  filtered->points.resize(numFiltered);  
 }
 void redblade_stereo::ransac(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
 			     pcl::PointCloud<pcl::PointXYZ>::Ptr pole,
@@ -99,6 +120,7 @@ void redblade_stereo::cloud2point(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
 //Finds the pole using the RANSAC algorithm
 bool redblade_stereo::findPole(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
 			       pcl::PointCloud<pcl::PointXYZ>::Ptr pole){
+  ROS_INFO("Size of input cloud %d",in->points.size());
   Eigen::VectorXf coeff;
   coeff.resize(6);
   ransac(in,pole,coeff);

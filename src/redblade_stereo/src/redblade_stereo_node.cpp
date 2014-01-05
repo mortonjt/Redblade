@@ -1,52 +1,76 @@
 #include "redblade_stereo.h"
 
 ros::Publisher pub;
+ros::Publisher test_pub;
 redblade_stereo* redStereo;
 
 // callback signature, assuming your points are pcl::PointXYZ type:
 void callback(const sensor_msgs::PointCloud2ConstPtr& input){
-  
-  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,filteredGround,filteredBackground,pole;
+  ROS_INFO("Point Cloud 2 Callback");  
+  pcl::PointCloud<pcl::PointXYZ> cloud;
+  //pcl::PointCloud<pcl::PointXYZ>::Ptr filteredGround,filteredBackground,pole;
+  sensor_msgs::PointCloud2 test;
+
+  boost::shared_ptr<pcl::PointCloud<pcl::PointXYZ> > 
+    filteredGround(new pcl::PointCloud<pcl::PointXYZ>());
+  boost::shared_ptr<pcl::PointCloud<pcl::PointXYZ> > 
+    filteredBackground(new pcl::PointCloud<pcl::PointXYZ>());
+  boost::shared_ptr<pcl::PointCloud<pcl::PointXYZ> > 
+    pole(new pcl::PointCloud<pcl::PointXYZ>());
+
   sensor_msgs::PointCloud2 output;
   geometry_msgs::Point polePoint;
-  pcl::fromROSMsg(*input,*cloud);
+  ROS_INFO("Converting point clouds");
+  pcl::fromROSMsg(*input,cloud);
+  
   //First filter out ground
-  redStereo->filterGround(cloud,filteredGround);
+  ROS_INFO("Filtering background");
+  redStereo->filterBackground(cloud.makeShared(),filteredGround);
   //Then filter out background
-  redStereo->filterGround(cloud,filteredBackground);
+  ROS_INFO("Filtering ground");
+  redStereo->filterGround(filteredGround,filteredBackground);
+  pcl::toROSMsg(*filteredBackground,test);
+  test.header = input->header;
+  test_pub.publish(test);
   //Finally obtain pole location
-  bool found_pole = redStereo->findPole(cloud,pole);
+  ROS_INFO("Locating Pole");
+  bool found_pole = redStereo->findPole(filteredBackground,pole);
   if(found_pole){
+    ROS_INFO("Condensing Pole into Pole");
     redStereo->cloud2point(pole,polePoint);
     pub.publish(polePoint);   
+  }else{
+    ROS_INFO("No Pole Found");
   }
-  //pcl::toROSMsg(*pole,output);
 }
 
 int main(int argc, char** argv){
   ros::init(argc, argv, "redblade_stereo");
-  ros::NodeHandle n; //in the global namespace
-  ros::NodeHandle nh("~");//local namespace, used for params
+  //ros::NodeHandle n; 
+  ros::NodeHandle nh;
   std::string stereo_namespace,pole_namespace;
   int queue_size;
   double height,radius,width;
   std::string topic;
 
   //See odometry_skid_steer.h for all constants
-  n.param("queue_size", queue_size, 2);
-  n.param("stereo_namespace", stereo_namespace, std::string("/stereo_camera/points2"));
-  n.param("pole_namespace", pole_namespace, std::string("/pole"));
-  n.param("ground_height", height, 0.2);
-  n.param("viewing_radius", radius, 2.0);
-  n.param("pole_width", width, 0.05);
+  nh.param("queue_size", queue_size, 2);
+  nh.param("stereo_namespace", stereo_namespace, std::string("/stereo_camera/points2"));
+  nh.param("pole_namespace", pole_namespace, std::string("/pole"));
+  nh.param("ground_height", height, -0.5);
+  nh.param("viewing_radius", radius, 10.0);
+  nh.param("pole_width", width, 0.01);
   ROS_INFO("Stereo Namespace %s",stereo_namespace.c_str());
- //redblade_stereo redStereo(radius,height,width);
- redStereo = new redblade_stereo(radius,height,width);
-
+  ROS_INFO("Ground Height %f Viewing Radius %f",height,radius);
+  
+  //redblade_stereo redStereo(radius,height,width);
+  redStereo = new redblade_stereo(radius,height,width);
+  
   // create a templated subscriber
- ros::Subscriber sub = nh.subscribe<sensor_msgs::PointCloud2> (stereo_namespace, queue_size, callback);
+  ros::Subscriber sub = nh.subscribe<sensor_msgs::PointCloud2> (stereo_namespace, queue_size, callback);
   
   // create a templated publisher
- pub = nh.advertise<geometry_msgs::Point> (pole_namespace, queue_size);
+  pub = nh.advertise<geometry_msgs::Point> (pole_namespace, queue_size);
+  test_pub = nh.advertise<sensor_msgs::PointCloud2> ("/stereo_camera/test", queue_size);
   ros::spin();
 }

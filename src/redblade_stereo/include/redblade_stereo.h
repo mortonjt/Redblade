@@ -33,7 +33,7 @@ class redblade_stereo{
   double poleWidth;
   double viewingRadius;
 
-  redblade_stereo(int r, int z, int w);
+  redblade_stereo(double r, double z, double w);
   ~redblade_stereo();
   //Filters out ground using a passthrough filter
   void filterGround(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
