@@ -2,6 +2,7 @@
 
 ros::Publisher pub;
 ros::Publisher test_pub;
+ros::Publisher line_pub;
 redblade_stereo* redStereo;
 
 // callback signature, assuming your points are pcl::PointXYZ type:
@@ -9,7 +10,7 @@ void callback(const sensor_msgs::PointCloud2ConstPtr& input){
   ROS_INFO("Point Cloud 2 Callback");  
   pcl::PointCloud<pcl::PointXYZ> cloud;
   //pcl::PointCloud<pcl::PointXYZ>::Ptr filteredGround,filteredBackground,pole;
-  sensor_msgs::PointCloud2 test;
+  sensor_msgs::PointCloud2 test,line;
 
   boost::shared_ptr<pcl::PointCloud<pcl::PointXYZ> > 
     filteredGround(new pcl::PointCloud<pcl::PointXYZ>());
@@ -36,6 +37,10 @@ void callback(const sensor_msgs::PointCloud2ConstPtr& input){
   ROS_INFO("Locating Pole");
   bool found_pole = redStereo->findPole(filteredBackground,pole);
   if(found_pole){
+    pcl::toROSMsg(*pole,line);
+    line.header = input->header;
+    line_pub.publish(line);
+       
     ROS_INFO("Condensing Pole into Pole");
     redStereo->cloud2point(pole,polePoint);
     pub.publish(polePoint);   
@@ -57,8 +62,8 @@ int main(int argc, char** argv){
   nh.param("queue_size", queue_size, 2);
   nh.param("stereo_namespace", stereo_namespace, std::string("/stereo_camera/points2"));
   nh.param("pole_namespace", pole_namespace, std::string("/pole"));
-  nh.param("ground_height", height, -0.5);
-  nh.param("viewing_radius", radius, 10.0);
+  nh.param("ground_height", height, -0.8);
+  nh.param("viewing_radius", radius, 9.5);
   nh.param("pole_width", width, 0.01);
   ROS_INFO("Stereo Namespace %s",stereo_namespace.c_str());
   ROS_INFO("Ground Height %f Viewing Radius %f",height,radius);
@@ -71,6 +76,7 @@ int main(int argc, char** argv){
   
   // create a templated publisher
   pub = nh.advertise<geometry_msgs::Point> (pole_namespace, queue_size);
+  line_pub = nh.advertise<sensor_msgs::PointCloud2> ("/stereo_camera/line", queue_size);
   test_pub = nh.advertise<sensor_msgs::PointCloud2> ("/stereo_camera/test", queue_size);
   ros::spin();
 }

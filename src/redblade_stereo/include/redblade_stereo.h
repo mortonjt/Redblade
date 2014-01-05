@@ -47,7 +47,7 @@ class redblade_stereo{
 	      Eigen::VectorXf& coeff);
   //Returns a 2D point representation of the pole
   void cloud2point(pcl::PointCloud<pcl::PointXYZ>::Ptr pole,
-		   geometry_msgs::Point point);
+		   geometry_msgs::Point& point);
   //TODO: Need to handle scenario where pole isn't present
   /*
     Ideas

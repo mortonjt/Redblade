@@ -20,8 +20,8 @@ z                               Basically, y is upside down
     y
  */
 
-double maxHeight = -2; //Crop everything above 2 m
-double tolerance = 0.001;
+double maxHeight = 2; 
+double tolerance = 0.7;
 double sigSize = 100;//Anything below this isn't signficant
 
 
@@ -44,10 +44,10 @@ void redblade_stereo::filterGround(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
   for(size_t i = 0; i<cloud->points.size();++i){
     //if(cloud->points[i].y < -1*maxHeight and cloud->points[i].y > -1*groundHeight){
     if(cloud->points[i].y < groundHeight){
-	ROS_INFO("x %f, y %f, z %f",
-		 cloud->points[i].x,
-		 cloud->points[i].y,
-		 cloud->points[i].z);
+	// ROS_INFO("x %f, y %f, z %f",
+	// 	 cloud->points[i].x,
+	// 	 cloud->points[i].y,
+	// 	 cloud->points[i].z);
 	//filtered->points[numFiltered++] = cloud->points[i];
 	filtered->points.push_back(cloud->points[i]);
       }
@@ -105,7 +105,7 @@ void redblade_stereo::ransac(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
  */
 
 void redblade_stereo::cloud2point(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
-				  geometry_msgs::Point point){
+				  geometry_msgs::Point& point){
   double totalx=0,totaly=0;
   for(size_t i = 0; i<in->points.size();++i){
     totalx+= in->points[i].z;
@@ -127,9 +127,11 @@ bool redblade_stereo::findPole(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
   if(coeff.size()==0){
     return false;
   }
-  // if(abs(coeff[3])<tolerance and abs(coeff[5])<tolerance){//Vertical line test
-  if(pole->points.size()>sigSize){//significance test
-    return true;}
-  //}
+  ROS_INFO("Model Coefficients (x:%f,y:%f,z:%f)+(dx:%f,dy:%f,dz:%f)",
+	   coeff[0],coeff[1],coeff[2],coeff[3],coeff[4],coeff[5]);
+  if(fabs(coeff[4])>tolerance){//Vertical line test
+    if(pole->points.size()>sigSize){//significance test
+      return true;}
+  }
   return false;
 }
