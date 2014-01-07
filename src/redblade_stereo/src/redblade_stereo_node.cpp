@@ -4,7 +4,24 @@ ros::Publisher pub;
 ros::Publisher test_pub;
 ros::Publisher line_pub;
 redblade_stereo* redStereo;
-geometry_msgs::Point polePoint;
+geometry_msgs::Point localPolePoint;
+
+
+void pose_callback(const geometry_msgs::Pose2D::ConstPtr& pose_msg){
+  /*Convert coordinates from robot's local coordinate frame 
+    to local ENU coordinate frame*/
+  geometry_msgs::Point enuPolePoint;
+  double xc    = localPolePoint.x;
+  double yc    = localPolePoint.y;
+  double theta = pose_msg->theta;
+  double x0    = pose_msg->x;
+  double y0    = pose_msg->y;
+
+  enuPolePoint.x = xc*cos(theta)-yc*sin(theta)+x0;
+  enuPolePoint.y = xc*sin(theta)+yc*cos(theta)+y0;
+  enuPolePoint.z = 0;
+  pub.publish(enuPolePoint);
+}
 
 // callback signature, assuming your points are pcl::PointXYZ type:
 void cloud_callback(const sensor_msgs::PointCloud2ConstPtr& input){
@@ -45,7 +62,8 @@ void cloud_callback(const sensor_msgs::PointCloud2ConstPtr& input){
     line_pub.publish(line);
        
     //ROS_INFO("Condensing Pole into Pole");
-    redStereo->cloud2point(pole,polePoint);//Obtain the pole point in the Bumblebee reference frame
+    //Obtain the pole point in the Bumblebee reference frame
+    redStereo->cloud2point(pole,localPolePoint);
     
     //pub.publish(polePoint);   
   }else{
@@ -57,14 +75,15 @@ int main(int argc, char** argv){
   ros::init(argc, argv, "redblade_stereo");
   //ros::NodeHandle n; 
   ros::NodeHandle nh;
-  std::string stereo_namespace,pole_namespace;
+  std::string stereo_namespace,pole_namespace,ekf_namespace;
   int queue_size;
   double ground_height,viewing_radius,pole_width,camera_height,camera_length_offset;
   std::string topic;
   
   //See odometry_skid_steer.h for all constants
-  nh.param("queue_size", queue_size, 2);
+  nh.param("queue_size", queue_size, 1);
   nh.param("stereo_namespace", stereo_namespace, std::string("/stereo_camera/points2"));
+  nh.param("ekf_namespace", stereo_namespace, std::string("/redblade_ekf/2d_pose"));
   nh.param("pole_namespace", pole_namespace, std::string("/pole"));
   nh.param("ground_height", ground_height, -0.8);
   nh.param("viewing_radius", viewing_radius, 9.5);
@@ -78,9 +97,9 @@ int main(int argc, char** argv){
   //redblade_stereo redStereo(radius,height,width);
   redStereo = new redblade_stereo(viewing_radius,ground_height,pole_width,
 				  camera_height,camera_length_offset);
-  
-  // create a templated subscriber
-  ros::Subscriber sub = nh.subscribe<sensor_msgs::PointCloud2> (stereo_namespace, queue_size, cloud_callback);
+ 
+  ros::Subscriber cloud_sub = nh.subscribe<sensor_msgs::PointCloud2> (stereo_namespace, queue_size, cloud_callback);
+  ros::Subscriber pose_sub  = nh.subscribe<geometry_msgs::Pose2D> (ekf_namespace, queue_size, pose_callback);
   
   // create a templated publisher
   pub = nh.advertise<geometry_msgs::Point> (pole_namespace, queue_size);
