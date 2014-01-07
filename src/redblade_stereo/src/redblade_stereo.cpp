@@ -25,7 +25,7 @@ and z is pointing into the page
 double maxHeight = 3; //Filters out everything above a reasonable height (probably can use height of pole)
 double verticalTolerance = 0.7; //Mininum vertical slope for RANSAC
 double sigSize = 250;//Anything below this isn't signficant
-
+double viewingWidth = 2;  //Filters everything outside of 2m of the robot's horizontal view
 
 redblade_stereo::redblade_stereo(double viewingRadius, 
 				 double groundHeight, 
@@ -89,7 +89,9 @@ void redblade_stereo::filterBackground(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud
       // 	       cloud->points[i].z,
       // 	       distance);
       //filtered->points.push_back(cloud->points[i]);
-      filtered->points[numFiltered++] = cloud->points[i];
+      if( fabs(cloud->points[i].y)<viewingWidth){
+	filtered->points[numFiltered++] = cloud->points[i];
+      }
     }
   }
   filtered->points.resize(numFiltered);  
@@ -149,7 +151,7 @@ void redblade_stereo::cloud2point(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
 //Finds the pole using the RANSAC algorithm
 bool redblade_stereo::findPole(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
 			       pcl::PointCloud<pcl::PointXYZ>::Ptr pole){
-  //ROS_INFO("Size of input cloud %d",in->points.size());
+  ROS_INFO("Size of input cloud %d",in->points.size());
   Eigen::VectorXf coeff;
   coeff.resize(6);
   ransac(in,pole,coeff);

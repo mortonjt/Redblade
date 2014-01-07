@@ -5,22 +5,25 @@ ros::Publisher test_pub;
 ros::Publisher line_pub;
 redblade_stereo* redStereo;
 geometry_msgs::Point localPolePoint;
-
+bool hasPole = false;
 
 void pose_callback(const geometry_msgs::Pose2D::ConstPtr& pose_msg){
-  /*Convert coordinates from robot's local coordinate frame 
-    to local ENU coordinate frame*/
-  geometry_msgs::Point enuPolePoint;
-  double xc    = localPolePoint.x;
-  double yc    = localPolePoint.y;
-  double theta = pose_msg->theta;
-  double x0    = pose_msg->x;
-  double y0    = pose_msg->y;
+  if(hasPole){
+    /*Convert coordinates from robot's local coordinate frame 
+      to local ENU coordinate frame*/
+    geometry_msgs::Point enuPolePoint;
+    double xc    = localPolePoint.x;
+    double yc    = localPolePoint.y;
+    double theta = pose_msg->theta;
+    double x0    = pose_msg->x;
+    double y0    = pose_msg->y;
 
-  enuPolePoint.x = xc*cos(theta)-yc*sin(theta)+x0;
-  enuPolePoint.y = xc*sin(theta)+yc*cos(theta)+y0;
-  enuPolePoint.z = 0;
-  pub.publish(enuPolePoint);
+    enuPolePoint.x = xc*cos(theta)-yc*sin(theta)+x0;
+    enuPolePoint.y = xc*sin(theta)+yc*cos(theta)+y0;
+    enuPolePoint.z = 0;
+    pub.publish(enuPolePoint);
+    hasPole = false;
+  }
 }
 
 // callback signature, assuming your points are pcl::PointXYZ type:
@@ -64,7 +67,7 @@ void cloud_callback(const sensor_msgs::PointCloud2ConstPtr& input){
     //ROS_INFO("Condensing Pole into Pole");
     //Obtain the pole point in the Bumblebee reference frame
     redStereo->cloud2point(pole,localPolePoint);
-    
+    hasPole = true;
     //pub.publish(polePoint);   
   }else{
     //ROS_INFO("No Pole Found");
@@ -83,11 +86,11 @@ int main(int argc, char** argv){
   //See odometry_skid_steer.h for all constants
   nh.param("queue_size", queue_size, 1);
   nh.param("stereo_namespace", stereo_namespace, std::string("/stereo_camera/points2"));
-  nh.param("ekf_namespace", stereo_namespace, std::string("/redblade_ekf/2d_pose"));
-  nh.param("pole_namespace", pole_namespace, std::string("/pole"));
+  nh.param("ekf_namespace", ekf_namespace, std::string("/redblade_ekf/2d_pose"));
+  nh.param("pole_namespace", pole_namespace, std::string("/stereo_camera/pole"));
   nh.param("ground_height", ground_height, -0.8);
-  nh.param("viewing_radius", viewing_radius, 9.5);
-  nh.param("pole_width", pole_width, 0.01);
+  nh.param("viewing_radius", viewing_radius, 3.0);
+  nh.param("pole_width", pole_width, 0.1);
   nh.param("camera_height", camera_height, 1.67);
   nh.param("camera_length_offset", camera_length_offset, 0.55);
 

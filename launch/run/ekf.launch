@@ -41,7 +41,7 @@
   
 
   <node pkg="rosbag" type="record" name="rosbag_rec" 
-	args="-O /home/redblade/ROBOTEQDATA/pid_test/$(arg filename) /cmd_vel /encoders_back /encoders_front /gps /fix /imu/data /imu/integrated_gyros /imu/integrated_gyros_stamped /roboteq_back/cmd_vel_stamped /roboteq_front/cmd_vel_stamped /odom /redblade_ekf/odom /redblade_ekf/2d_pose">
+	args="-O /home/redblade/DATA/EKF/$(arg filename) /cmd_vel /encoders_back /encoders_front /gps /fix /imu/data /imu/integrated_gyros /imu/integrated_gyros_stamped /roboteq_back/cmd_vel_stamped /roboteq_front/cmd_vel_stamped /odom /redblade_ekf/odom /redblade_ekf/2d_pose /stereo_camera/pole">
   </node>
 </launch>
  

@@ -1,0 +1,21 @@
+<launch>
+  <arg name="filename"/>
+  <node pkg="camera1394stereo" type="camera1394stereo_node" name="camera1394stereo_node" output="screen" >
+    <param name="video_mode" value="format7_mode3" />
+    <param name="format7_color_coding" value="raw16" />
+    <param name="bayer_pattern" value="grbg" />
+    <param name="bayer_method" value="" />
+    <param name="stereo_method" value="Interlaced" />
+    <param name="camera_info_url_left" value="" />
+    <param name="camera_info_url_right" value="" />
+  </node>
+  
+  <group ns = "stereo_camera">
+    <node pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc" output="screen" >
+    </node>
+  </group>
+
+  <node pkg="redblade_stereo" type="redblade_stereo_node" name="redblade_stereo_node" output="screen" >
+  </node>
+  
+</launch>
