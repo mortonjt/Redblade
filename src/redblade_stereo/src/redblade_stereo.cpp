@@ -1,40 +1,55 @@
 #include "redblade_stereo.h"
 
-
-
 /*
-  Orientation
-z                               Basically, y is upside down
-^                               and z is pointing into the page
- \
-  \
-   \
-    *----------------> x
-    |
-    |
-    |
-    |
-    |
-    |
-    v
-    y
+  Camera Orientation                            Robot Orientation	       	   
+z                                                             
+^                                                             
+ \				     		       	   
+  \				     	       	                  z
+   \				     			          ^
+    *----------------> x	                            x     |
+    |				                 	     \    |  			   
+    |				                 	      \   |  			   
+    |				                 	       \  |  			   
+    |				                 	        \ |  			   
+    |				                                 \|  			   
+    |				                   y<-------------*  			   
+    v				                  			   
+    y				                                       
+				    	      			       	   
+Basically, y is upside down    	    	      X is pointing into the page   
+and z is pointing into the page	    	      
  */
 
-double maxHeight = 2; 
-double tolerance = 0.7;
+//Constants
+double maxHeight = 3; //Filters out everything above a reasonable height (probably can use height of pole)
+double verticalTolerance = 0.7; //Mininum vertical slope for RANSAC
 double sigSize = 250;//Anything below this isn't signficant
 
 
-redblade_stereo::redblade_stereo(double r,double z, double w){
-  groundHeight = z;
-  viewingRadius = r;
-  poleWidth = w;
+redblade_stereo::redblade_stereo(double viewingRadius, 
+				 double groundHeight, 
+				 double poleWidth,
+				 double cameraHeight,
+				 double cameraLengthOffset){
+  this->groundHeight = groundHeight;
+  this->viewingRadius = viewingRadius;
+  this->poleWidth = poleWidth;
+  this->cameraHeight = cameraHeight;
+  this->cameraLengthOffset = cameraLengthOffset;
 }
 
 redblade_stereo::~redblade_stereo(){}
 
 
-
+void redblade_stereo::transform(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud){
+ for(size_t i = 0; i<cloud->points.size();++i){
+   double height = cloud->points[i].y;
+   cloud->points[i].y = -1*cloud->points[i].x;
+   cloud->points[i].x = cloud->points[i].z+this->cameraLengthOffset;
+   cloud->points[i].z = height+this->cameraHeight;
+ }
+}
 //Filters out ground using a passthrough filter
 void redblade_stereo::filterGround(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
 				   pcl::PointCloud<pcl::PointXYZ>::Ptr filtered){
@@ -42,8 +57,7 @@ void redblade_stereo::filterGround(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
   //filtered->points.resize(cloud->width*cloud->height);
   //filtered->points.resize(cloud->width);
   for(size_t i = 0; i<cloud->points.size();++i){
-    //if(cloud->points[i].y < -1*maxHeight and cloud->points[i].y > -1*groundHeight){
-    if(cloud->points[i].y < groundHeight){
+    if(cloud->points[i].y > groundHeight and cloud->points[i].y < maxHeight){
 	// ROS_INFO("x %f, y %f, z %f",
 	// 	 cloud->points[i].x,
 	// 	 cloud->points[i].y,
@@ -81,7 +95,7 @@ void redblade_stereo::filterBackground(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud
   filtered->points.resize(numFiltered);  
 }
 
- int redblade_stereo::cluster(pcl::PointCloud<pcl::PointXYZ>::Ptr in,double tolerance){
+int redblade_stereo::cluster(pcl::PointCloud<pcl::PointXYZ>::Ptr in,double tolerance){
   pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>);
   tree->setInputCloud(in);
   std::vector<pcl::PointIndices> cluster_indices;
@@ -119,18 +133,17 @@ void redblade_stereo::ransac(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
   |
   ^---------->y
  */
-
 void redblade_stereo::cloud2point(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
 				  geometry_msgs::Point& point){
   double totalx=0,totaly=0;
   for(size_t i = 0; i<in->points.size();++i){
-    totalx+= in->points[i].z;
-    totaly+= in->points[i].x;
+    totalx+= in->points[i].x;
+    totaly+= in->points[i].y;
   }
   //Just average
   point.x = totalx/((double)in->points.size());
   point.y = totaly/((double)in->points.size());
-  point.z = 0; //TODO: Do we want to put in a point for the pole?
+  point.z = 0; //TODO: Do we want to put in a z-coordinate for the pole?
 }
 
 //Finds the pole using the RANSAC algorithm
@@ -146,14 +159,15 @@ bool redblade_stereo::findPole(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
   
   // ROS_INFO("Model Coefficients (x:%f,y:%f,z:%f)+(dx:%f,dy:%f,dz:%f)",
   // 	   coeff[0],coeff[1],coeff[2],coeff[3],coeff[4],coeff[5]);
-  if(fabs(coeff[4])>tolerance){     //Vertical line test
+  if(fabs(coeff[5])>verticalTolerance){     //Vertical line test
     if(pole->points.size()>sigSize){//Significance test
-      int clusters = cluster(pole,0.01); //1 cm
-      if(clusters==1){              //Test to see if the line is one contiguous segment
-	// ROS_INFO("Model Coefficients (x:%f,y:%f,z:%f)+(dx:%f,dy:%f,dz:%f)",
-	// 	  coeff[0],coeff[1],coeff[2],coeff[3],coeff[4],coeff[5]);
-	// ROS_INFO("Size of line %d, Number of clusters %d",
-	// 	 pole->points.size(),clusters);
-	return true;}}}
+      // int clusters = cluster(pole,0.01); //1 cm
+      // if(clusters==1){              //Test to see if the line is one contiguous segment
+      // 	ROS_INFO("Size of line %d, Number of clusters %d",
+      // 		 pole->points.size(),clusters);
+      // ROS_INFO("Model Coefficients (x:%f,y:%f,z:%f)+(dx:%f,dy:%f,dz:%f)",
+      // 	       coeff[0],coeff[1],coeff[2],coeff[3],coeff[4],coeff[5]);
+      return true;}}
+  //}
   return false;
 }

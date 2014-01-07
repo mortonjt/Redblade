@@ -33,12 +33,22 @@
 
 class redblade_stereo{
  public:
-  double groundHeight; //maximum height of ground
-  double poleWidth;
-  double viewingRadius;
+  double groundHeight;       //maximum height of ground
+  double poleWidth;          //Width of the pole
+  double viewingRadius;      //Appropriate viewing radius of stereo camera.  Everything outside of this radius is filtered out
+  double cameraHeight;       //Height of camera on robot
+  double cameraLengthOffset; //Vertical offset of camera away from center of robot
 
-  redblade_stereo(double r, double z, double w);
+  redblade_stereo(double viewingRadius, 
+		  double groundHeight, 
+		  double poleWidth,
+		  double cameraHeight,
+		  double cameraLengthOffset);
   ~redblade_stereo();
+
+  //Transform point cloud in term of robot's coordinate frame
+  void transform(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
+
   //Filters out ground using a passthrough filter
   void filterGround(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
 		    pcl::PointCloud<pcl::PointXYZ>::Ptr filtered);
@@ -49,11 +59,11 @@ class redblade_stereo{
   void ransac(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
 	      pcl::PointCloud<pcl::PointXYZ>::Ptr pole,
 	      Eigen::VectorXf& coeff);
+
   /*
     Performs Euclidean clustering
-    If there is exactly one cluster present, return true
-    Otherwise return false
-    
+    Returns the total number of clusters
+
     Note: tolerance is in meters
     See pointclouds.org/documentation/tutorials/cluster_extraction.php
    */
@@ -62,13 +72,6 @@ class redblade_stereo{
   //Returns a 2D point representation of the pole
   void cloud2point(pcl::PointCloud<pcl::PointXYZ>::Ptr pole,
 		   geometry_msgs::Point& point);
-  //TODO: Need to handle scenario where pole isn't present
-  /*
-    Ideas
-    1) Reject the estimated line if too few points are present (e.g. 100 points)
-    2) Reject if the length of the line isn't vertical
-    3) Reject if the length of the line is waaay too long
-   */
   bool findPole(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
 		pcl::PointCloud<pcl::PointXYZ>::Ptr pole);
 };
