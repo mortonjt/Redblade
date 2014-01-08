@@ -27,7 +27,7 @@ void writeData(std::string filename1, std::vector<Coordinates>& cornerList){
   fs1.setf(std::ofstream::fixed,std::ofstream::floatfield);
 
   for(int i = 0; i < numCorners; i++){
-    fs1 << cornerList[i].lat << ", " << cornerList[i].lon 
+    fs1 << cornerList[i].lat << "," << cornerList[i].lon 
 	<< std::endl;
   }
 

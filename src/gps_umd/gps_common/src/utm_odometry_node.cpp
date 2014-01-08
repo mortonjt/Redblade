@@ -21,6 +21,14 @@ double rot_cov;
 double initial_e, initial_n;
 int numCorners = 2;
 
+void split_to_double(const std::string &s, char delim, std::vector<double> &elements){
+  std::stringstream ss(s);
+  std::string item;
+  while(std::getline(ss,item,delim)){
+    elements.push_back(atof(item.c_str()));
+  }
+}
+
 void initializeAndConvCorners(){
   double northing, easting, latitude, longitude;
   std::string zone;
@@ -48,8 +56,16 @@ void initializeAndConvCorners(){
 
   std::string line, comma;
   while(std::getline(fs1,line)){
-    std::istringstream ss(line);
-    ss >> latitude >> comma >> longitude;
+    //    std::istringstream ss(line);
+    //    ss >> latitude >> comma >> longitude;
+
+    //JUST CHANGED THIS PART, 1/8/2014, NEEDS TESTING
+
+    std::vector<double> elements;
+    split_to_double(line, ',', elements);
+
+    latitude = elements[0];
+    longitude = elements[1];
 
     LLtoUTM(latitude, longitude, northing, easting, zone);
 
@@ -63,7 +79,7 @@ void initializeAndConvCorners(){
 
     easting = easting - initial_e;
     northing = northing - initial_n;
-    fs2 << easting << ", " << northing << std::endl; 
+    fs2 << easting << "," << northing << std::endl; 
     ROS_INFO("WROTE AN ENU POINT");
   }
   
