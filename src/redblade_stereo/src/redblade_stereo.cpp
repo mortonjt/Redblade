@@ -36,6 +36,7 @@ redblade_stereo::redblade_stereo(double viewingRadius,
   this->viewingRadius = viewingRadius;
   this->viewingWidth = viewingWidth;
   this->poleWidth = poleWidth;
+  this->towerWidth = towerWidth;
   this->cameraHeight = cameraHeight;
   this->cameraLengthOffset = cameraLengthOffset;
 }

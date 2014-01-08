@@ -22,7 +22,7 @@ TEST(redblade_stereo,testFilterGround1){
   testRS.filterGround(cloud,above);
   EXPECT_GT(above->points.size(),0);
   for(size_t i = 0; i<above->points.size();i++){
-    EXPECT_GT(above->points[i].y,groundHeight);
+    EXPECT_GT(above->points[i].z,groundHeight);
   }
 }
 
@@ -43,7 +43,7 @@ TEST(redblade_stereo,testFilterBackground1){
     cloud->points[i].y = 1024*rand()/(RAND_MAX+1.0f);
     cloud->points[i].z = 1024*rand()/(RAND_MAX+1.0f);
   }
-  redblade_stereo testRS(radius,0.0,groundHeight,width,cameraHeight,0.0);
+  redblade_stereo testRS(radius,1000.0,groundHeight,width,cameraHeight,0.0);
   testRS.filterBackground(cloud,above);
   EXPECT_GT(above->points.size(),0);
   for(size_t i = 0; i<above->points.size();i++){    
@@ -296,7 +296,7 @@ TEST(redblade_stereo,transformTest1){
   cloud->points[0].x = 0; 
   cloud->points[0].y = 0; 
   cloud->points[0].z = 0; 
-  redblade_stereo testRS(radius,height,width,cameraHeight,cameraOffset);
+  redblade_stereo testRS(radius,0.0,height,width,cameraHeight,cameraOffset);
   testRS.transform(cloud);
   EXPECT_EQ(cloud->points[0].z,cameraHeight);  
   EXPECT_EQ(cloud->points[0].x,cameraOffset);    
