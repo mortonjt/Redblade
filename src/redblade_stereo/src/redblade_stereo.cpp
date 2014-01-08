@@ -47,7 +47,7 @@ void redblade_stereo::transform(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud){
    double height = cloud->points[i].y;
    cloud->points[i].y = -1*cloud->points[i].x;
    cloud->points[i].x = cloud->points[i].z+this->cameraLengthOffset;
-   cloud->points[i].z = height+this->cameraHeight;
+   cloud->points[i].z = this->cameraHeight-height;
  }
 }
 //Filters out ground using a passthrough filter
@@ -151,7 +151,7 @@ void redblade_stereo::cloud2point(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
 //Finds the pole using the RANSAC algorithm
 bool redblade_stereo::findPole(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
 			       pcl::PointCloud<pcl::PointXYZ>::Ptr pole){
-  ROS_INFO("Size of input cloud %d",in->points.size());
+  //ROS_INFO("Size of input cloud %d",in->points.size());
   Eigen::VectorXf coeff;
   coeff.resize(6);
   ransac(in,pole,coeff);
