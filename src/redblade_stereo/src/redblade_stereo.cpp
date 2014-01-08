@@ -140,15 +140,26 @@ void redblade_stereo::ransac(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
  */
 void redblade_stereo::cloud2point(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
 				  geometry_msgs::Point& point){
-  double totalx=0,totaly=0;
+  std::vector<double> x,y;
+  int n = in->points.size();
   for(size_t i = 0; i<in->points.size();++i){
-    totalx+= in->points[i].x;
-    totaly+= in->points[i].y;
+    x.push_back(in->points[i].x);
+    y.push_back(in->points[i].y);
   }
-  //Just average
-  point.x = totalx/((double)in->points.size());
-  point.y = totaly/((double)in->points.size());
-  point.z = 0; //TODO: Do we want to put in a z-coordinate for the pole?
+  std::sort(x.begin(),x.end());
+  std::sort(y.begin(),y.end());
+  point.x = x[n/2];
+  point.y = x[n/2];
+  point.z = 0;
+  // double totalx=0,totaly=0;
+  // for(size_t i = 0; i<in->points.size();++i){
+  //   totalx+= in->points[i].x;
+  //   totaly+= in->points[i].y;
+  // }
+  // //Just average
+  // point.x = totalx/((double)in->points.size());
+  // point.y = totaly/((double)in->points.size());
+  // point.z = 0; //TODO: Do we want to put in a z-coordinate for the pole?
 }
 
 //Finds the pole using the RANSAC algorithm

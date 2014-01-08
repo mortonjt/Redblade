@@ -69,6 +69,10 @@ void publish_loop(){
       enuPolePoint.x = xc*cos(theta)-yc*sin(theta)+x0;
       enuPolePoint.y = xc*sin(theta)+yc*cos(theta)+y0;
       enuPolePoint.z = 0;
+      ROS_INFO("xc %lf, yc %lf, theta %lf, xgps %lf, ygps %lf, enuX %lf ,enuY %lf ",
+	       xc,yc,theta,x0,y0,  
+	       enuPolePoint.x,
+	       enuPolePoint.y);
       pub.publish(enuPolePoint);    
     }
     hasPoints = false;
