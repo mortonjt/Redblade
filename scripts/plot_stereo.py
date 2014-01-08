@@ -6,8 +6,8 @@ import math
 
 import movingAverage
 
-gpsBag = "/home/redblade/DATA/EKF/calibrate_gps.bag"
-stereoBag = "/home/redblade/DATA/EKF/test1.bag"
+gpsBag = "/home/jamie/data/stereo_test/calibrate_gps.bag"
+stereoBag = "/home/jamie/data/stereo_test/test1.bag"
 front_encoders = "/encoders_front"
 back_encoders = "/encoders_back"
 front_cmds = "/roboteq_front/cmd_vel_stamped"

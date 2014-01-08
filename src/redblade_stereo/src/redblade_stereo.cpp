@@ -25,15 +25,16 @@ and z is pointing into the page
 double maxHeight = 3; //Filters out everything above a reasonable height (probably can use height of pole)
 double verticalTolerance = 0.7; //Mininum vertical slope for RANSAC
 double sigSize = 250;//Anything below this isn't signficant
-double viewingWidth = 2;  //Filters everything outside of 2m of the robot's horizontal view
-
+//double viewingWidth = 2.0;  //Filters everything outside of 2m of the robot's horizontal view
 redblade_stereo::redblade_stereo(double viewingRadius, 
+				 double viewingWidth,
 				 double groundHeight, 
 				 double poleWidth,
 				 double cameraHeight,
 				 double cameraLengthOffset){
   this->groundHeight = groundHeight;
   this->viewingRadius = viewingRadius;
+  this->viewingWidth = viewingWidth;
   this->poleWidth = poleWidth;
   this->cameraHeight = cameraHeight;
   this->cameraLengthOffset = cameraLengthOffset;
@@ -50,6 +51,7 @@ void redblade_stereo::transform(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud){
    cloud->points[i].z = this->cameraHeight-height;
  }
 }
+
 //Filters out ground using a passthrough filter
 void redblade_stereo::filterGround(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
 				   pcl::PointCloud<pcl::PointXYZ>::Ptr filtered){
@@ -57,16 +59,16 @@ void redblade_stereo::filterGround(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
   //filtered->points.resize(cloud->width*cloud->height);
   //filtered->points.resize(cloud->width);
   for(size_t i = 0; i<cloud->points.size();++i){
-    if(cloud->points[i].y > groundHeight and cloud->points[i].y < maxHeight){
+    if(cloud->points[i].z > groundHeight){// and cloud->points[i].y < maxHeight){
 	// ROS_INFO("x %f, y %f, z %f",
 	// 	 cloud->points[i].x,
 	// 	 cloud->points[i].y,
 	// 	 cloud->points[i].z);
 	//filtered->points[numFiltered++] = cloud->points[i];
 	filtered->points.push_back(cloud->points[i]);
-      }
     }
-    //filtered->points.resize(numFiltered);  
+  }
+  //filtered->points.resize(numFiltered);  
 }
 
 
@@ -75,7 +77,7 @@ void redblade_stereo::filterGround(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
 void redblade_stereo::filterBackground(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
 				       pcl::PointCloud<pcl::PointXYZ>::Ptr filtered){
   int numFiltered = 0;
-  filtered->points.resize(cloud->width*cloud->height);
+  //filtered->points.resize(cloud->width*cloud->height);
 
   for(size_t i = 0; i<cloud->points.size();++i){
     double distance = \
@@ -90,11 +92,12 @@ void redblade_stereo::filterBackground(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud
       // 	       distance);
       //filtered->points.push_back(cloud->points[i]);
       if( fabs(cloud->points[i].y)<viewingWidth){
-	filtered->points[numFiltered++] = cloud->points[i];
+	//filtered->points[numFiltered++] = cloud->points[i];
+	filtered->points.push_back(cloud->points[i]);
       }
     }
   }
-  filtered->points.resize(numFiltered);  
+  //filtered->points.resize(numFiltered);  
 }
 
 int redblade_stereo::cluster(pcl::PointCloud<pcl::PointXYZ>::Ptr in,double tolerance){

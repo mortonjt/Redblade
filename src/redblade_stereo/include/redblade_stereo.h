@@ -37,10 +37,13 @@ class redblade_stereo{
   double groundHeight;       //maximum height of ground
   double poleWidth;          //Width of the pole
   double viewingRadius;      //Appropriate viewing radius of stereo camera.  Everything outside of this radius is filtered out
+  double viewingWidth;      //Appropriate viewing width of stereo camera.  All periperals are filtered out
   double cameraHeight;       //Height of camera on robot
   double cameraLengthOffset; //Vertical offset of camera away from center of robot
 
+
   redblade_stereo(double viewingRadius, 
+		  double viewingWidth,
 		  double groundHeight, 
 		  double poleWidth,
 		  double cameraHeight,

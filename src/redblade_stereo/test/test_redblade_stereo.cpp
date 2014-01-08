@@ -18,7 +18,7 @@ TEST(redblade_stereo,testFilterGround1){
     cloud->points[i].y = 1024*rand()/(RAND_MAX+1.0f);
     cloud->points[i].z = 1024*rand()/(RAND_MAX+1.0f);
   }
-  redblade_stereo testRS(radius,groundHeight,width,cameraHeight,0.0);
+  redblade_stereo testRS(radius,0.0,groundHeight,width,cameraHeight,0.0);
   testRS.filterGround(cloud,above);
   EXPECT_GT(above->points.size(),0);
   for(size_t i = 0; i<above->points.size();i++){
@@ -43,7 +43,7 @@ TEST(redblade_stereo,testFilterBackground1){
     cloud->points[i].y = 1024*rand()/(RAND_MAX+1.0f);
     cloud->points[i].z = 1024*rand()/(RAND_MAX+1.0f);
   }
-  redblade_stereo testRS(radius,groundHeight,width,cameraHeight,0.0);
+  redblade_stereo testRS(radius,0.0,groundHeight,width,cameraHeight,0.0);
   testRS.filterBackground(cloud,above);
   EXPECT_GT(above->points.size(),0);
   for(size_t i = 0; i<above->points.size();i++){    
@@ -75,7 +75,7 @@ TEST(redblade_stereo,testRansac){
     cloud->points[i].y = 1;
     cloud->points[i].z = i+10;
   }
-  redblade_stereo testRS(radius,groundHeight,width,cameraHeight,0.0);
+  redblade_stereo testRS(radius,0.0,groundHeight,width,cameraHeight,0.0);
   testRS.ransac(cloud,line,coeff);
   EXPECT_EQ(cloud->points.size(),line->points.size());
 }
@@ -103,7 +103,7 @@ TEST(redblade_stereo,testRansac2){
     cloud->points[i].y = 1024*rand()/(RAND_MAX+1.0f);
     cloud->points[i].z = 1024*rand()/(RAND_MAX+1.0f);
   }
-  redblade_stereo testRS(radius,height,width,0.0,0.0);
+  redblade_stereo testRS(radius,0.0,height,width,0.0,0.0);
   testRS.ransac(cloud,line,coeff);
   EXPECT_GT(line->points.size(),49);
 }
@@ -130,7 +130,7 @@ TEST(redblade_stereo,testFindPole1){
     cloud->points[i].y = 1024*rand()/(RAND_MAX+1.0f);
     cloud->points[i].z = 1024*rand()/(RAND_MAX+1.0f);
   }
-  redblade_stereo testRS(radius,height,width,0.0,0.0);
+  redblade_stereo testRS(radius,0.0,height,width,0.0,0.0);
   testRS.findPole(cloud,line);
   EXPECT_GT(line->points.size(),150);
 }
@@ -151,7 +151,7 @@ TEST(redblade_stereo,testFindPole2){
     cloud->points[i].y = 1024*rand()/(RAND_MAX+1.0f);
     cloud->points[i].z = 1024*rand()/(RAND_MAX+1.0f);
   }
-  redblade_stereo testRS(radius,height,width,0.0,0.0);
+  redblade_stereo testRS(radius,0.0,height,width,0.0,0.0);
   bool result = testRS.findPole(cloud,line);
   EXPECT_FALSE(result);
 }
@@ -177,7 +177,7 @@ TEST(redblade_stereo,testFindPole3){
     cloud->points[i].y = 1024*rand()/(RAND_MAX+1.0f);
     cloud->points[i].z = 1024*rand()/(RAND_MAX+1.0f);
   }
-  redblade_stereo testRS(radius,height,width,0.0,0.0);
+  redblade_stereo testRS(radius,0.0,height,width,0.0,0.0);
   bool result = testRS.findPole(cloud,line);
   EXPECT_FALSE(result);
 }
@@ -198,7 +198,7 @@ TEST(redblade_stereo,testFindPole4){
     cloud->points[i].y = 0;
     cloud->points[i].z = ((float)i)/1000.0+10;    
   }
-  redblade_stereo testRS(radius,height,width,0.0,0.0);
+  redblade_stereo testRS(radius,0.0,height,width,0.0,0.0);
   bool result = testRS.findPole(cloud,line);
   EXPECT_TRUE(result);
 }
@@ -226,7 +226,7 @@ TEST(redblade_stereo,testFindPole5){
     cloud->points[i].z = 0;   
   }
 
-  redblade_stereo testRS(radius,height,width,0.0,0.0);
+  redblade_stereo testRS(radius,0.0,height,width,0.0,0.0);
   bool result = testRS.findPole(cloud,line);
   EXPECT_FALSE(result);
 }
@@ -254,7 +254,7 @@ TEST(redblade_stereo,testCluster1){
     cloud->points[i].y = rand()/(RAND_MAX+1.0f)+10;
     cloud->points[i].z = rand()/(RAND_MAX+1.0f)+10;
   }
-  redblade_stereo testRS(radius,height,width,0.0,0.0);
+  redblade_stereo testRS(radius,0.0,height,width,0.0,0.0);
   int clusters = testRS.cluster(cloud,1.0);
   EXPECT_EQ(clusters,2);  
 }
@@ -276,7 +276,7 @@ TEST(redblade_stereo,testCluster2){
     cloud->points[i].y = rand()/(RAND_MAX+1.0f);
     cloud->points[i].z = rand()/(RAND_MAX+1.0f);
   }
-  redblade_stereo testRS(radius,height,width,0.0,0.0);
+  redblade_stereo testRS(radius,0.0,height,width,0.0,0.0);
   int clusters = testRS.cluster(cloud,1.0);
   EXPECT_EQ(clusters,1);  
 }
