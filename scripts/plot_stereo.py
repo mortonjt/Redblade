@@ -6,8 +6,8 @@ import math
 
 import movingAverage
 
-gpsBag = "/home/jamie/bagFiles/test2/calibrate.bag"
-poleBag = "/home/jamie/bagFiles/corrected.bag"
+gpsBag = "/home/jamie/Documents/data/stereo_test/test2/calibrate.bag"
+poleBag = "/home/jamie/Documents/data/stereo_test/test2/correctedPoints2.bag"
 
 front_encoders = "/encoders_front"
 back_encoders = "/encoders_back"
@@ -38,12 +38,15 @@ threshold = 0.1
 gps_msgs           = [msg for topic,msg,t in bag.read_messages(topics=[gps])]
 pole_msgs          = [msg for topic,msg,t in bag.read_messages(topics=[pole_point])]
 
-pole_x = [x.x for x in pole_msgs]
-pole_y = [y.y for y in pole_msgs]
+pole_x = [x.point.x for x in pole_msgs]
+pole_y = [y.point.y for y in pole_msgs]
 time = [t.header.stamp.secs+t.header.stamp.nsecs/10.0**9 for t in gps_msgs]
 
-print "GPS","\n".join(map(str,zip(correct_x,correct_y)))
+#print "GPS","\n".join(map(str,zip(correct_x,correct_y)))
 print "Pole","\n".join(map(str,zip(pole_x,pole_y)))
+
+print "X std dev",numpy.std(pole_x[1:])
+print "Y std dev",numpy.std(pole_y[1:])
 
 f1 = figure(1)
 p1,=plot(pole_y,pole_x,'ob')

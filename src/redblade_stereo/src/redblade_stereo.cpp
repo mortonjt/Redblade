@@ -68,6 +68,13 @@ bool redblade_stereo::inBounds(double x, double y){
   double maxx = *std::max_element(this->x.begin(),this->x.end());
   double miny = *std::min_element(this->y.begin(),this->y.end());
   double maxy = *std::max_element(this->y.begin(),this->y.end());
+  // ROS_INFO("In bounds minx:%lf maxx:%lf miny:%lf maxy:%lf",
+  // 	   minx,maxx,miny,maxy);
+  // ROS_INFO("vector x: %lf %lf %lf %lf",
+  // 	   this->x[0],this->x[1],this->x[2],this->x[3]);
+  // ROS_INFO("vector y: %lf %lf %lf %lf",
+  // 	   this->y[0],this->y[1],this->y[2],this->y[3]);
+
   return (x>minx and x<maxx and y>miny and y<maxy);
 }
 
@@ -82,6 +89,24 @@ void redblade_stereo::transformStereo2Robot(pcl::PointCloud<pcl::PointXYZ>::Ptr 
    cloud->points[i].z = this->cameraHeight-height;
  }
 }
+
+void redblade_stereo::transformStereo2ENU(geometry_msgs::Pose2D& currentPose,
+					  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud){
+  double x0      = currentPose.x;
+  double y0      = currentPose.y;
+  double theta   = currentPose.theta;
+  for(size_t i = 0; i<cloud->points.size();++i){
+    double height = cloud->points[i].y;
+    double yc = -1*cloud->points[i].x;
+    double xc = cloud->points[i].z+this->cameraLengthOffset;
+    double zc = this->cameraHeight-height;
+    cloud->points[i].x = xc*cos(theta)-yc*sin(theta)+x0;
+    cloud->points[i].y = xc*sin(theta)+yc*cos(theta)+y0;
+    cloud->points[i].z = zc;   
+  }
+}
+
+
 void redblade_stereo::transformRobot2ENU(geometry_msgs::Pose2D& currentPose,
 					 geometry_msgs::Point& localPolePoint,
 					 geometry_msgs::Point& enuPolePoint){
@@ -99,20 +124,11 @@ void redblade_stereo::transformRobot2ENU(geometry_msgs::Pose2D& currentPose,
 //Filters out ground using a passthrough filter
 void redblade_stereo::filterGround(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
 				   pcl::PointCloud<pcl::PointXYZ>::Ptr filtered){
-  int numFiltered = 0;
-  //filtered->points.resize(cloud->width*cloud->height);
-  //filtered->points.resize(cloud->width);
   for(size_t i = 0; i<cloud->points.size();++i){
     if(cloud->points[i].z > groundHeight){// and cloud->points[i].y < maxHeight){
-	// ROS_INFO("x %f, y %f, z %f",
-	// 	 cloud->points[i].x,
-	// 	 cloud->points[i].y,
-	// 	 cloud->points[i].z);
-	//filtered->points[numFiltered++] = cloud->points[i];
 	filtered->points.push_back(cloud->points[i]);
     }
   }
-  //filtered->points.resize(numFiltered);  
 }
 
 
@@ -121,17 +137,28 @@ void redblade_stereo::filterBackground(geometry_msgs::Pose2D pose,
 				       pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
 				       pcl::PointCloud<pcl::PointXYZ>::Ptr filtered){
   int numFiltered = 0;
-  //filtered->points.resize(cloud->width*cloud->height);
   for(size_t i = 0; i<cloud->points.size();++i){
-    geometry_msgs::Point local,enu;
-    local.x = cloud->points[i].x;
-    local.y = cloud->points[i].y;
-    this->transformRobot2ENU(pose,local,enu);
-    if(this->inBounds(enu.x,enu.y)){
+    // geometry_msgs::Point local,enu;
+    // local.x = cloud->points[i].x;
+    // local.y = cloud->points[i].y;
+    // this->transformRobot2ENU(pose,local,enu);
+    // if(this->inBounds(enu.x,enu.y)){
+    //   filtered->points.push_back(cloud->points[i]);
+    // }
+    // ROS_INFO("x:%lf y:%lf z:%lf",
+    // 	     cloud->points[i].x,
+    // 	     cloud->points[i].y,
+    // 	     cloud->points[i].z);
+    if(this->inBounds(cloud->points[i].x,
+		      cloud->points[i].y)){
+      // ROS_INFO("In bounds x:%lf y:%lf z:%lf",
+      // 	       cloud->points[i].x,
+      // 	       cloud->points[i].y,
+      // 	       cloud->points[i].z);
       filtered->points.push_back(cloud->points[i]);
     }
+    
   }
-  //filtered->points.resize(numFiltered);  
 }
 
 //Filters out ground using a passthrough filter
@@ -210,7 +237,7 @@ void redblade_stereo::cloud2point(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
   std::sort(x.begin(),x.end());
   std::sort(y.begin(),y.end());
   point.x = x[n/2];
-  point.y = x[n/2];
+  point.y = y[n/2];
   point.z = 0;
   // double totalx=0,totaly=0;
   // for(size_t i = 0; i<in->points.size();++i){

@@ -10,6 +10,7 @@
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <geometry_msgs/Point.h>
+#include <geometry_msgs/PointStamped.h>
 #include <geometry_msgs/Pose2D.h>
 #include <pcl_ros/point_cloud.h>
 #include <pcl_conversions/pcl_conversions.h>
@@ -66,6 +67,8 @@ class redblade_stereo{
   void transformRobot2ENU(geometry_msgs::Pose2D& currentPose,
 			  geometry_msgs::Point& localPolePoint,
 			  geometry_msgs::Point& enuPolePoint);
+  void transformStereo2ENU(geometry_msgs::Pose2D& currentPose,
+			   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
 
   //Filters out ground using a passthrough filter
   void filterGround(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
