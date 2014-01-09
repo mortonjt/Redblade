@@ -36,6 +36,27 @@ def getAngularVels(bagFile,
     cmdVels,ImuVels = sync.matchInput(cmd_vels_time,cmd_vels_z,imu_time,imu_z,threshold)
     return cmdVels,ImuVels
 
+def getLinearVels(bagFile,
+                  front_encoders, 
+                  back_encoders,  
+                  front_cmds,      
+                  back_cmds,      
+                  imu,            
+                  gps,            
+                  cmd_vels):
+    threshold = 0.1
+    gps_x = [x.pose.pose.position.x for x in gps_msgs]
+    gps_y = [y.pose.pose.position.y for y in gps_msgs]
+    time = [t.header.stamp.secs+t.header.stamp.nsecs/10.0**9 for t in gps_msgs]
+    gps_time    = movingAverage.movingAverage(\
+        [t.header.stamp.secs+t.header.stamp.nsecs/10.0**9
+         for t in gps_msgs],1)
+    gpsVels    = velocity.getLinearGPSVelocities(gps_x,gps_y,time)
+    cmd_vels_time = numpy.linspace(imu_time[0],imu_time[-1],len(cmd_vel_msgs))
+    cmd_vels_x     = [t.linear.x for t in cmd_vel_msgs]
+    cmdVels,GpsVels = sync.matchInput(cmd_vels_time,cmd_vels_x,gps_time,gpsVels,threshold)
+    return cmdVels,GpsVels
+
 def plot(bagFile,
          front_encoders, 
          back_encoders,  

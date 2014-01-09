@@ -39,18 +39,61 @@ redblade_stereo::redblade_stereo(double viewingRadius,
   this->towerWidth = towerWidth;
   this->cameraHeight = cameraHeight;
   this->cameraLengthOffset = cameraLengthOffset;
+  this->surveyFile="~";
+}
+
+redblade_stereo::redblade_stereo(std::string surveyFile,
+				 double groundHeight, 
+				 double poleWidth,
+				 double cameraHeight,
+				 double cameraLengthOffset){
+  this->surveyFile = surveyFile;
+  this->groundHeight = groundHeight;
+  this->poleWidth = poleWidth;
+  this->towerWidth = towerWidth;
+  this->cameraHeight = cameraHeight;
+  this->cameraLengthOffset = cameraLengthOffset;
+  
+  this->x.resize(4);
+  this->y.resize(4);
+  std::ifstream h((char*)surveyFile.c_str());
+  h>>x[0]>>y[0]
+   >>x[1]>>y[1]
+   >>x[2]>>y[2]
+   >>x[3]>>y[3];
+}
+
+bool redblade_stereo::inBounds(double x, double y){
+  double minx = *std::min_element(this->x.begin(),this->x.end());
+  double maxx = *std::max_element(this->x.begin(),this->x.end());
+  double miny = *std::min_element(this->y.begin(),this->y.end());
+  double maxy = *std::max_element(this->y.begin(),this->y.end());
+  return (x>minx and x<maxx and y>miny and y<maxy);
 }
 
 redblade_stereo::~redblade_stereo(){}
 
 
-void redblade_stereo::transform(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud){
+void redblade_stereo::transformStereo2Robot(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud){
  for(size_t i = 0; i<cloud->points.size();++i){
    double height = cloud->points[i].y;
    cloud->points[i].y = -1*cloud->points[i].x;
    cloud->points[i].x = cloud->points[i].z+this->cameraLengthOffset;
    cloud->points[i].z = this->cameraHeight-height;
  }
+}
+void redblade_stereo::transformRobot2ENU(geometry_msgs::Pose2D& currentPose,
+					 geometry_msgs::Point& localPolePoint,
+					 geometry_msgs::Point& enuPolePoint){
+  double xc      = localPolePoint.x;
+  double yc      = localPolePoint.y;
+  double theta   = currentPose.theta;
+  double x0      = currentPose.x;
+  double y0      = currentPose.y;
+  enuPolePoint.x = xc*cos(theta)-yc*sin(theta)+x0;
+  enuPolePoint.y = xc*sin(theta)+yc*cos(theta)+y0;
+  enuPolePoint.z = 0;
+
 }
 
 //Filters out ground using a passthrough filter
@@ -73,10 +116,27 @@ void redblade_stereo::filterGround(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
 }
 
 
+//Filters out ground using a passthrough filter
+void redblade_stereo::filterBackground(geometry_msgs::Pose2D pose,
+				       pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
+				       pcl::PointCloud<pcl::PointXYZ>::Ptr filtered){
+  int numFiltered = 0;
+  //filtered->points.resize(cloud->width*cloud->height);
+  for(size_t i = 0; i<cloud->points.size();++i){
+    geometry_msgs::Point local,enu;
+    local.x = cloud->points[i].x;
+    local.y = cloud->points[i].y;
+    this->transformRobot2ENU(pose,local,enu);
+    if(this->inBounds(enu.x,enu.y)){
+      filtered->points.push_back(cloud->points[i]);
+    }
+  }
+  //filtered->points.resize(numFiltered);  
+}
 
 //Filters out ground using a passthrough filter
-void redblade_stereo::filterBackground(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
-				       pcl::PointCloud<pcl::PointXYZ>::Ptr filtered){
+void redblade_stereo::filterRadius(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
+				   pcl::PointCloud<pcl::PointXYZ>::Ptr filtered){
   int numFiltered = 0;
   //filtered->points.resize(cloud->width*cloud->height);
 

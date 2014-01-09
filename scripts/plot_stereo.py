@@ -6,8 +6,8 @@ import math
 
 import movingAverage
 
-gpsBag = "/home/jamie/Documents/data/stereo_test/calibrate_gps.bag"
-poleBag = "/home/jamie/Documents/data/stereo_test/pole.bag"
+gpsBag = "/home/jamie/bagFiles/test2/calibrate.bag"
+poleBag = "/home/jamie/bagFiles/corrected.bag"
 
 front_encoders = "/encoders_front"
 back_encoders = "/encoders_back"
@@ -20,17 +20,12 @@ pole_point = "/stereo_camera/pole"
 
 bag = rosbag.Bag(gpsBag)
 threshold = 0.1
-front_encoder_msgs= [msg for topic,msg,t in bag.read_messages(topics=[front_encoders])]
-back_encoder_msgs = [msg for topic,msg,t in bag.read_messages(topics=[back_encoders])]
-front_cmd_msgs    = [msg for topic,msg,t in bag.read_messages(topics=[front_cmds])]
-back_cmd_msgs     = [msg for topic,msg,t in bag.read_messages(topics=[back_cmds])]
-imu_msgs          = [msg for topic,msg,t in bag.read_messages(topics=[imu])]
 gps_msgs          = [msg for topic,msg,t in bag.read_messages(topics=[gps])]
-cmd_vel_msgs      = [msg for topic,msg,t in bag.read_messages(topics=[cmd_vels])]
 
 gps_x = [x.pose.pose.position.x for x in gps_msgs]
 gps_y = [y.pose.pose.position.y for y in gps_msgs]
 time = [t.header.stamp.secs+t.header.stamp.nsecs/10.0**9 for t in gps_msgs]
+
 
 #print min(time),max(time),len(time)
 #print "Average GPS position",numpy.mean(gps_x[-50:]),numpy.mean(gps_y[-50:])
@@ -40,13 +35,7 @@ correct_y = gps_y[-50:]
 
 bag = rosbag.Bag(poleBag)
 threshold = 0.1
-front_encoder_msgs = [msg for topic,msg,t in bag.read_messages(topics=[front_encoders])]
-back_encoder_msgs  = [msg for topic,msg,t in bag.read_messages(topics=[back_encoders])]
-front_cmd_msgs     = [msg for topic,msg,t in bag.read_messages(topics=[front_cmds])]
-back_cmd_msgs      = [msg for topic,msg,t in bag.read_messages(topics=[back_cmds])]
-imu_msgs           = [msg for topic,msg,t in bag.read_messages(topics=[imu])]
 gps_msgs           = [msg for topic,msg,t in bag.read_messages(topics=[gps])]
-cmd_vel_msgs       = [msg for topic,msg,t in bag.read_messages(topics=[cmd_vels])]
 pole_msgs          = [msg for topic,msg,t in bag.read_messages(topics=[pole_point])]
 
 pole_x = [x.x for x in pole_msgs]
@@ -64,5 +53,7 @@ xlabel("y")
 title("Experiment positions")
 legend([p1,p2],["Stereo vision estimates"," GPS estimates"])
 f1.show() 
+
+
 
 raw_input()

@@ -3,7 +3,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <vector>
-//#include <iostream.h>
+#include <algorithm>
+#include <iostream>
+#include <fstream>
 #include <stdint.h>
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
@@ -41,8 +43,15 @@ class redblade_stereo{
   double viewingWidth;       //Appropriate viewing width of stereo camera.  All periperals are filtered out
   double cameraHeight;       //Height of camera on robot
   double cameraLengthOffset; //Vertical offset of camera away from center of robot
+  std::string surveyFile;
+  std::vector<double> x;
+  std::vector<double> y;
 
-
+  redblade_stereo(std::string surveyFile,
+		  double groundHeight, 
+		  double poleWidth,
+		  double cameraHeight,
+		  double cameraLengthOffset);
   redblade_stereo(double viewingRadius, 
 		  double viewingWidth,
 		  double groundHeight, 
@@ -50,16 +59,23 @@ class redblade_stereo{
 		  double cameraHeight,
 		  double cameraLengthOffset);
   ~redblade_stereo();
-
-  //Transform point cloud in term of robot's coordinate frame
-  void transform(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
+  bool inBounds(double x, double y);
+  //Transform point cloud from stereo camera coordinates to robot coordinates
+  void transformStereo2Robot(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
+  //Transform Point from robot coordinates to local ENU coordinates
+  void transformRobot2ENU(geometry_msgs::Pose2D& currentPose,
+			  geometry_msgs::Point& localPolePoint,
+			  geometry_msgs::Point& enuPolePoint);
 
   //Filters out ground using a passthrough filter
   void filterGround(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
 		    pcl::PointCloud<pcl::PointXYZ>::Ptr filtered);
   //Filters out everything outside of 2 m
-  void filterBackground(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
+  void filterBackground(geometry_msgs::Pose2D pose,
+			pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
 			pcl::PointCloud<pcl::PointXYZ>::Ptr filtered);
+  void filterRadius(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
+		    pcl::PointCloud<pcl::PointXYZ>::Ptr filtered);
   //Finds the pole using the RANSAC algorithm
   void ransac(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
 	      pcl::PointCloud<pcl::PointXYZ>::Ptr pole,

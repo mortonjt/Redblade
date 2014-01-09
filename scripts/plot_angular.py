@@ -30,9 +30,13 @@ cmd_vels = "/cmd_vel"
 #                  imu,            
 #                  gps,            
 #                  cmd_vels)
-os.chdir("/home/redblade/ROBOTEQDATA/angular_test3")
-for bagFile in glob.glob("*.bag"):
-    print bagFile
+folder = "/home/jamie/Downloads/angular_test3"
+os.chdir(folder)
+
+angularData = []
+f1 = figure(1)
+for bagFile in glob.glob("0.5_*.bag"):
+    #print bagFile
 
     cmdVels,ImuVels=plot_velocity.getAngularVels(bagFile,
                                                  front_encoders, 
@@ -42,13 +46,74 @@ for bagFile in glob.glob("*.bag"):
                                                  imu,            
                                                  gps,            
                                                  cmd_vels)
-    cmdVel = numpy.mean(cmdVels)
-    ImuVel = numpy.mean(ImuVels[200:])
-    print cmdVel,ImuVel
-    plot(cmdVel,ImuVel,"ob")
-    
-xlabel("Command Velocities (m/s)")
-ylabel("Imu Velocities (m/s)")
+
+    cmdVel = numpy.mean(cmdVels[300:])
+    ImuVel = numpy.mean(ImuVels[300:])
+    #data = zip(cmdVels[200:-100],ImuVels[200:-100])
+    #data = zip(cmdVels[50:],ImuVels[50:])
+    data = [(cmdVel,ImuVel)]
+    angularData+=data
+    #plot(cmdVel,ImuVel,"ob")
+
+cmdVel,ImuVel = zip(*angularData)
+cmdVel = numpy.array(cmdVel[:-5])
+ImuVel = numpy.array(ImuVel[:-5])
+A = np.vstack([ImuVel, np.ones(len(ImuVel))]).T
+m, c = np.linalg.lstsq(A, cmdVel)[0]
+print "y=%f x + %f"%(m,c)
+plot(ImuVel,cmdVel, 'o', label='Original data', markersize=10)
+plot(ImuVel, m*ImuVel + c, 'r', label='Fitted line')
+
+#for vel in angularData:
+#    plot(vel[0],vel[1],"ob")
+
+handle = open("%s/%s"%(folder,"lin0.5.csv"),'w')
+handle.write("\n".join(["%f\t%f"%(x[0],x[1]) for x in angularData]))
+ylabel("Command Velocities (m/s)")
+xlabel("Imu Velocities (m/s)")
 title("Angular Velocities at 0.5 m/s Linear")
-show()
+f1.show()
+
+
+f2 = figure(2)
+angularData = []
+for bagFile in glob.glob("1.0_*.bag"):
+    #print bagFile
+
+    cmdVels,ImuVels=plot_velocity.getAngularVels(bagFile,
+                                                 front_encoders, 
+                                                 back_encoders,  
+                                                 front_cmds,      
+                                                 back_cmds,      
+                                                 imu,            
+                                                 gps,            
+                                                 cmd_vels)
+
+    cmdVel = numpy.mean(cmdVels[300:])
+    ImuVel = numpy.mean(ImuVels[300:])
+    data = [(cmdVel,ImuVel)]
+    #data = zip(cmdVels[200:-100],ImuVels[200:-100])
+    angularData+=data
+
+# for vel in angularData:
+#     plot(vel[0],vel[1],"ob")
+
+cmdVel,ImuVel = zip(*angularData)
+cmdVel = numpy.array(cmdVel[:-5])
+ImuVel = numpy.array(ImuVel[:-5])
+A = np.vstack([ImuVel, np.ones(len(ImuVel))]).T
+m, c = np.linalg.lstsq(A, cmdVel)[0]
+print "y=%f x + %f"%(m,c)
+plot(ImuVel,cmdVel, 'o', label='Original data', markersize=10)
+plot(ImuVel, m*ImuVel + c, 'r', label='Fitted line')
+
+    
+handle = open("%s/%s"%(folder,"lin1.0.csv"),'w')
+handle.write("\n".join(["%f\t%f"%(x[0],x[1]) for x in angularData]))
+ylabel("Command Velocities (m/s)")
+xlabel("Imu Velocities (m/s)")
+title("Angular Velocities at 1.0 m/s Linear")
+f2.show()
+
+
 raw_input()
