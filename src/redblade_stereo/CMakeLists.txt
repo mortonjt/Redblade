@@ -8,13 +8,14 @@ find_package(catkin REQUIRED COMPONENTS
   image_transport
   pcl_conversions
   pcl_ros
+  pcl_msgs
   sensor_msgs
   std_msgs
 )
 #find_package(Boost REQUIRED thread signals)
 
-find_package(PCL REQUIRED QUIET COMPONENTS common)
-
+#find_package(PCL REQUIRED QUIET COMPONENTS common pcl_filters pcl_common)
+find_package(PCL REQUIRED)
 ## System dependencies are found with CMake's conventions
 find_package(Boost REQUIRED COMPONENTS system)
 
@@ -85,7 +86,7 @@ find_package(Boost REQUIRED COMPONENTS system)
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include ${PCL_COMMON_INCLUDE_DIRS}
+  INCLUDE_DIRS include ${PCL_COMMON_INCLUDE_DIRS}  ${PCL_INCLUDE_DIRS}
   LIBRARIES redblade_stereo
   CATKIN_DEPENDS image_transport pcl_conversions pcl_ros sensor_msgs std_msgs
   DEPENDS system_lib eigen
@@ -109,6 +110,8 @@ include_directories(
 
 #link_directories(${Boost_LIBRARY_DIRS})
 #link_directories(${catkin_LIBRARY_DIRS})
+#link_directories(${PCL_LIBRARY_DIRS})
+#add_definitions(${PCL_DEFINITIONS})
 
 ## Declare a cpp library
 add_library(redblade_stereo

@@ -24,7 +24,7 @@ and z is pointing into the page
 //Constants
 double maxHeight = 3; //Filters out everything above a reasonable height (probably can use height of pole)
 double verticalTolerance = 0.7; //Mininum vertical slope for RANSAC
-double sigSize = 250;//Anything below this isn't signficant
+double sigSize = 100;//Anything below this isn't signficant
 //double viewingWidth = 2.0;  //Filters everything outside of 2m of the robot's horizontal view
 redblade_stereo::redblade_stereo(double viewingRadius, 
 				 double viewingWidth,
@@ -257,6 +257,7 @@ bool redblade_stereo::findPole(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
   Eigen::VectorXf coeff;
   coeff.resize(6);
   ransac(in,pole,coeff);
+  //ROS_INFO("Size of coefficients %d",coeff.size());
   if(coeff.size()==0){
     return false;
   }

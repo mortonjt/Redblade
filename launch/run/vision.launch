@@ -14,8 +14,22 @@
     <node pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc" output="screen" >
     </node>
   </group>
+  
+  <node pkg="nodelet" type="nodelet" name="voxel_filter" 
+	args="load pcl/VoxelGrid pcl_filter_manager" output="screen">
+    <remap from="~input" to="/stereo_camera/points2"/>
+    <rosparam>
+      filter_field_name: z
+      filter_limit_min: 0.01
+      filter_limit_max: 10.0
+      leaf_size: 0.03
+    </rosparam>
+  </node>
 
   <node pkg="redblade_stereo" type="redblade_stereo_node" name="redblade_stereo_node" output="screen" >
+    <param name="stereo_namespace" value="/voxel_filter/output"/>
+    <param name="survey_file" value="/home/jamie/Documents/Redblade/config/field.txt" />
+    <param name="verbose" value="false" />
   </node>
   
 </launch>
