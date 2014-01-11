@@ -1,9 +1,9 @@
 <launch>
 
-  <node pkg="nmea_navsat_driver" type="nmea_serial_driver" name="HiperLite_rover" output="screen" >
-    <param name="port" value="/dev/ttyUSB0" />
+  <node pkg="nmea_navsat_driver" type="nmea_serial_driver" name="Topcon_DGPS" output="screen" >
+    <param name="port" value="/dev/ttyDGPS" />
     <param name="baud" value="115200" /> 
-    <param name="frame_id" value="HiperLite_rover" />
+    <param name="frame_id" value="Topcon_DGPS" />
     <param name="useRMC" value="False" /> 
   </node> 
   
