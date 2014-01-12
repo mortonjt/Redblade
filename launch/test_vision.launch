@@ -5,30 +5,36 @@
   <!-- </node> -->
 
 
-  <node pkg="nodelet" type="nodelet" name="pcl_filter_manager" args="manager"/>  
-  <node pkg="nodelet" type="nodelet" name="voxel_filter"
-  	args="load pcl/VoxelGrid pcl_filter_manager" 
-	output="screen">
-    <remap from="~input" to="/stereo_camera/points2"/>
-    <rosparam>
-      filter_field_name: z
-      filter_limit_min: 0.01
-      filter_limit_max: 10.0
-      leaf_size: 0.03
-    </rosparam>
-  </node>
+  <!-- <node pkg="nodelet" type="nodelet" name="pcl_filter_manager" args="manager"/>   -->
+  <!-- <node pkg="nodelet" type="nodelet" name="voxel_filter" -->
+  <!-- 	args="load pcl/VoxelGrid pcl_filter_manager"  -->
+  <!-- 	output="screen"> -->
+  <!--   <remap from="~input" to="/stereo_camera/points2"/> -->
+  <!--   <rosparam> -->
+  <!--     filter_field_name: z -->
+  <!--     filter_limit_min: 0.01 -->
+  <!--     filter_limit_max: 10.0 -->
+  <!--     leaf_size: 0.03 -->
+  <!--   </rosparam> -->
+  <!-- </node> -->
 
-  <node pkg="redblade_stereo" 
-	type="redblade_stereo_node" 
-	name="redblade_stereo_node" 
-	launch-prefix="xterm -e gdb --args"
-	output="screen" >
-    
-	
-    <param name="stereo_namespace" value="/stereo_camera/points2"/>
+  <!-- <node pkg="redblade_stereo"  -->
+  <!-- 	type="redblade_stereo_node"  -->
+  <!-- 	name="redblade_stereo_node"  -->
+  <!-- 	output="screen" >	 -->
+  <!--   <param name="stereo_namespace" value="/stereo_camera/points2"/> -->
+  <!--   <param name="survey_file" value="/home/jamie/Documents/Redblade/config/field.txt" /> -->
+  <!--   <param name="verbose" value="false" /> -->
+  <!-- </node> -->
+
+  <node pkg="redblade_laser" 
+	type="redblade_laser_node" 
+	name="redblade_laser_node" 
+	output="screen" >	
     <param name="survey_file" value="/home/jamie/Documents/Redblade/config/field.txt" />
     <param name="verbose" value="false" />
   </node>
+
 
   <!-- <node pkg="rosbag" type="record" name="rosbag_rec"  -->
   <!-- 	args="-O /home/jamie/Documents/data/stereo_test/pole.bag /stereo_camera/pole"> -->

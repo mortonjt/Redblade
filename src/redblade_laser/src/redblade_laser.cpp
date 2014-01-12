@@ -1,18 +1,6 @@
 #include "redblade_laser.h"
 #include <iostream>
 
-/*
-  Laser Orientation                            Robot Orientation	       	   
-    y                                           	        x		
-    ^					        	 	^	
-    |                                                           |                   
-    |                                                           |                    
-    |				     	        		|	
-    |				     	        		|	
-    |				     	        	        | 		
-    *----------------> x	                y<--------------* 
-
-*/
 
 redblade_laser::redblade_laser(std::string surveyFile,
 			       double laserOffset,
@@ -27,7 +15,15 @@ redblade_laser::redblade_laser(std::string surveyFile,
    >>x[1]>>y[1]
    >>x[2]>>y[2]
    >>x[3]>>y[3];
+  h.close();
 }
+
+
+void redblade_laser::scan2cloud(sensor_msgs::LaserScan::Ptr,
+				pcl::PointCloud<pcl::PointXYZ>::Ptr){
+  
+}
+
 
 bool redblade_laser::saturated(){
   return this->maxSize==this->queue.size();
@@ -49,12 +45,29 @@ void redblade_laser::transformLaser2ENU(geometry_msgs::Pose2D& currentPose,
   double y0      = currentPose.y;
   double theta   = currentPose.theta;
   for(size_t i = 0; i<cloud->points.size();++i){
-    double yc = -1*cloud->points[i].x;
-    double xc = cloud->points[i].y-this->laserOffset;
-    if(xc>0.1){//Filter out the poles
+    double xc = cloud->points[i].x-this->laserOffset;
+    double yc = cloud->points[i].y;
+    // std::cout<<"Size "<<cloud->points.size()
+    // 	 <<" x "<<cloud->points[i].x
+    // 	 <<" y "<<cloud->points[i].y
+    // 	 <<" z "<<cloud->points[i].z<<std::endl;
+    // ROS_INFO("LAZER x %f y %f z %f",
+    // 	     cloud->points[i].x,
+    // 	     cloud->points[i].y,
+    // 	     cloud->points[i].z);    
+    // ROS_INFO("Robot xc %f yc %f",
+    // 	     xc,
+    // 	     yc);
+
+    if(xc>0.1){//Filter out the supporting poles on the side of the robot
       cloud->points[i].x = xc*cos(theta)-yc*sin(theta)+x0;
       cloud->points[i].y = xc*sin(theta)+yc*cos(theta)+y0;
       cloud->points[i].z = 0;   
+      // ROS_INFO("ENU theta %f x %f y %f z %f",
+      // 	       theta,
+      // 	       cloud->points[i].x,
+      // 	       cloud->points[i].y,
+      // 	       cloud->points[i].z);
     }else{
       cloud->points[i].x = 0xffff;
       cloud->points[i].y = 0xffff;
@@ -145,14 +158,15 @@ void redblade_laser::findPole(geometry_msgs::Point& point,double tolerance){
   boost::shared_ptr<pcl::PointCloud<pcl::PointXYZ> > 
     cluster(new pcl::PointCloud<pcl::PointXYZ>());
   this->getClouds(combined);
+  //ROS_INFO("Size of combined cloud: %d",combined->points.size());
   this->cluster(combined,cluster,tolerance);
-  std::cout<<"Size "<<cluster->points.size()<<std::endl;
-  for(size_t i = 0; i<cluster->points.size();++i){      
-    std::cout<<"Size "<<cluster->points.size()
-	     <<" x "<<cluster->points[i].x
-	     <<" y "<<cluster->points[i].y
-	     <<" z "<<cluster->points[i].z<<std::endl;
-  }
-
+  //ROS_INFO("Size of clustered cloud: %d",cluster->points.size());
+  //std::cout<<"Size "<<cluster->points.size()<<std::endl;
+  //for(size_t i = 0; i<cluster->points.size();++i){      
+  // std::cout<<"Size "<<cluster->points.size()
+  // 	     <<" x "<<cluster->points[i].x
+  // 	     <<" y "<<cluster->points[i].y
+  // 	     <<" z "<<cluster->points[i].z<<std::endl;
+  //}
   this->cloud2point(cluster,point);
 }

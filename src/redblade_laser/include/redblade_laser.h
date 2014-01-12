@@ -21,6 +21,7 @@ class redblade_laser{
   std::vector<double> x;
   std::vector<double> y;
   std::deque< pcl::PointCloud<pcl::PointXYZ>::Ptr > queue;
+  
   int maxSize;  //Number of scan frames stored in queue
   
   /*offset: length displacment of laser from the center of the robot*/
@@ -28,6 +29,8 @@ class redblade_laser{
   
   bool saturated();//Tests to see if the queue is full
 
+  void scan2cloud(sensor_msgs::LaserScan::Ptr,
+		  pcl::PointCloud<pcl::PointXYZ>::Ptr);
   /*Add laser scan to queue*/
   void addScan(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
 
