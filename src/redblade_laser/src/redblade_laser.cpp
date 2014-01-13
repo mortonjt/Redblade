@@ -152,12 +152,14 @@ void redblade_laser::cluster(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
   }
 }
 
-void redblade_laser::findPole(geometry_msgs::Point& point,double tolerance){
+bool redblade_laser::findPole(geometry_msgs::Point& point,double tolerance){
   boost::shared_ptr<pcl::PointCloud<pcl::PointXYZ> > 
     combined(new pcl::PointCloud<pcl::PointXYZ>());
   boost::shared_ptr<pcl::PointCloud<pcl::PointXYZ> > 
     cluster(new pcl::PointCloud<pcl::PointXYZ>());
   this->getClouds(combined);
+  if(combined->points.size()==0)
+    return false;
   //ROS_INFO("Size of combined cloud: %d",combined->points.size());
   this->cluster(combined,cluster,tolerance);
   //ROS_INFO("Size of clustered cloud: %d",cluster->points.size());
@@ -169,4 +171,7 @@ void redblade_laser::findPole(geometry_msgs::Point& point,double tolerance){
   // 	     <<" z "<<cluster->points[i].z<<std::endl;
   //}
   this->cloud2point(cluster,point);
+  if(isnan(point.x) or isnan(point.y) or isnan(point.x))
+    return false;
+  return true;
 }

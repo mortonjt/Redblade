@@ -37,11 +37,15 @@ void publish_loop(){
     if(redLazer->saturated()){
       geometry_msgs::Point pt;
       geometry_msgs::PointStamped enuStamped;
-      redLazer->findPole(pt,0.1);//10 cm
-      enuStamped.header.stamp = ros::Time::now();
-      enuStamped.header.frame_id = "laser";
-      enuStamped.point = pt;
-      pub.publish(enuStamped);
+      bool foundPole = redLazer->findPole(pt,0.1);//10 cm
+      if(foundPole){
+	enuStamped.header.stamp = ros::Time::now();
+	enuStamped.header.frame_id = "laser";
+	enuStamped.point = pt;
+	pub.publish(enuStamped);
+	hasPoints = false;
+	hasPose = false;
+      }
     }
   }
 }

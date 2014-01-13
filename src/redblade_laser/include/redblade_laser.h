@@ -54,7 +54,7 @@ class redblade_laser{
 	       double tolerance);
   
   /*Finds the pole*/
-  void findPole(geometry_msgs::Point& point,double tolerance);
+  bool findPole(geometry_msgs::Point& point,double tolerance);
 
   /*Condense point cloud into a single point*/
   void cloud2point(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
