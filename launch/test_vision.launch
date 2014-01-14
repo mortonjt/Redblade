@@ -1,8 +1,8 @@
 <launch>
   
-  <!-- <node pkg="rosbag" type="play" name="rosbag_play" -->
-  <!-- 	args="/home/jamie/Documents/data/test4/vision_trimmed.bag"> -->
-  <!-- </node> -->
+  <node pkg="rosbag" type="play" name="rosbag_play"
+  	args="/home/jamie/Documents/data/test4/vision_trimmed.bag">
+  </node>
 
   <node pkg="nodelet" type="nodelet" name="pcl_filter_manager" args="manager"/>
   <node pkg="nodelet" type="nodelet" name="voxel_filter"
@@ -36,9 +36,9 @@
     <param name="verbose" value="true" />
   </node>
 
-  <!-- <node pkg="rosbag" type="record" name="rosbag_rec" -->
-  <!-- 	args="-O /home/jamie/Documents/data/test4/vision_processed.bag /gps /imu/integrated_gyros_stamped /odom /redblade_ekf/odom /redblade_ekf/2d_pose /stereo_camera/pole /lidar/pole"> -->
-  <!-- </node> -->
+  <node pkg="rosbag" type="record" name="rosbag_rec"
+  	args="-O /home/jamie/Documents/data/test4/vision_processed.bag /gps /imu/integrated_gyros_stamped /odom /redblade_ekf/odom /redblade_ekf/2d_pose /stereo_camera/pole /lidar/pole">
+  </node>
 
 
 </launch>
