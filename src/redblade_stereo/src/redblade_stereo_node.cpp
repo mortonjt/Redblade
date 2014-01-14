@@ -46,25 +46,28 @@ void publish_loop(){
     if(verbose){
       pcl::toROSMsg(*cloud,transformed);
       transformed.header = h;
+      transformed.header.frame_id = "enu";
       transformed_pub.publish(transformed);}
     redStereo->filterGround(cloud,filteredGround);
     redStereo->filterBackground(currentPose,filteredGround,filteredBackground);
     if(verbose){
       pcl::toROSMsg(*filteredBackground,test);
       test.header = h;
+      test.header.frame_id = "enu";
       test_pub.publish(test);}
     bool found_pole = redStereo->findPole(filteredBackground,pole);
     if(found_pole){
       if(verbose){
 	pcl::toROSMsg(*pole,line);
 	line.header = h;
+	line.header.frame_id = "enu";
 	line_pub.publish(line);}
       redStereo->cloud2point(pole,enuPolePoint); //Obtain the pole point in the Bumblebee reference frame
       /*Convert coordinates from robot's local coordinate frame to local ENU coordinate frame*/
       //redStereo->transformRobot2ENU(currentPose,localPolePoint,enuPolePoint);
       geometry_msgs::PointStamped enuStamped;
       enuStamped.header.stamp = ros::Time::now();
-      enuStamped.header.frame_id = "stereo_camera";
+      enuStamped.header.frame_id = "enu";
       enuStamped.point = enuPolePoint;
       pub.publish(enuStamped);    
     }

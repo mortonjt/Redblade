@@ -229,15 +229,15 @@ void redblade_stereo::ransac(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
 void redblade_stereo::cloud2point(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
 				  geometry_msgs::Point& point){
   std::vector<double> x,y;
-  int n = in->points.size();
+  double n = (double)in->points.size();
   for(size_t i = 0; i<in->points.size();++i){
     x.push_back(in->points[i].x);
     y.push_back(in->points[i].y);
   }
   std::sort(x.begin(),x.end());
   std::sort(y.begin(),y.end());
-  point.x = x[n/2];
-  point.y = y[n/2];
+  point.x = ((double)std::accumulate(x.begin(),x.end(),0.0))/n;
+  point.y = ((double)std::accumulate(y.begin(),y.end(),0.0))/n;
   point.z = 0;
   // double totalx=0,totaly=0;
   // for(size_t i = 0; i<in->points.size();++i){

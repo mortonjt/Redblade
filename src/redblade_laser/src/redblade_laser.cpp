@@ -105,12 +105,17 @@ void redblade_laser::getClouds(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud){
 void redblade_laser::cloud2point(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
 				 geometry_msgs::Point& point){
   double totalx=0,totaly=0,totalz=0;
+  int n = in->points.size();
   for(size_t i = 0; i<in->points.size();++i){
     totalx+= in->points[i].x;
     totaly+= in->points[i].y;
     totalz+= in->points[i].z;
   }
-  //Just average
+  //Use the median
+  // point.x = x[n/2];
+  // point.y = y[n/2];
+  // point.z = 0;
+
   point.x = totalx/((double)in->points.size());
   point.y = totaly/((double)in->points.size());
   point.z = totalz/((double)in->points.size());
@@ -158,20 +163,14 @@ bool redblade_laser::findPole(geometry_msgs::Point& point,double tolerance){
   boost::shared_ptr<pcl::PointCloud<pcl::PointXYZ> > 
     cluster(new pcl::PointCloud<pcl::PointXYZ>());
   this->getClouds(combined);
-  if(combined->points.size()==0)
+  if(combined->points.size()==0){
     return false;
-  //ROS_INFO("Size of combined cloud: %d",combined->points.size());
-  this->cluster(combined,cluster,tolerance);
-  //ROS_INFO("Size of clustered cloud: %d",cluster->points.size());
-  //std::cout<<"Size "<<cluster->points.size()<<std::endl;
-  //for(size_t i = 0; i<cluster->points.size();++i){      
-  // std::cout<<"Size "<<cluster->points.size()
-  // 	     <<" x "<<cluster->points[i].x
-  // 	     <<" y "<<cluster->points[i].y
-  // 	     <<" z "<<cluster->points[i].z<<std::endl;
-  //}
-  this->cloud2point(cluster,point);
-  if(isnan(point.x) or isnan(point.y) or isnan(point.x))
+  }
+  // this->cluster(combined,cluster,tolerance);
+  // this->cloud2point(cluster,point);
+  this->cloud2point(combined,point);
+  if(isnan(point.x) or isnan(point.y) or isnan(point.x)){
     return false;
+  }
   return true;
 }

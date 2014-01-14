@@ -1,18 +1,20 @@
 #include "redblade_laser.h"
 
 ros::Publisher pub;
+ros::Publisher transformed_pub;
+
 sensor_msgs::LaserScan currentScan;
 geometry_msgs::Pose2D currentPose;
 laser_geometry::LaserProjection projector_;
 bool hasPoints;
 bool hasPose;
+bool verbose;
 
 redblade_laser* redLazer;
 
 void pose_callback(const geometry_msgs::Pose2D::ConstPtr& pose_msg){
   currentPose = *pose_msg;
   hasPose = true;
-  //ROS_INFO("Got pose");
 }
 
 void scanCallback (const sensor_msgs::LaserScan::ConstPtr& scan_in)
@@ -22,7 +24,7 @@ void scanCallback (const sensor_msgs::LaserScan::ConstPtr& scan_in)
 }
 
 void publish_loop(){
-  sensor_msgs::PointCloud2 cloud;
+  sensor_msgs::PointCloud2 cloud,transformed;
   boost::shared_ptr<pcl::PointCloud<pcl::PointXYZ> > 
     pcl_cloud(new pcl::PointCloud<pcl::PointXYZ>());
   boost::shared_ptr<pcl::PointCloud<pcl::PointXYZ> > 
@@ -32,15 +34,19 @@ void publish_loop(){
     pcl::fromROSMsg(cloud,*pcl_cloud);
     redLazer->transformLaser2ENU(currentPose,pcl_cloud);
     redLazer->filterBackground(pcl_cloud,filtered);
+    if(verbose){
+      pcl::toROSMsg(*pcl_cloud,transformed);
+      transformed.header = cloud.header;
+      transformed.header.frame_id = "enu";      
+      transformed_pub.publish(transformed);}
     redLazer->addScan(filtered);
-    //ROS_INFO("Size of filtered cloud: %d",filtered->points.size());
     if(redLazer->saturated()){
       geometry_msgs::Point pt;
       geometry_msgs::PointStamped enuStamped;
       bool foundPole = redLazer->findPole(pt,0.1);//10 cm
       if(foundPole){
 	enuStamped.header.stamp = ros::Time::now();
-	enuStamped.header.frame_id = "laser";
+	enuStamped.header.frame_id = "enu";
 	enuStamped.point = pt;
 	pub.publish(enuStamped);
 	hasPoints = false;
@@ -54,7 +60,7 @@ int main(int argc, char** argv){
   ros::init(argc, argv, "redblade_laser");
   ros::NodeHandle nh;
   ros::NodeHandle n("~"); 
-  std::string laser_namespace,pole_namespace,ekf_namespace;
+  std::string laser_namespace,pole_namespace,ekf_namespace,transformed_namespace;
   hasPoints = false;
   hasPose = false;
   std::string surveyFile;
@@ -66,12 +72,17 @@ int main(int argc, char** argv){
   n.param("pole_namespace", pole_namespace, std::string("/lidar/pole"));
   n.param("survey_file", surveyFile, std::string("~"));
   n.param("laser_length_offset", laser_length_offset, 0.27);//TODO: Need more accurate measurement
+  n.param("verbose", verbose, false);
+  ROS_INFO("Verbose %d",verbose);
+  
   ROS_INFO("Laser namespace: %s",laser_namespace.c_str());
   redLazer = new redblade_laser(surveyFile,laser_length_offset,queue_size);
   
   ros::Subscriber scan_sub = nh.subscribe<sensor_msgs::LaserScan> (laser_namespace, queue_size, scanCallback);
   ros::Subscriber pose_sub  = nh.subscribe<geometry_msgs::Pose2D> (ekf_namespace, 1, pose_callback);
   pub = nh.advertise<geometry_msgs::PointStamped> (pole_namespace, 1);
+
+  transformed_pub = nh.advertise<sensor_msgs::PointCloud2> ("/lidar/transformed", 1);
   
   ros::AsyncSpinner spinner(2);
   spinner.start();    
