@@ -18,7 +18,6 @@
 
   <node name="imu_node" pkg="microstrain_3dmgx2_imu" type="imu_node" cwd="node" output="screen">
     <param name="port"  type="string" value="/dev/ttyACM1" />		
-    
   </node>
   
     <node pkg="redblade_ax2550" type="ax2550_awd_node" name="roboteq_back" output="screen">
