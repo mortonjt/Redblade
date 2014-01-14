@@ -5,9 +5,14 @@
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/Pose2D.h>
 #include <sensor_msgs/Imu.h>
-#include "snowplow_pid/request_next_waypoints.h"
+//#include "snowplow_pid/request_next_waypoints.h"
 #include <string>
 #include <cmath>
+
+//NOT SURE IF THIS WORKS
+#include "waypoint_management.h"
+
+#define ROBOTWIDTH 1.22 //maximum width with plow. we can change this...
 
 //Parameters that will be read in at runtime
 double FAST_SPEED, SLOW_SPEED, KP, KI, KD, KP_SLOW, KI_SLOW, KD_SLOW;
@@ -17,12 +22,12 @@ ros::Publisher cmd_vel_pub;
 geometry_msgs::Twist vel_targets;
 geometry_msgs::Pose2D cur_pos;
 bool imu_init = false;
-ros::ServiceClient waypoint_client;
+//ros::ServiceClient waypoint_client;
 
 //current waypoint stuff
-geometry_msgs::Pose2D start;
-geometry_msgs::Pose2D dest;
-bool forward; //whether or not we go forwards or backwards to this waypoint
+// geometry_msgs::Pose2D start;
+// geometry_msgs::Pose2D dest;
+//bool forward; //whether or not we go forwards or backwards to this waypoint
 
 //global stuff for pid controller
 double previous_error;
@@ -31,7 +36,13 @@ double total_num_of_errors;
 double error;
 double linear_vel;
 bool forward_or_turn;//1 forward
+bool avoidance_active;
+int avoidance_counter;
 
+Waypoint avoid_enter, avoid_exit, avoid_thin, avoid_fat;
+//Waypoint start, dest;
+Waypoint pole_est;
+double pole_est_cov;
 
 //keeps angles between -pi and pi so i don't have to
 void wrap_pi(double &angle){
@@ -84,22 +95,13 @@ bool turn_to_heading(){
   // iterate until within a certain threshold
   //TODO: make this threshold a parameter
   if(fabs(error) < 0.15){
+    //fairly certain I can delete part this next line that gives warning. looks like it was just for debugging abs/fabs....
     ROS_INFO("Final Error: %lf fabs(error) %lf abs(error) %lf",error,fabs(error),abs(error));
     vel_targets.linear.x = 0;
     vel_targets.angular.z = 0;
     return true;
   }
   return false;
-}
-
-
-//rotate a specified point by a given angle using the
-//origin as the rotation center
-void rotation_matrix(std::vector<double> &point, double theta){
-  double x = point[0];
-  double y = point[1];
-  point[0] = x*cos(theta) - y*sin(theta);
-  point[1] = x*sin(theta) + y*cos(theta);
 }
 
 
@@ -255,9 +257,18 @@ bool ye_ol_pid(){
   return false;
 }
 
+void poleCallback(const geometry_msgs::PoseWithCovariance::ConstPtr& pole_msg){
+  pole_est.x = pole_msg->pose.position.x;  
+  pole_est.y = pole_msg->pose.position.y;
+  pole_est_cov = pole_msg->covariance[0];
+  //should I do anything else here?
+}
+
 void poseCallback(const geometry_msgs::Pose2D::ConstPtr& pose_msg){
   //grab the current ekf readings
+
   cur_pos = *pose_msg;
+  
   ROS_INFO("Forward or Turn %d",forward_or_turn);
   if(forward_or_turn){
     //do the ol pid dance
@@ -267,20 +278,31 @@ void poseCallback(const geometry_msgs::Pose2D::ConstPtr& pose_msg){
       if(next_waypoint()){
 	ROS_INFO("Start: (%f,%f) Dest: (%f,%f) Fwd: %d",start.x,start.y,dest.x,dest.y,forward);
 	//check for pole
-	bool pole_in_path =  checkForPole(avoid_entrance, avoid_exit, 
+	bool pole_in_path =  checkForPole(avoid_enter, avoid_exit, 
 					       avoid_thin, avoid_fat,
-					       start, dest, ekf.pole_pos, 
-					       ekf.pole_cov + robowidth);
+					       start, dest, pole_est, 
+					       pole_est_cov + ROBOTWIDTH/2);
 
-	if(pole_in_path){
+	if(avoidance_active){
+	  if(avoidance_counter < 3)//count off the three points that we added for avoidance
+	    avoidance_counter++;
+	  else{
+	    avoidance_active = false;
+	    avoidance_counter = 0;
+	  }
+	}
+	else if(pole_in_path){
+	  avoidance_active = true;
+	  avoidance_counter = 0;
 	  waypoints.push_front(avoid_exit);
 	  if(false){
 	    // check if fat/thin points are out of bounds,
 	    // then make sure thin point has enough room for
 	    // the robot to pass by.
+	  waypoints.push_front(avoid_fat);
 	  }
 	  waypoints.push_front(avoid_thin);
-	  waypoints.push_front(avoid_entrance);
+	  waypoints.push_front(avoid_enter);
 
 	}
 
@@ -318,6 +340,11 @@ int main(int argc, char** argv){
 
   //WAYPOINTS ~~~~~~~~~~~~~~~~~~~~~
   waypoint_number = 0;
+  avoidance_active = false;
+  avoidance_counter = 0;
+  pole_est.x = 0;
+  pole_est.y = 0;
+  pole_est_cov = 0;
 
   nh.param("waypoints_filename", waypoints_filename, std::string("waypoints.txt"));
   
@@ -331,12 +358,12 @@ int main(int argc, char** argv){
   ROS_INFO("Number of waypoints:%d", (int)waypoints.size());
   
   for(int i = 0; i < waypoints.size(); i++){
-    ROS_INFO("(%f, %f)\t%f", waypoints[i][X], waypoints[i][Y], waypoints[i][FWD]);
+    ROS_INFO("(%f, %f)\t%s", waypoints[i].x, waypoints[i].y, waypoints[i].forward?"fwd":"back");
   }
 
   //grab the inital waypoint
   if(next_waypoint()){
-    ROS_INFO("Start: (%f,%f) Dest: (%f,%f) Fwd: %d",start.x,start.y,dest.x,dest.y,forward);
+    ROS_INFO("Start: (%f,%f) Dest: (%f,%f) Fwd: %s",start.x,start.y,dest.x,dest.y,forward?"true":"false");
   }else{
     ROS_ERROR("Failed to call service request_next_waypoints");
   }
@@ -344,7 +371,7 @@ int main(int argc, char** argv){
   
   //PID ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  std::string pose_namespace,cmd_vel_namespace;
+  std::string pose_namespace,cmd_vel_namespace,pole_namespace;
 
   //read in pid parameters
   nh.param("FAST_SPEED", FAST_SPEED, 0.0);
@@ -355,6 +382,11 @@ int main(int argc, char** argv){
   nh.param("KP_SLOW", KP_SLOW, 0.0);
   nh.param("KI_SLOW", KI_SLOW, 0.0);
   nh.param("KD_SLOW", KD_SLOW, 0.0);
+
+  // IMPORTANT NOTE: I DON'T KNOW WHAT BOB'S NAMING CONVENTION IS FOR
+  // THE POSITION OF THE POLE, SO THIS PARAM NAME MAY NEED TO CHANGE,
+  // ALONG WITH THE TOPIC (FOR THE DEFAULTS).
+
   nh.param("pose",pose_namespace,std::string("/redblade_ekf/2d_pose"));
   nh.param("cmd_vel",cmd_vel_namespace,std::string("/cmd_vel"));
   ROS_INFO("FAST: %f\tSLOW: %f\tKP: %f\t", FAST_SPEED, SLOW_SPEED, KP);
@@ -362,6 +394,10 @@ int main(int argc, char** argv){
 
   //Subscribe to Pose topic
   ros::Subscriber pose_sub = n.subscribe(pose_namespace, 1, poseCallback);
+
+  //Subscribe to pole topic
+  nh.param("pole",pole_namespace,std::string("/redblade_ekf/pole"));
+  ros::Subscriber pole_sub = n.subscribe(pole_namespace, 1, poleCallback);
 
   //Set up cmd_vel publisher
   cmd_vel_pub = n.advertise<geometry_msgs::Twist>(cmd_vel_namespace, 10);
