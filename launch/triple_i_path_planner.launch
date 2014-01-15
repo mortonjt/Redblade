@@ -7,8 +7,9 @@
       <param name="single_i" value="false"/>
       <param name="overlap_width" value="0.4"/>
       <param name="plow_width" value="1.1"/>
-      <param name="rotation_center_to_front" value="1.0"/>
-      <param name="rotation_center_to_rear" value="1.0"/>
+      <!-- the next two values taken with plow at ~10-15 deg -->
+      <param name="rotation_center_to_front" value="1.165"/>
+      <param name="rotation_center_to_rear" value="0.615"/>
       <param name="buffer" value="0.4"/>
       <param name="back_up_distance" value="0.3"/>
 </node>

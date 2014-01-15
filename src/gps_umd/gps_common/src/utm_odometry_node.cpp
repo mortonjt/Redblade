@@ -56,10 +56,6 @@ void initializeAndConvCorners(){
 
   std::string line, comma;
   while(std::getline(fs1,line)){
-    //    std::istringstream ss(line);
-    //    ss >> latitude >> comma >> longitude;
-
-    //JUST CHANGED THIS PART, 1/8/2014, NEEDS TESTING
 
     std::vector<double> elements;
     split_to_double(line, ',', elements);
