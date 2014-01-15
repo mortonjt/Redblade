@@ -16,10 +16,10 @@
 
 #include <assert.h>
 
-#define zoneWidth   4    //Width of plowing zone
-#define fieldWidth  1    //Width of snow field
-#define zoneLength  18   //Length of plowing zone
-#define fieldLength 10   //Length of snow field
+#define singleIZoneWidth  4     //Width of single snow field
+#define tripleIZoneWidth  7     //Width of triple snow field
+#define zoneLength    15   //Length of plowing zone
+#define fieldLength   10   //Length of snow field
 
 class redblade_laser{
  public:
@@ -29,6 +29,7 @@ class redblade_laser{
   std::vector<double> y;
   std::deque< pcl::PointCloud<pcl::PointXYZ>::Ptr > queue;
   double fieldAngle;
+  bool tripleI;
 
   int maxSize;          //Number of scan frames stored in queue
   bool searchSnowField; //Indicates whether to search inside of the snow field or not
@@ -36,7 +37,9 @@ class redblade_laser{
   redblade_laser(std::string surveyFile,
 		 double laserOffset,int queueSize);
   redblade_laser(std::string surveyFile,
-		 bool searchSnowField,double laserOffset,int queueSize);
+		 bool searchSnowField,
+		 bool tripleI,
+		 double laserOffset,int queueSize);
   
   bool saturated();//Tests to see if the queue is full
 

@@ -19,6 +19,7 @@ redblade_laser::redblade_laser(std::string surveyFile,
 
 redblade_laser::redblade_laser(std::string surveyFile,
 			       bool searchSnowField,
+			       bool tripleI,
 			       double laserOffset,
 			       int queueSize){
   this->surveyFile = surveyFile;
@@ -27,12 +28,17 @@ redblade_laser::redblade_laser(std::string surveyFile,
   this->maxSize = queueSize;
   this->x.resize(4);
   this->y.resize(4);
+  this->tripleI = tripleI;
   std::ifstream h((char*)surveyFile.c_str());
   h>>x[0]>>y[0]
    >>x[1]>>y[1];
   h.close();
   /*Make sure that the length of the field is within 1 cm of expected*/
-  assert( fabs((((x[0]-x[1])*(x[0]-x[1]) + (y[0]-y[1])*(y[0]-y[1]))) - zoneLength*zoneLength)<0.01); 
+  //assert( fabs((((x[0]-x[1])*(x[0]-x[1]) + (y[0]-y[1])*(y[0]-y[1]))) - zoneLength*zoneLength)<0.5);
+  if(fabs((sqrt((x[0]-x[1])*(x[0]-x[1]) + (y[0]-y[1])*(y[0]-y[1]))) - zoneLength)<0.5){
+    ROS_WARN("Double check survey - Measured Length:%lf Actual Length:%lf",
+	     sqrt((x[0]-x[1])*(x[0]-x[1]) + (y[0]-y[1])*(y[0]-y[1])),zoneLength);
+  }
   fieldAngle = -atan2(y[1],x[1]);
 }
 
@@ -48,14 +54,25 @@ bool redblade_laser::saturated(){
 }
 
 bool redblade_laser::inSnowField(double transformedX, double transformedY){
-    double space = 1.5;      //Distance between zone and snow field
-    double width = 1;        //Width of snowfield
-    double garageLength = 3; //Length of garage
-    double plowedLength = 2; //Length of plowed snow zone
-    return (transformedX>=garageLength and 
-	    transformedX<=(zoneLength-plowedLength) and
-	    transformedY>=space and
-	    transformedY<=space+width);
+    if(tripleI){
+      double width = 3;        //Width of snowfield
+      double space = 2;      //Distance between zone and snow field
+      double garageLength = 3; //Length of garage
+      double plowedLength = 2; //Length of plowed snow zone
+      return (transformedX>=garageLength and 
+	      transformedX<=(zoneLength-plowedLength) and
+	      transformedY>=space and
+	      transformedY<=space+width);
+    }else{
+      double width = 1;        //Width of snowfield
+      double space = 1.5;      //Distance between zone and snow field
+      double garageLength = 3; //Length of garage
+      double plowedLength = 2; //Length of plowed snow zone
+      return (transformedX>=garageLength and 
+	      transformedX<=(zoneLength-plowedLength) and
+	      transformedY>=space and
+	      transformedY<=space+width);
+    }
 }
 
 void redblade_laser::rotate(double& x, double& y){
@@ -71,8 +88,14 @@ bool redblade_laser::inBounds(double x, double y){
   if(searchSnowField){
     return this->inSnowField(transformedX,transformedY);
   }else{
-    return ((not this->inSnowField(transformedX,transformedY)) and 
-	    transformedX>=0 and transformedX<=zoneLength and transformedY>=0 and transformedY<=zoneWidth);
+    if(tripleI){
+      return ((not this->inSnowField(transformedX,transformedY)) and 
+	      transformedX>=0 and transformedX<=zoneLength and transformedY>=0 and transformedY<=tripleIZoneWidth);
+    }else{
+      return ((not this->inSnowField(transformedX,transformedY)) and 
+	      transformedX>=0 and transformedX<=zoneLength and transformedY>=0 and transformedY<=singleIZoneWidth);
+
+    }
   }
 }
 
