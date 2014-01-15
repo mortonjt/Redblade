@@ -79,11 +79,15 @@ void collectCornerPoints(std::vector<Coordinates>& cornerList){
   int ii = 0;
 
   while(cornerList.size() < numCorners){
-    if(pointBuffer.size() > numDataPoints){
       
       std::cout << "Press Enter Key to take point #" << ii << std::endl;
       getline(std::cin, confirm);
-      
+
+      pointBuffer.clear();
+      while(pointBuffer.size() < numDataPoints){
+	usleep(10000);
+      } //wait until we get 20 fresh points
+
       do{//makes sure points are under a certain std dev
 	selectPoints = std::deque<Coordinates>(pointBuffer);
 	avg = mean(selectPoints);
@@ -91,14 +95,7 @@ void collectCornerPoints(std::vector<Coordinates>& cornerList){
       
       cornerList.push_back(Coordinates(avg.lat, avg.lon, avg.h));
 
-      // //if this is the first point, make it the reference for all others
-      // if(cornerList.size() == 0)
-      // 	referenceCoord = Coordinates(avg.lat,avg.lon,avg.h);
-
-      // cornerList.back().setReference(referenceCoord);
-      pointBuffer.clear();
       ii++;
-    }//end if
 
   }//end while
 }
