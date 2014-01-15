@@ -12,10 +12,28 @@ redblade_laser::redblade_laser(std::string surveyFile,
   this->y.resize(4);
   std::ifstream h((char*)surveyFile.c_str());
   h>>x[0]>>y[0]
-   >>x[1]>>y[1]
-   >>x[2]>>y[2]
-   >>x[3]>>y[3];
+   >>x[1]>>y[1];
   h.close();
+  fieldAngle = -atan2(y[1],x[1]);
+}
+
+redblade_laser::redblade_laser(std::string surveyFile,
+			       bool searchSnowField,
+			       double laserOffset,
+			       int queueSize){
+  this->surveyFile = surveyFile;
+  this->laserOffset = laserOffset;  
+  this->searchSnowField = searchSnowField;
+  this->maxSize = queueSize;
+  this->x.resize(4);
+  this->y.resize(4);
+  std::ifstream h((char*)surveyFile.c_str());
+  h>>x[0]>>y[0]
+   >>x[1]>>y[1];
+  h.close();
+  /*Make sure that the length of the field is within 1 cm of expected*/
+  assert( fabs((((x[0]-x[1])*(x[0]-x[1]) + (y[0]-y[1])*(y[0]-y[1]))) - zoneLength*zoneLength)<0.01); 
+  fieldAngle = -atan2(y[1],x[1]);
 }
 
 
@@ -29,14 +47,33 @@ bool redblade_laser::saturated(){
   return this->maxSize==this->queue.size();
 }
 
+bool redblade_laser::inSnowField(double transformedX, double transformedY){
+    double space = 1.5;      //Distance between zone and snow field
+    double width = 1;        //Width of snowfield
+    double garageLength = 3; //Length of garage
+    double plowedLength = 2; //Length of plowed snow zone
+    return (transformedX>=garageLength and 
+	    transformedX<=(zoneLength-plowedLength) and
+	    transformedY>=space and
+	    transformedY<=space+width);
+}
+
+void redblade_laser::rotate(double& x, double& y){
+  double transformedX = x*cos(this->fieldAngle)-y*sin(this->fieldAngle);
+  double transformedY = x*sin(this->fieldAngle)+y*cos(this->fieldAngle);
+  x = transformedX;
+  y = transformedY;
+}
 bool redblade_laser::inBounds(double x, double y){
-  double minx = *std::min_element(this->x.begin(),this->x.end());
-  double maxx = *std::max_element(this->x.begin(),this->x.end());
-  double miny = *std::min_element(this->y.begin(),this->y.end());
-  double maxy = *std::max_element(this->y.begin(),this->y.end());
-  
-  //ROS_INFO("minx %lf maxx %lf miny %lf maxy %lf - (x:%lf,y:%lf)",minx,maxx,miny,maxy,x,y);
-  return (x>minx and x<maxx and y>miny and y<maxy);
+  double transformedX = x;
+  double transformedY = y;
+  this->rotate(transformedX,transformedY);
+  if(searchSnowField){
+    return this->inSnowField(transformedX,transformedY);
+  }else{
+    return ((not this->inSnowField(transformedX,transformedY)) and 
+	    transformedX>=0 and transformedX<=zoneLength and transformedY>=0 and transformedY<=zoneWidth);
+  }
 }
 
 /*Transforms laser coordinates into ENU coordinates*/
@@ -163,9 +200,9 @@ bool redblade_laser::findPole(geometry_msgs::Point& point,double tolerance){
   if(combined->points.size()==0){
     return false;
   }
-  // this->cluster(combined,cluster,tolerance);
-  // this->cloud2point(cluster,point);
-  this->cloud2point(combined,point);
+  this->cluster(combined,cluster,tolerance);
+  this->cloud2point(cluster,point);
+  //this->cloud2point(combined,point);
   if(isnan(point.x) or isnan(point.y) or isnan(point.x)){
     return false;
   }

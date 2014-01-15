@@ -72,17 +72,19 @@ int main(int argc, char** argv){
   std::string surveyFile;
   int queue_size;
   double laser_length_offset;
+  bool searchSnowField;
   n.param("queue_size", queue_size, 5);
   n.param("laser_namespace", laser_namespace, std::string("/scan"));
   n.param("ekf_namespace", ekf_namespace, std::string("/redblade_ekf/2d_pose"));
   n.param("pole_namespace", pole_namespace, std::string("/lidar/pole"));
   n.param("survey_file", surveyFile, std::string("~"));
   n.param("laser_length_offset", laser_length_offset, 0.3075);//TODO: Need more accurate measurement
+  n.param("search_snowfield", searchSnowField, true);
   n.param("verbose", verbose, false);
   ROS_INFO("Verbose %d",verbose);  
   ROS_INFO("Laser namespace: %s",laser_namespace.c_str());
 
-  redLazer = new redblade_laser(surveyFile,laser_length_offset,queue_size);
+  redLazer = new redblade_laser(surveyFile,searchSnowField,laser_length_offset,queue_size);
   
   ros::Subscriber scan_sub = nh.subscribe<sensor_msgs::LaserScan> (laser_namespace, queue_size, scanCallback);
   ros::Subscriber pose_sub  = nh.subscribe<geometry_msgs::Pose2D> (ekf_namespace, 1, pose_callback);
