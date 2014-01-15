@@ -94,11 +94,7 @@ parse_maps = {
             ("longitude_direction", str, 6),
             ("speed", convert_knots_to_mps, 7),
             ("true_course", convert_deg_to_rads, 8),
-<<<<<<< HEAD
-            ] , 
-=======
-            ], 
->>>>>>> f7044ddd67b24812141381d36a337cd9d07a70a1
+            ],
         #this should really be PTPSR, but only use 3 letters for convenience
         "PSR": [
             ("utc_time", convert_time, 2),
