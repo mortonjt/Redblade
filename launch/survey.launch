@@ -10,7 +10,7 @@
   <node pkg="survey_snow_field" type="survey_node" name="survey" output="screen">
      <!-- USE FULL PATH, DON'T USE '~' FOR HOME -->	 
      <!-- JAMIE, CHANGE THIS FILEPATH TO THE CONFIG FOLDER ON REDBLADE, MAKE SURE THERE'S A SLASH AT THE END -->
-     <param name="filepath" value="/home/rj/Redblade/config/" />
+     <param name="filepath" value="/home/redblade/Documents/Redblade/config/" />
      <param name="numDataPoints" value="20" />
      <param name="numCorners" value="2" />
    </node>  
