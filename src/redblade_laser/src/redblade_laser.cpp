@@ -34,7 +34,8 @@ bool redblade_laser::inBounds(double x, double y){
   double maxx = *std::max_element(this->x.begin(),this->x.end());
   double miny = *std::min_element(this->y.begin(),this->y.end());
   double maxy = *std::max_element(this->y.begin(),this->y.end());
-
+  
+  //ROS_INFO("minx %lf maxx %lf miny %lf maxy %lf - (x:%lf,y:%lf)",minx,maxx,miny,maxy,x,y);
   return (x>minx and x<maxx and y>miny and y<maxy);
 }
 
@@ -45,12 +46,8 @@ void redblade_laser::transformLaser2ENU(geometry_msgs::Pose2D& currentPose,
   double y0      = currentPose.y;
   double theta   = currentPose.theta;
   for(size_t i = 0; i<cloud->points.size();++i){
-    double xc = cloud->points[i].x-this->laserOffset;
+    double xc = cloud->points[i].x+this->laserOffset;
     double yc = cloud->points[i].y;
-    // std::cout<<"Size "<<cloud->points.size()
-    // 	 <<" x "<<cloud->points[i].x
-    // 	 <<" y "<<cloud->points[i].y
-    // 	 <<" z "<<cloud->points[i].z<<std::endl;
     // ROS_INFO("LAZER x %f y %f z %f",
     // 	     cloud->points[i].x,
     // 	     cloud->points[i].y,
@@ -59,7 +56,7 @@ void redblade_laser::transformLaser2ENU(geometry_msgs::Pose2D& currentPose,
     // 	     xc,
     // 	     yc);
 
-    if(xc>0.1){//Filter out the supporting poles on the side of the robot
+    if(xc>0.4){//Filter out the supporting poles on the side of the robot
       cloud->points[i].x = xc*cos(theta)-yc*sin(theta)+x0;
       cloud->points[i].y = xc*sin(theta)+yc*cos(theta)+y0;
       cloud->points[i].z = 0;   

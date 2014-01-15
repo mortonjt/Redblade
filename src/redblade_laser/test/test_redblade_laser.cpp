@@ -107,6 +107,10 @@ TEST(redblade_laser,testAddScan){
   EXPECT_EQ(result->points.size(),15);
 }
 
+TEST(redblade_laser,testProjectLaser){                       
+  laser_geometry::LaserProjection projector_;
+  projector_.projectLaser(currentScan, cloud); 
+}
 
 TEST(redblade_laser,testFindPole){                       
   std::string surveyFile = "test_survey.txt";
@@ -143,7 +147,6 @@ TEST(redblade_laser,testFindPole){
   EXPECT_NEAR(point.x,10.0,1);  
   EXPECT_NEAR(point.y,10.0,1);    
   EXPECT_NEAR(point.z,10.0,1);    
-
 }
 
 

@@ -85,7 +85,7 @@ void redblade_stereo::transformStereo2Robot(pcl::PointCloud<pcl::PointXYZ>::Ptr 
  for(size_t i = 0; i<cloud->points.size();++i){
    double height = cloud->points[i].y;
    cloud->points[i].y = -1*cloud->points[i].x;
-   cloud->points[i].x = cloud->points[i].z-this->cameraLengthOffset;
+   cloud->points[i].x = cloud->points[i].z+this->cameraLengthOffset;
    cloud->points[i].z = this->cameraHeight-height;
  }
 }
@@ -98,7 +98,7 @@ void redblade_stereo::transformStereo2ENU(geometry_msgs::Pose2D& currentPose,
   for(size_t i = 0; i<cloud->points.size();++i){
     double height = cloud->points[i].y;
     double yc = -1*cloud->points[i].x;
-    double xc = cloud->points[i].z-this->cameraLengthOffset;
+    double xc = cloud->points[i].z+this->cameraLengthOffset;
     double zc = this->cameraHeight-height;
     cloud->points[i].x = xc*cos(theta)-yc*sin(theta)+x0;
     cloud->points[i].y = xc*sin(theta)+yc*cos(theta)+y0;
