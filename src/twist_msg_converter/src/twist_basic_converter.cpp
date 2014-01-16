@@ -15,24 +15,35 @@ ros::Publisher robo_front_stamped_pub;
 ros::Publisher robo_back_stamped_pub;
 geometry_msgs::Twist front_target;
 geometry_msgs::Twist back_target;
+#define angular_cap 0.3
 
 void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& msg){
   //for now, we're just going to push the overall linear and angular velocity through
   //to each of the motor controllers, we'll figure out what's actually happening later
+  double z = msg->angular.z;
+  //hard coding a cap for angular velocities to reduce bouncing
+  if(fabs(msg->linear.x) > 0){
+    if(msg->angular.z > angular_cap){
+      z = angular_cap;
+    }else if(msg->angular.z < -angular_cap){
+      z = -angular_cap;
+    }
+  }
+
   front_target.linear.x = msg->linear.x;
   front_target.linear.y = msg->linear.y;
   front_target.linear.z = msg->linear.z;
   front_target.angular.x = msg->angular.x;
   front_target.angular.y = msg->angular.y;
-  front_target.angular.z = -msg->angular.z*2.1;
+  front_target.angular.z = -z*2.1;
   
   back_target.linear.x = -msg->linear.x;
   back_target.linear.y = msg->linear.y;
   back_target.linear.z = msg->linear.z;
   back_target.angular.x = msg->angular.x;
   back_target.angular.y = msg->angular.y;
-  back_target.angular.z = -msg->angular.z*2.1;
-  
+  back_target.angular.z = -z*2.1;
+
 }
 
 void Arduino_RC_Callback(const geometry_msgs::Twist::ConstPtr& msg) {
@@ -42,20 +53,30 @@ void Arduino_RC_Callback(const geometry_msgs::Twist::ConstPtr& msg) {
     acheive this, we'll need to negate the stuff going to different roboteqs
     and do other weird stuff.
    */
+
+  //hard coding a cap for angular velocities to reduce bouncing
+  double z = msg->angular.z;
+  if(fabs(msg->linear.x) > 0){
+    if(msg->angular.z > angular_cap){
+      z = angular_cap;
+    }else if(msg->angular.z < -angular_cap){
+      z = -angular_cap;
+    }
+  }
   
   front_target.linear.x = msg->linear.x;
   front_target.linear.y = msg->linear.y;
   front_target.linear.z = msg->linear.z;
   front_target.angular.x = msg->angular.x;
   front_target.angular.y = msg->angular.y;
-  front_target.angular.z = -msg->angular.z*2.1;
-  
+  front_target.angular.z = -z*2.1;
+   
   back_target.linear.x = -msg->linear.x;
   back_target.linear.y = msg->linear.y;
   back_target.linear.z = msg->linear.z;
   back_target.angular.x = msg->angular.x;
   back_target.angular.y = msg->angular.y;
-  back_target.angular.z = -msg->angular.z*2.1;
+  back_target.angular.z = -z*2.1;
   
 }
 

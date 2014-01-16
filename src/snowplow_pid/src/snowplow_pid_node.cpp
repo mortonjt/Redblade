@@ -58,8 +58,8 @@ double get_d_correction(double error){
 //Turning method
 bool turn_to_heading(){
   ROS_INFO("Start Turning to Correct Heading");
-  double desired_heading = atan2(dest.y-start.y,
-				 dest.x-start.x);
+  double desired_heading = atan2(dest.y-cur_pos.y,
+				 dest.x-cur_pos.x);
   
   wrap_pi(desired_heading);
   if(!forward){
@@ -67,7 +67,7 @@ bool turn_to_heading(){
     wrap_pi(desired_heading);
   }
   
-  usleep(50000);
+  //usleep(50000);
   double error = desired_heading - cur_pos.theta;
   wrap_pi(error);
 
@@ -83,7 +83,7 @@ bool turn_to_heading(){
 
   // iterate until within a certain threshold
   //TODO: make this threshold a parameter
-  if(fabs(error) < 0.15){
+  if(fabs(error) < 0.15){//CHANGEDBOB
     ROS_INFO("Final Error: %lf fabs(error) %lf abs(error) %lf",error,fabs(error),abs(error));
     vel_targets.linear.x = 0;
     vel_targets.angular.z = 0;
@@ -163,7 +163,7 @@ bool ye_ol_pid(){
   /*if this is the first time this method has been called, let's just send her in a straight line
     for a very short peiod of time*/
   if(vel_targets.linear.x == 0){
-    vel_targets.linear.x = FAST_SPEED * (forward?(1):(-1));// m/s
+    vel_targets.linear.x = SLOW_SPEED * (forward?(1):(-1));// m/s
     vel_targets.angular.z = 0;//straight line, no turnin
     usleep(100000);
     return false;//we ain't done yet
@@ -270,10 +270,16 @@ void poseCallback(const geometry_msgs::Pose2D::ConstPtr& pose_msg){
       sum_of_errors = 0;
       total_num_of_errors = 0;
       error = 0;
-      linear_vel = FAST_SPEED;
+      //CHANGEDBOB
+      if(distance_to_goal() < 2){
+	linear_vel = SLOW_SPEED;
+      }else{
+	linear_vel = FAST_SPEED;
+      }
     }
   }else{//we turnin'
     if(turn_to_heading()){
+      usleep(1000000);//CHANGEDBOB
       forward_or_turn = 1;
     }
   }
@@ -351,11 +357,13 @@ int main(int argc, char** argv){
   error = 0;
   linear_vel = FAST_SPEED;
  
-  while(ros::ok()){
-    publish_loop();
-    
+  ros::AsyncSpinner spinner(1);
+  spinner.start();    
+  while(ros::ok()){ 
+    publish_loop();    
     cmd_vel_rate.sleep();
-    ros::spinOnce();
   }
+  spinner.stop();  
+  
   
 }

@@ -177,7 +177,7 @@ AX2550::move (double speed, double direction) {
   } else {
     serial_buffer = string_format("!A%.2X", speed_hex);
   }
-  //std::cout << "Linear: " << (unsigned int)speed_hex <<" ";
+  std::cout << "Linear: " << (unsigned int)speed_hex <<" ";
   // Issue the speed command
   if (!this->issueCommand(serial_buffer, fail_why)) {
     AX2550_THROW(CommandFailedException, fail_why.c_str());
@@ -199,7 +199,7 @@ AX2550::move (double speed, double direction) {
   } else {
     serial_buffer = string_format("!B%.2X", direction_hex);
   }
-  //std::cout << "\t Angular: " << (unsigned int)direction_hex <<" "<< std::endl;
+  std::cout << "\t Angular: " << (unsigned int)direction_hex <<" "<< std::endl;
   // Issue the direction command
   if (!this->issueCommand(string(serial_buffer), fail_why)) {
     AX2550_THROW(CommandFailedException, fail_why.c_str());
