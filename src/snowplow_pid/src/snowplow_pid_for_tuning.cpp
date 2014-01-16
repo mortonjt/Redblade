@@ -294,7 +294,7 @@ void publish_loop(){
 
 int main(int argc, char** argv){
   //Node setup
-  ros::init(argc, argv, "snowplow_pid_node");
+  ros::init(argc, argv, "snowplow_pid_for_tuning");
   ros::NodeHandle n;//global namespace
   ros::NodeHandle nh("~");//local namespace, used for params
   
