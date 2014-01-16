@@ -18,7 +18,7 @@ void writeData(std::string filename1, std::vector<Coordinates>& cornerList){
   std::ofstream fs1(filename1.c_str(),std::ofstream::out|std::ofstream::app);
  
   if(!fs1.good()){
-    std::cout << "ERROR OPENING FILE: " << filename1 << std::endl;
+    ROS_INFO("ERROR OPENING FILE: %s",filename1.c_str());
   }
 
   //set float precision to exactly 10
@@ -63,7 +63,7 @@ bool isPrecise(std::deque<Coordinates> coords, Coordinates avg){
   devlon = 1/numCoords * devlon;
 
   if(devlat > gpsTolerance || devlon > gpsTolerance){
-    std::cout << "STD of points not within tolerance. hold it steady." << std::endl;
+    ROS_INFO("STD of points not within tolerance. hold it steady.");
     return false;
   }
 
@@ -78,16 +78,16 @@ void collectCornerPoints(std::vector<Coordinates>& cornerList){
   Coordinates avg;
   int ii = 0;
 
+  ROS_INFO("collect corners running...");
+
   while(cornerList.size() < numCorners){
       
-      std::cout << "Press Enter Key to take point #" << ii << std::endl;
+      ROS_INFO("Press Enter Key to take point #%d",ii);
       getline(std::cin, confirm);
 
       pointBuffer.clear();
-      while(pointBuffer.size() < numDataPoints){
-	usleep(10000);
-      } //wait until we get 20 fresh points
-
+      while(pointBuffer.size() < numDataPoints); //wait for fresh points
+      
       do{//makes sure points are under a certain std dev
 	selectPoints = std::deque<Coordinates>(pointBuffer);
 	avg = mean(selectPoints);
@@ -101,14 +101,9 @@ void collectCornerPoints(std::vector<Coordinates>& cornerList){
 }
 
 void queueGPSCallback(const sensor_msgs::NavSatFix::ConstPtr& point){
-  
-  //just make sure we're pulling gps data from the right RX
-  if(point->header.frame_id == "/HiperLite_rover"){
     pointBuffer.push_front(Coordinates(point->latitude,point->longitude,point->altitude));
     if(pointBuffer.size() > numDataPoints)
       pointBuffer.pop_back();
-  }
-
 }
 
 int main(int argc, char** argv){
@@ -144,6 +139,8 @@ int main(int argc, char** argv){
   cornerCollector.join();
 
   writeData(filename1, cornerList);
+
+  ROS_INFO("COMPLETE.");
 
   return 0;
 }
