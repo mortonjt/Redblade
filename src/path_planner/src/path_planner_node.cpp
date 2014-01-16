@@ -232,10 +232,9 @@ int main(int argc, char** argv){
   ros::NodeHandle nh("~");//local namespace
 
   //read in params from local namespace
-  nh.param("survey_file", survey_file, std::string("survey_file.txt"));
-  nh.param("i_waypoint_file", i_waypoint_file, std::string("i_waypoints.txt"));
-  nh.param("triple_i_waypoint_file", triple_i_waypoint_file, std::string("triple_i_waypoints.txt"));
-  nh.param("single_i", single_i, true);
+  nh.param("survey_file", survey_file, std::string("survey_file.csv"));
+  nh.param("single_i_waypoint_file", i_waypoint_file, std::string("single_i_waypoints.csv"));
+  nh.param("triple_i_waypoint_file", triple_i_waypoint_file, std::string("triple_i_waypoints.csv"));
   nh.param("overlap_width", overlap_width, 0.2);
   nh.param("plow_width", plow_width, 1.1);
   nh.param("rotation_center_to_front", rotation_center_to_front, 1.0);
@@ -249,25 +248,44 @@ int main(int argc, char** argv){
   read_in_survey_points();
 
   //generate waypoints
-  if(single_i){
-    generate_single_i_waypoints();
-  }else{
+  //if(single_i){
+  //generate_single_i_waypoints();
+    /*}else{
     generate_triple_i_waypoints();
-  }
+    }*/
 
   //find how our field sits with repsect to ENU
   double orientation = get_orientation();
+
+  //generate single i waypoints();
+  generate_single_i_waypoints();
 
   //rotate waypoints by angle of field
   for(int i = 0; i < waypoints.size(); i++){
     rotation_matrix(waypoints[i], orientation);
   }
 
-  if(single_i){
+  //save single i waypoints
+  save_waypoint_vector(i_waypoint_file);
+
+  waypoints.clear();
+
+  //generate triple i waypoints
+  generate_triple_i_waypoints();
+
+  //rotate waypoints by angle of field
+  for(int i = 0; i < waypoints.size(); i++){
+    rotation_matrix(waypoints[i], orientation);
+  }
+
+  //save triple i waypoints
+  save_waypoint_vector(triple_i_waypoint_file);
+
+  /*if(single_i){
     save_waypoint_vector(i_waypoint_file);
   }else{
     save_waypoint_vector(triple_i_waypoint_file);
-  }
+    }*/
 
 
 }
