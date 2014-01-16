@@ -58,24 +58,61 @@ redblade_stereo::redblade_stereo(std::string surveyFile,
   this->y.resize(4);
   std::ifstream h((char*)surveyFile.c_str());
   h>>x[0]>>y[0]
-   >>x[1]>>y[1]
-   >>x[2]>>y[2]
-   >>x[3]>>y[3];
+   >>x[1]>>y[1];
+  h.close();
+  /*Make sure that the length of the field is within 1 cm of expected*/
+  //assert( fabs((((x[0]-x[1])*(x[0]-x[1]) + (y[0]-y[1])*(y[0]-y[1]))) - zoneLength*zoneLength)<0.5);
+  if(fabs((sqrt((x[0]-x[1])*(x[0]-x[1]) + (y[0]-y[1])*(y[0]-y[1]))) - zoneLength)>0.5){
+    ROS_WARN("Double check survey - Measured Length:%lf Actual Length:%lf",
+	     sqrt((x[0]-x[1])*(x[0]-x[1]) + (y[0]-y[1])*(y[0]-y[1])),zoneLength);
+  }
+  fieldAngle = -atan2(y[1],x[1]);
+
+}
+bool redblade_stereo::inSnowField(double transformedX, double transformedY){
+    if(tripleI){
+      double width = 3;        //Width of snowfield
+      double space = 2;      //Distance between zone and snow field
+      double garageLength = 3; //Length of garage
+      double plowedLength = 2; //Length of plowed snow zone
+      return (transformedX>=garageLength and 
+	      transformedX<=(zoneLength-plowedLength) and
+	      transformedY>=space and
+	      transformedY<=space+width);
+    }else{
+      double width = 1;        //Width of snowfield
+      double space = 1.5;      //Distance between zone and snow field
+      double garageLength = 3; //Length of garage
+      double plowedLength = 2; //Length of plowed snow zone
+      return (transformedX>=garageLength and 
+	      transformedX<=(zoneLength-plowedLength) and
+	      transformedY>=space and
+	      transformedY<=space+width);
+    }
 }
 
+void redblade_stereo::rotate(double& x, double& y){
+  double transformedX = x*cos(this->fieldAngle)-y*sin(this->fieldAngle);
+  double transformedY = x*sin(this->fieldAngle)+y*cos(this->fieldAngle);
+  x = transformedX;
+  y = transformedY;
+}
 bool redblade_stereo::inBounds(double x, double y){
-  double minx = *std::min_element(this->x.begin(),this->x.end());
-  double maxx = *std::max_element(this->x.begin(),this->x.end());
-  double miny = *std::min_element(this->y.begin(),this->y.end());
-  double maxy = *std::max_element(this->y.begin(),this->y.end());
-  // ROS_INFO("In bounds minx:%lf maxx:%lf miny:%lf maxy:%lf",
-  // 	   minx,maxx,miny,maxy);
-  // ROS_INFO("vector x: %lf %lf %lf %lf",
-  // 	   this->x[0],this->x[1],this->x[2],this->x[3]);
-  // ROS_INFO("vector y: %lf %lf %lf %lf",
-  // 	   this->y[0],this->y[1],this->y[2],this->y[3]);
+  double transformedX = x;
+  double transformedY = y;
+  this->rotate(transformedX,transformedY);
+  if(searchSnowField){
+    return this->inSnowField(transformedX,transformedY);
+  }else{
+    if(tripleI){
+      return ((not this->inSnowField(transformedX,transformedY)) and 
+	      transformedX>=0 and transformedX<=zoneLength and transformedY>=0 and transformedY<=tripleIZoneWidth);
+    }else{
+      return ((not this->inSnowField(transformedX,transformedY)) and 
+	      transformedX>=0 and transformedX<=zoneLength and transformedY>=0 and transformedY<=singleIZoneWidth);
 
-  return (x>minx and x<maxx and y>miny and y<maxy);
+    }
+  }
 }
 
 redblade_stereo::~redblade_stereo(){}

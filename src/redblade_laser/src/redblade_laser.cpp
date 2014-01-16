@@ -35,7 +35,7 @@ redblade_laser::redblade_laser(std::string surveyFile,
   h.close();
   /*Make sure that the length of the field is within 1 cm of expected*/
   //assert( fabs((((x[0]-x[1])*(x[0]-x[1]) + (y[0]-y[1])*(y[0]-y[1]))) - zoneLength*zoneLength)<0.5);
-  if(fabs((sqrt((x[0]-x[1])*(x[0]-x[1]) + (y[0]-y[1])*(y[0]-y[1]))) - zoneLength)<0.5){
+  if(fabs((sqrt((x[0]-x[1])*(x[0]-x[1]) + (y[0]-y[1])*(y[0]-y[1]))) - zoneLength)>0.5){
     ROS_WARN("Double check survey - Measured Length:%lf Actual Length:%lf",
 	     sqrt((x[0]-x[1])*(x[0]-x[1]) + (y[0]-y[1])*(y[0]-y[1])),zoneLength);
   }

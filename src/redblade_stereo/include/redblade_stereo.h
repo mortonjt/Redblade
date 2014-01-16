@@ -36,6 +36,12 @@
 #include <pcl/sample_consensus/ransac.h>
 #include <pcl/sample_consensus/sac_model_line.h>
 
+#define singleIZoneWidth  4     //Width of single snow field
+#define tripleIZoneWidth  7     //Width of triple snow field
+#define zoneLength    15   //Length of plowing zone
+#define fieldLength   10   //Length of snow field
+
+
 class redblade_stereo{
  public:
   double groundHeight;       //maximum height of ground
@@ -49,6 +55,11 @@ class redblade_stereo{
   std::vector<double> x;
   std::vector<double> y;
 
+  double fieldAngle;
+  bool tripleI;
+  bool searchSnowField; //Indicates whether to search inside of the snow field or not
+  
+
   redblade_stereo(std::string surveyFile,
 		  double groundHeight, 
 		  double poleWidth,
@@ -61,7 +72,14 @@ class redblade_stereo{
 		  double cameraHeight,
 		  double cameraLengthOffset);
   ~redblade_stereo();
+
+  void rotate(double& x, double& y);
+  /*Check if points are within the survey field of interest*/
   bool inBounds(double x, double y);
+  
+  /*Check if transformed points are inside of the snow field*/
+  bool inSnowField(double transformedX, double transformedY);
+
   //Transform point cloud from stereo camera coordinates to robot coordinates
   void transformStereo2Robot(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
   //Transform Point from robot coordinates to local ENU coordinates
