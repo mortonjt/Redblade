@@ -8,6 +8,7 @@
 #include "snowplow_pid/request_next_waypoints.h"
 #include <string>
 #include <cmath>
+#include <fstream>
 
 //Parameters that will be read in at runtime
 double FAST_SPEED, SLOW_SPEED, KP, KI, KD, KP_SLOW, KI_SLOW, KD_SLOW;
@@ -18,6 +19,7 @@ geometry_msgs::Twist vel_targets;
 geometry_msgs::Pose2D cur_pos;
 bool imu_init = false;
 ros::ServiceClient waypoint_client;
+std::ofstream imu_file;
 
 //current waypoint stuff
 geometry_msgs::Pose2D start;
@@ -53,43 +55,6 @@ double get_d_correction(double error){
   double d_corr = error - previous_error;
   previous_error = error;
   return d_corr;
-}
-
-//Turning method
-bool turn_to_heading(){
-  ROS_INFO("Start Turning to Correct Heading");
-  double desired_heading = atan2(dest.y-cur_pos.y,
-				 dest.x-cur_pos.x);
-  
-  wrap_pi(desired_heading);
-  if(!forward){
-    desired_heading -= M_PI;
-    wrap_pi(desired_heading);
-  }
-  
-  //usleep(50000);
-  double error = desired_heading - cur_pos.theta;
-  wrap_pi(error);
-
-  if(error > 0){
-    vel_targets.linear.x = 0;
-    vel_targets.angular.z = 0.3;
-  }else{
-    vel_targets.linear.x = 0;
-    vel_targets.angular.z = -0.3;
-  }
-
-  ROS_INFO("Desired heading %lf Current Heading %lf Error %lf",desired_heading,cur_pos.theta,error);
-
-  // iterate until within a certain threshold
-  //TODO: make this threshold a parameter
-  if(fabs(error) < 0.15){//CHANGEDBOB
-    ROS_INFO("Final Error: %lf fabs(error) %lf abs(error) %lf",error,fabs(error),abs(error));
-    vel_targets.linear.x = 0;
-    vel_targets.angular.z = 0;
-    return true;
-  }
-  return false;
 }
 
 /*returns the distance from end point with some magic sprinkled in (no, i will
@@ -151,29 +116,9 @@ bool ye_ol_pid(){
   //double current_heading = current_imu.z;
   double current_heading = cur_pos.theta;
 
-  //geometry_msgs::Pose2D cur_pos;
-  //cur_pos.x = current_pose.x;
-  //cur_pos.y = current_pose.y;
-  
-  // cur_pos.x = current_gps.pose.pose.position.x;
-  // cur_pos.y = current_gps.pose.pose.position.y;
-
-  //TODO: implement a check for stuck method here
-  
-  /*if this is the first time this method has been called, let's just send her in a straight line
-    for a very short peiod of time*/
-  if(vel_targets.linear.x == 0){
-    vel_targets.linear.x = SLOW_SPEED * (forward?(1):(-1));// m/s
-    vel_targets.angular.z = 0;//straight line, no turnin
-    usleep(100000);
-    return false;//we ain't done yet
-  }
-  
   //calculate error
-  // desired_heading = M_PI/2-atan2(dest.y-cur_pos.y,
-  // 			       dest.x-cur_pos.x);
-  desired_heading = atan2(dest.y-cur_pos.y,
-			  dest.x-cur_pos.x);
+  desired_heading = atan2(dest.y-start.y,
+			  dest.x-start.x);
   wrap_pi(desired_heading);
   if(!forward){
     current_heading -= M_PI;
@@ -198,15 +143,11 @@ bool ye_ol_pid(){
   }
   pid = kp_corr + ki_corr + kd_corr;
 
-  //set upper limit for angular velocity
-  //TODO: i actually have no idea what this number should be, gonna need to figure that out
-  //ROS_INFO("PID %f",pid);
-
-  if(pid > 0.5){
+  /*  if(pid > 0.5){
     pid = 0.5;
   }else if(pid < -0.5){
     pid = -0.5;
-  }
+    }*/
   //ROS_INFO("PID %f",pid);
 
   //check to see if we've reached our destination
@@ -218,7 +159,8 @@ bool ye_ol_pid(){
   ROS_INFO("Error: %f\tCurrent Heading: %f\t Desired Heading: %f",(error*(180/M_PI)),(current_heading*(180/M_PI)),(desired_heading*(180/M_PI)));
   ROS_INFO("PID: %f\tDistance: %f\t Current (%f, %f), Desination (%f, %f)\n",pid,distance,cur_pos.x,cur_pos.y,dest.x,dest.y);
 
-  
+  //output imu data to file
+  imu_file << (ros::Time::now()).toSec() << "," << current_heading << "\n";
 
   if(distance < 0.1){
     //set desired linear and angular velocities
@@ -248,40 +190,10 @@ bool ye_ol_pid(){
 void poseCallback(const geometry_msgs::Pose2D::ConstPtr& pose_msg){
   //grab the current ekf readings
   cur_pos = *pose_msg;
-  ROS_INFO("Forward or Turn %d",forward_or_turn);
-  if(forward_or_turn){
-    //do the ol pid dance
-    if(ye_ol_pid()){
-      usleep(1000000);
-      //TODO: use service to grab the next waypoint
-      snowplow_pid::request_next_waypoints srv;
-      if(waypoint_client.call(srv)){
-	start = srv.response.start;
-	dest = srv.response.dest;
-	forward = srv.response.forward;
-	ROS_INFO("Start: (%f,%f) Dest: (%f,%f) Fwd: %d",start.x,start.y,dest.x,dest.y,forward);
-      }else{
-	ROS_ERROR("Failed to call service request_next_waypoints");
-      }
-      forward_or_turn = 0;
-    
-      //reinitialize all errors to zero
-      previous_error = 0;
-      sum_of_errors = 0;
-      total_num_of_errors = 0;
-      error = 0;
-      //CHANGEDBOB
-      if(distance_to_goal() < 2){
-	linear_vel = SLOW_SPEED;
-      }else{
-	linear_vel = FAST_SPEED;
-      }
-    }
-  }else{//we turnin'
-    if(turn_to_heading()){
-      usleep(1000000);//CHANGEDBOB
-      forward_or_turn = 1;
-    }
+  //do the ol pid dance
+  if(ye_ol_pid()){
+    usleep(1000000);
+    ROS_INFO("MADE IT TO THE WAYPOINT, UP YOUR KP SON!");
   }
 
 }
@@ -311,26 +223,23 @@ int main(int argc, char** argv){
   nh.param("KD_SLOW", KD_SLOW, 0.0);
   nh.param("pose",pose_namespace,std::string("/redblade_ekf/2d_pose"));
   nh.param("cmd_vel",cmd_vel_namespace,std::string("/cmd_vel"));
-  ROS_INFO("FAST: %f\tSLOW: %f\tKP: %f\t", FAST_SPEED, SLOW_SPEED, KP);
-  ROS_INFO("Pose Namespace %s",pose_namespace.c_str());
 
   //Subscribe to Pose topic
   ros::Subscriber pose_sub = n.subscribe(pose_namespace, 1, poseCallback);
 
   //set up service to grab waypoints
-  waypoint_client = n.serviceClient<snowplow_pid::request_next_waypoints>("request_next_waypoints");
+  //waypoint_client = n.serviceClient<snowplow_pid::request_next_waypoints>("request_next_waypoints");
 
-  //grab the inital waypoint
-  snowplow_pid::request_next_waypoints srv;
-  if(waypoint_client.call(srv)){
-    start = srv.response.start;
-    dest = srv.response.dest;
-    forward = srv.response.forward;
-    ROS_INFO("Start: (%f,%f) Dest: (%f,%f) Fwd: %d",start.x,start.y,dest.x,dest.y,forward);
-  }else{
-    ROS_ERROR("Failed to call service request_next_waypoints");
-  }
-  forward_or_turn = 1;//
+  //open csv file for output
+  imu_file.open("/home/redblade/Documents/Redblade/scripts/pid_tuner/imu_data.csv");
+
+  //hard code the initial and only waypoint
+  //robot should go directly west
+  start.x = 0;
+  start.y = 0;
+  dest.x = -20;
+  dest.y = 0.01;
+  forward_or_turn = 1;
 
   //Set up cmd_vel publisher
   cmd_vel_pub = n.advertise<geometry_msgs::Twist>(cmd_vel_namespace, 10);
