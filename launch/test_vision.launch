@@ -1,30 +1,34 @@
 <launch>
   
-  <node pkg="rosbag" type="play" name="rosbag_play"
-  	args="-l /home/jamie/bagFiles/test_pole1.bag">
-  </node>
+  <!-- <node pkg="rosbag" type="play" name="rosbag_play" -->
+  <!-- 	args="-l /home/jamie/bagFiles/test_pole1.bag"> -->
+  <!-- </node> -->
 
-  <node pkg="nodelet" type="nodelet" name="pcl_filter_manager" args="manager"/>
-  <node pkg="nodelet" type="nodelet" name="voxel_filter"
-  	args="load pcl/VoxelGrid pcl_filter_manager"
-  	output="screen">
-    <remap from="~input" to="/stereo_camera/points2"/>
-    <rosparam>
-      filter_field_name: z
-      filter_limit_min: 0.01
-      filter_limit_max: 10.0
-      leaf_size: 0.01
-    </rosparam>
-  </node>
+  <!-- <node pkg="nodelet" type="nodelet" name="pcl_filter_manager" args="manager"/> -->
+  <!-- <node pkg="nodelet" type="nodelet" name="voxel_filter" -->
+  <!-- 	args="load pcl/VoxelGrid pcl_filter_manager" -->
+  <!-- 	output="screen"> -->
+  <!--   <remap from="~input" to="/stereo_camera/points2"/> -->
+  <!--   <rosparam> -->
+  <!--     filter_field_name: z -->
+  <!--     filter_limit_min: 0.01 -->
+  <!--     filter_limit_max: 10.0 -->
+  <!--     leaf_size: 0.01 -->
+  <!--   </rosparam> -->
+  <!-- </node> -->
 
-  <node pkg="redblade_stereo"
-  	type="redblade_stereo_node"
-  	name="redblade_stereo_node"
-  	respawn="true"
-  	output="screen" >
-    <param name="stereo_namespace" value="/voxel_filter/output"/>
-    <param name="survey_file" value="/home/jamie/Documents/Redblade/config/survey_enu.tab" />
-    <param name="verbose" value="true" />
+  <!-- <node pkg="redblade_stereo" -->
+  <!-- 	type="redblade_stereo_node" -->
+  <!-- 	name="redblade_stereo_node" -->
+  <!-- 	respawn="true" -->
+  <!-- 	output="screen" > -->
+  <!--   <param name="stereo_namespace" value="/voxel_filter/output"/> -->
+  <!--   <param name="survey_file" value="/home/jamie/Documents/Redblade/config/survey_enu.tab" /> -->
+  <!--   <param name="verbose" value="true" /> -->
+  <!-- </node> -->
+  <node pkg="sicktoolbox_wrapper" type="sicklms" name="lidar" output="screen">
+  	<param name="port" value="/dev/ttyS0" />
+	<param name="resolution" value="0.0" />
   </node>
 
   <node pkg="redblade_laser" 
@@ -36,9 +40,9 @@
     <param name="verbose" value="true" />
   </node>
 
-  <!-- <node pkg="rosbag" type="record" name="rosbag_rec" -->
-  <!-- 	args="-O /home/jamie/bagFiles/test_pole1_processed.bag /gps /imu/integrated_gyros_stamped /odom /redblade_ekf/odom /redblade_ekf/2d_pose /stereo_camera/pole /lidar/pole"> -->
-  <!-- </node> -->
+  <node pkg="rosbag" type="record" name="rosbag_rec"
+  	args="-O /home/redblade/DATA/LIDAR/test_pole1.bag /gps /imu/integrated_gyros_stamped /odom /redblade_ekf/odom /redblade_ekf/2d_pose /stereo_camera/pole /lidar/pole /lidar/local">
+  </node>
 
 
 </launch>
