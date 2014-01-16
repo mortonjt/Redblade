@@ -1,4 +1,5 @@
 <launch>
+  <arg name="user" default="redblade"/>
 
   <node pkg="nmea_navsat_driver" type="nmea_serial_driver" name="Topcon_DGPS" output="screen" >
     <param name="port" value="/dev/ttyDGPS" />
@@ -10,7 +11,7 @@
   <node pkg="survey_snow_field" type="survey_node" name="survey" output="screen">
      <!-- USE FULL PATH, DON'T USE '~' FOR HOME -->	 
      <!-- JAMIE, CHANGE THIS FILEPATH TO THE CONFIG FOLDER ON REDBLADE, MAKE SURE THERE'S A SLASH AT THE END -->
-     <param name="filepath" value="/home/redblade/Documents/Redblade/config/" />
+     <param name="filepath" value="/home/$(arg user)/Documents/Redblade/config/" />
      <param name="numDataPoints" value="20" />
      <param name="numCorners" value="2" />
    </node>  
