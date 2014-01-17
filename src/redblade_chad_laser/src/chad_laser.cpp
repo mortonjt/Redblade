@@ -12,9 +12,10 @@
 #include <sstream>
 #include <iostream>
 
-#define POLE_HITS 4
+#define POLE_HITS 5
 #define BAD_HITS 1
 #define RANGE_THRESH 0.05
+#define LASER_OFFSET 0.3
 
 std::vector<std::vector<double> > survey_points;
 double orientation;
@@ -158,7 +159,7 @@ void check_for_pole(){
 	if(good >= POLE_HITS){
 	  ROS_INFO("pole hits: %d", good);
 	  temp_point[0] = current_range;
-	  temp_point[1] = cur_scan.angle_min + (cur_scan.angle_increment*(j-i));
+	  temp_point[1] = cur_scan.angle_min + (cur_scan.angle_increment*((j+i)/2));
 	  point_vector.push_back(temp_point);
 	  //ROS_INFO("Object Position: range->%f\tangle->%f", temp_point[0], temp_point[1]);
 	}
@@ -170,7 +171,7 @@ void check_for_pole(){
 	}else{
 	  if(good >= POLE_HITS){
 	    temp_point[0] = current_range;
-	    temp_point[1] = cur_scan.angle_min + (cur_scan.angle_increment*(j-i));
+	    temp_point[1] = cur_scan.angle_min + (cur_scan.angle_increment*((j+i)/2));
 	    point_vector.push_back(temp_point);
 	    ROS_INFO("pole hits: %d", good);
 	    //ROS_INFO("Object Position: range->%f\tangle->%f", temp_point[0], temp_point[1]);
@@ -190,6 +191,15 @@ void check_for_pole(){
   for(int i = 0; i < point_vector.size(); i++){
     double range = point_vector[i][0];
     double theta = point_vector[i][1];
+    double temp_x, temp_y;
+    
+    //first add the laser offset
+    temp_x = cos(theta)*range + LASER_OFFSET;
+    temp_y = sin(theta)*range;
+    theta = atan2(temp_y, temp_x);
+    range = sqrt(pow(temp_x,2)+pow(temp_y,2));
+    
+    
     if(checkBoundaries(range,theta)){
       //publish
       //geometry_msgs::Pose2D laserPoint;
@@ -212,13 +222,13 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan_msg){
 
   //lidar_file << cur_pos.x << "," << cur_pos.y << "," << cur_pos.theta << ",";
 
-  for(int i = 0; i < num_scans; i++){
+  /*for(int i = 0; i < num_scans; i++){
     if(i == (num_scans-1)){
       lidar_file << cur_scan.ranges[i] << "\n";
     }else{
       lidar_file << cur_scan.ranges[i] << ",";
     }
-  }
+    }*/
   
   check_for_pole();
 
