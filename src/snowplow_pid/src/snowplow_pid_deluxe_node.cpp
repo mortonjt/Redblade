@@ -39,7 +39,6 @@ int avoidance_counter;
 Waypoint avoid_enter, avoid_exit, avoid_thin, avoid_fat;
 //Waypoint start, dest;
 Waypoint pole_est;
-double pole_est_cov;
 
 //keeps angles between -pi and pi so i don't have to
 void wrap_pi(double &angle){
@@ -259,8 +258,9 @@ void poleCallback(const geometry_msgs::Point::ConstPtr& pole_msg){
   pole_est.y = pole_msg->y;
   //this probably isn't how it's being passed
   
+  bool pole_in_path = false;
   if(avoidance_counter == 0 || !avoidance_active){
-    bool pole_in_path =  checkForPole(avoid_enter, avoid_exit, 
+    pole_in_path =  checkForPole(avoid_enter, avoid_exit, 
 				    avoid_thin, avoid_fat,
 				    start, dest, pole_est);
   }
@@ -278,9 +278,9 @@ void poleCallback(const geometry_msgs::Point::ConstPtr& pole_msg){
   }
   else{
     ROS_INFO("POLE HAS MOVED OUT OF PATH FOR SOME REASON, RETURNING TO NORMAL DESTINATION...");
-    dest.x = waypoint[0].x;
-    dest.y = waypoint[0].y;
-    dest.forward = waypoint[0].forward;
+    dest.x = waypoints[0].x;
+    dest.y = waypoints[0].y;
+    dest.forward = waypoints[0].forward;
   }
 
 }
@@ -308,7 +308,7 @@ void poseCallback(const geometry_msgs::Pose2D::ConstPtr& pose_msg){
 	  start.y = avoid_enter.y;
 	}
 	avoidance_counter++;
-	ROS_INFO("AVOIDANCE ROUTINE HAS REACHED AN AVOIDANCE POINT! AVOID_COUNTER = %d",avoid_counter);
+	ROS_INFO("AVOIDANCE ROUTINE HAS REACHED AN AVOIDANCE POINT! AVOID_COUNTER = %d",avoidance_counter);
 
 	if(avoidance_counter == 3)//shut off avoidance once we've done our 3 points
 	  ROS_INFO("AVOIDANCE ROUTINE COMPLETED, AVOIDANCE OFF. RESUMING NORMAL WAYPOINTS...");
@@ -330,7 +330,7 @@ void poseCallback(const geometry_msgs::Pose2D::ConstPtr& pose_msg){
       total_num_of_errors = 0;
       error = 0;
       linear_vel = FAST_SPEED;
-    }
+    
   }else{//we turnin'
     if(turn_to_heading()){
       forward_or_turn = 1;
@@ -357,7 +357,6 @@ int main(int argc, char** argv){
   avoidance_counter = 0;
   pole_est.x = 0;
   pole_est.y = 0;
-  pole_est_cov = 0;
 
   nh.param("waypoints_filename", waypoints_filename, std::string("waypoints.txt"));
   

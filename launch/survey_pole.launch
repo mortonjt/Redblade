@@ -11,7 +11,7 @@
   <node pkg="survey_snow_field" type="survey_node" name="survey" output="screen">
      <!-- USE FULL PATH, DON'T USE '~' FOR HOME -->	 
      <!-- JAMIE, CHANGE THIS FILEPATH TO THE CONFIG FOLDER ON REDBLADE, MAKE SURE THERE'S A SLASH AT THE END -->
-     <param name="filepath" value="/home/$(arg user)/Redblade/config/pole_point/" />
+     <param name="filepath" value="/home/rj/Documents/Redblade/config/pole_point/" />
      <param name="numDataPoints" value="20" />
      <param name="numCorners" value="2" />
    </node>  

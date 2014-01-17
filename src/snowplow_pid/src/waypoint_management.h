@@ -104,8 +104,8 @@ double projectPoint(Waypoint p1, Waypoint a, Waypoint b){
 bool checkForPole(Waypoint& p1, Waypoint& p2, Waypoint& p3, Waypoint& p4,
 		  Waypoint a, Waypoint b, Waypoint c){
 
-  double radius_parallel = ROBOT_LENGTH/2 + STOPPINGBUFFER;
-  double radius_perp = ROBOT_WIDTH/2 + PASSINGBUFFER;
+  double radius_parallel = ROBOTLENGTH/2 + STOPPINGBUFFER;
+  double radius_perp = ROBOTWIDTH/2 + PASSINGBUFFER;
 
   // VARIABLE DEFINITIONS
   // a : 1st point in line
