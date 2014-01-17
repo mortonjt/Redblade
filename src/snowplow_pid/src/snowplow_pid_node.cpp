@@ -119,7 +119,7 @@ double calculate_cte(){
   cur_rot.y = cur_pos.x * sin(-rot) + cur_pos.y * cos(-rot);
 
   //calculate cross track error
-  return cur_rot.y - start_rot.y;
+  return (cur_rot.y - start_rot.y);
 }
 
 
@@ -183,7 +183,7 @@ double distance_to_goal(){
 bool ye_ol_pid(){
   ROS_INFO("Ye Old Pid");
   //local variables
-  double desired_heading, kp_corr, ki_corr, kd_corr, pid, distance, cte;
+  double desired_heading, kp_corr, ki_corr, kd_corr, pid, distance, cte, correction_vel;
   //double current_heading = current_imu.z;
   double current_heading = cur_pos.theta;
 
@@ -209,11 +209,30 @@ bool ye_ol_pid(){
     wrap_pi(current_heading);
   }
   error = desired_heading - current_heading;
-  wrap_pi(error);
+  
+  //calculate extra error from cte
   cte = calculate_cte();
-  /*ROS_INFO("Error %f",error);
-    ROS_INFO("Current Heading %f",current_heading);
-    ROS_INFO("Desired Heading %f",desired_heading);*/
+
+  //when cte error is positive, the robot is to the left of the current desired path,
+  //so our correction should be negative, i.e. a negative angular velocity
+  correction_vel = 10;
+  correction_vel *= (M_PI/180);
+  if(fabs(cte) > 0.05 && fabs(cte) < 1){
+    if(cte > 0){
+      error -= (((fabs(cte)-0.05)/0.95) * correction_vel);
+    }else{
+      error += (((fabs(cte)-0.05)/0.95) * correction_vel);
+    }
+  }else if(fabs(cte) > 1){
+    //apply constant correction for very large cte
+    if(cte > 0){
+      error -= correction_vel;
+    }else{
+      error += correction_vel;
+    }
+  }
+  
+  wrap_pi(error);
 
   //calculate p, i, and d correction factors
   total_num_of_errors += 1;
