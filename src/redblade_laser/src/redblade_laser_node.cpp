@@ -1,6 +1,7 @@
 #include "redblade_laser.h"
 
 ros::Publisher pub;
+ros::Publisher local_pub;
 ros::Publisher filtered_pub;
 ros::Publisher clustered_pub;
 ros::Publisher transformed_pub;
@@ -23,6 +24,11 @@ void scanCallback (const sensor_msgs::LaserScan::ConstPtr& scan_in)
 {
   currentScan = *scan_in;
   hasPoints = true;
+  
+  if(verbose){
+    sensor_msgs::PointCloud2 cloud;
+    projector_.projectLaser(*scan_in, cloud); 
+    local_pub.publish(cloud);}
 }
 
 void publish_loop(){
@@ -102,6 +108,7 @@ int main(int argc, char** argv){
   ros::Subscriber pose_sub  = nh.subscribe<geometry_msgs::Pose2D> (ekf_namespace, 1, pose_callback);
   pub = nh.advertise<geometry_msgs::PointStamped> (pole_namespace, 1);
 
+  local_pub = nh.advertise<sensor_msgs::PointCloud2> ("/lidar/local", 1);
   filtered_pub = nh.advertise<sensor_msgs::PointCloud2> ("/lidar/filtered", 1);
   clustered_pub = nh.advertise<sensor_msgs::PointCloud2> ("/lidar/clustered", 1);
   transformed_pub = nh.advertise<sensor_msgs::PointCloud2> ("/lidar/transformed", 1);

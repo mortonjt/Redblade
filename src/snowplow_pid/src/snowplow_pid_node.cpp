@@ -91,10 +91,46 @@ bool turn_to_heading(){
   }
   return false;
 }
+/*This method calculates the "cross track error", or the perpendicular distance from
+a line that the robot is trying to follow. It takes as inputs the starting point, the destination point,
+and the current point
+                       
+                       current point
+                            |\
+                            | \
+			    |  |->CTE
+start                       | /                           end   
+ ^__________________________|/_____________________________^
 
-/*returns the distance from end point with some magic sprinkled in (no, i will
-not even attempt to explain the black magic that this method does. i blame Ryan
-Wolfarth for the lack of comments. 
+*/
+double calculate_cte(){
+  double rot;
+  geometry_msgs::Pose2D start_rot, cur_rot;
+
+  //find out how many rads we need to rotate the field by
+  rot = atan2(dest.y-start.y, dest.x-start.x);
+
+  //rotate start point
+  start_rot.x = start.x * cos(-rot) - start.y * sin(-rot);
+  start_rot.y = start.x * sin(-rot) + start.y * cos(-rot);
+
+  //rotate current point
+  cur_rot.x = cur_pos.x * cos(-rot) - cur_pos.y * sin(-rot);
+  cur_rot.y = cur_pos.x * sin(-rot) + cur_pos.y * cos(-rot);
+
+  //calculate cross track error
+  return (cur_rot.y - start_rot.y);
+}
+
+
+/*This function calculates when the robot has crossed a line perpendicular
+to the two points it's traveling between
+                                           |
+start                                   end| <--when this line is crossed  
+-^---------------------------------------^-| <--this function returns
+                                           | <--a negative number
+                                           |
+
 */
 double distance_to_goal(){
   double x1, y1, x2, y2, x, y;
@@ -147,16 +183,9 @@ double distance_to_goal(){
 bool ye_ol_pid(){
   ROS_INFO("Ye Old Pid");
   //local variables
-  double desired_heading, kp_corr, ki_corr, kd_corr, pid, distance;
+  double desired_heading, kp_corr, ki_corr, kd_corr, pid, distance, cte, correction_vel;
   //double current_heading = current_imu.z;
   double current_heading = cur_pos.theta;
-
-  //geometry_msgs::Pose2D cur_pos;
-  //cur_pos.x = current_pose.x;
-  //cur_pos.y = current_pose.y;
-  
-  // cur_pos.x = current_gps.pose.pose.position.x;
-  // cur_pos.y = current_gps.pose.pose.position.y;
 
   //TODO: implement a check for stuck method here
   
@@ -180,10 +209,30 @@ bool ye_ol_pid(){
     wrap_pi(current_heading);
   }
   error = desired_heading - current_heading;
+  
+  //calculate extra error from cte
+  cte = calculate_cte();
+
+  //when cte error is positive, the robot is to the left of the current desired path,
+  //so our correction should be negative, i.e. a negative angular velocity
+  correction_vel = 10;
+  correction_vel *= (M_PI/180);
+  if(fabs(cte) > 0.05 && fabs(cte) < 1){
+    if(cte > 0){
+      error -= (((fabs(cte)-0.05)/0.95) * correction_vel);
+    }else{
+      error += (((fabs(cte)-0.05)/0.95) * correction_vel);
+    }
+  }else if(fabs(cte) > 1){
+    //apply constant correction for very large cte
+    if(cte > 0){
+      error -= correction_vel;
+    }else{
+      error += correction_vel;
+    }
+  }
+  
   wrap_pi(error);
-  /*ROS_INFO("Error %f",error);
-    ROS_INFO("Current Heading %f",current_heading);
-    ROS_INFO("Desired Heading %f",desired_heading);*/
 
   //calculate p, i, and d correction factors
   total_num_of_errors += 1;
@@ -215,7 +264,7 @@ bool ye_ol_pid(){
   ROS_INFO("Current (%f,%f) Dest (%f,%f)",
 	   cur_pos.x,cur_pos.y,
 	   dest.x,dest.y);*/
-  ROS_INFO("Error: %f\tCurrent Heading: %f\t Desired Heading: %f",(error*(180/M_PI)),(current_heading*(180/M_PI)),(desired_heading*(180/M_PI)));
+  ROS_INFO("Error: %f\tCTE: %f\tCurrent Heading: %f\t Desired Heading: %f",(error*(180/M_PI)),cte,(current_heading*(180/M_PI)),(desired_heading*(180/M_PI)));
   ROS_INFO("PID: %f\tDistance: %f\t Current (%f, %f), Desination (%f, %f)\n",pid,distance,cur_pos.x,cur_pos.y,dest.x,dest.y);
 
   
@@ -314,10 +363,6 @@ int main(int argc, char** argv){
   ROS_INFO("FAST: %f\tSLOW: %f\tKP: %f\t", FAST_SPEED, SLOW_SPEED, KP);
   ROS_INFO("Pose Namespace %s",pose_namespace.c_str());
 
-  //Start spinner so that callbacks happen in a seperate thread
-  //~~~~~~~~~~HEY BOP, are you trying to give each callback a dedicated thread?
-  //because I don't think that's what's happening here.
-  
   //Subscribe to Pose topic
   ros::Subscriber pose_sub = n.subscribe(pose_namespace, 1, poseCallback);
 
@@ -356,7 +401,8 @@ int main(int argc, char** argv){
   total_num_of_errors = 0;
   error = 0;
   linear_vel = FAST_SPEED;
- 
+
+  //CHANGEDBOB
   ros::AsyncSpinner spinner(1);
   spinner.start();    
   while(ros::ok()){ 

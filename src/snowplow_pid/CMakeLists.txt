@@ -82,16 +82,19 @@ include_directories(
 
 ## Declare a cpp executable
 add_executable(snowplow_pid_node src/snowplow_pid_node.cpp)
+add_executable(snowplow_pid_for_tuning src/snowplow_pid_for_tuning.cpp)
 add_executable(request_next_waypoints_server src/request_next_waypoints_server.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 
 add_dependencies(snowplow_pid_node snowplow_pid_generate_messages_cpp)
+add_dependencies(snowplow_pid_for_tuning snowplow_pid_generate_messages_cpp)
 add_dependencies(request_next_waypoints_server snowplow_pid_gencpp)
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(snowplow_pid_node ${catkin_LIBRARIES})
+target_link_libraries(snowplow_pid_for_tuning ${catkin_LIBRARIES})
 target_link_libraries(request_next_waypoints_server ${catkin_LIBRARIES})
 
 #############

@@ -105,6 +105,7 @@ void generate_single_i_waypoints(){
   waypoints.push_back(temp);
 
   //now back up a little bit
+  temp[0] = start_of_snowfield + field_length + end_of_snowfield - rotation_center_to_rear - buffer;
   temp[1] = temp[1] - back_up_distance;
   temp[2] = 0;
   waypoints.push_back(temp);
@@ -164,6 +165,7 @@ void generate_triple_i_waypoints(){
   waypoints.push_back(temp);
 
   //back up a bit
+  temp[0] = start_of_snowfield + field_length + end_of_snowfield - rotation_center_to_rear - buffer;
   temp[1] = center_of_snowfield - (overlap_width/2) + plow_width - overlap_width + (plow_width/2);
   temp[2] = 0;
   waypoints.push_back(temp);
@@ -200,6 +202,7 @@ void generate_triple_i_waypoints(){
   waypoints.push_back(temp);  
 
   //back up a bit
+  temp[0] = start_of_snowfield + field_length + end_of_snowfield - rotation_center_to_rear - buffer;//changed
   temp[1] = center_of_snowfield - (overlap_width/2) + (plow_width/2);
   temp[2] = 0;
   waypoints.push_back(temp);

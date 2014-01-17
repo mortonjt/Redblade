@@ -7,7 +7,11 @@ import math
 import movingAverage
 
 #gpsBag = "/home/jamie/Documents/data/test4/pole.bag"
+<<<<<<< HEAD
+poleBag = "/home/jamie/Documents/data/lidar.bag"
+=======
 poleBag = "/home/jamie/Documents/data/lidar_processed.bag"
+>>>>>>> a739648346a33fe2011a5667476118ef8350a325
 front_encoders = "/encoders_front"
 back_encoders = "/encoders_back"
 front_cmds = "/roboteq_front/cmd_vel_stamped"
@@ -39,6 +43,7 @@ threshold = 0.1
 gps_msgs           = [msg for topic,msg,t in bag.read_messages(topics=[gps])]
 lidar_msgs    = [msg for topic,msg,t in bag.read_messages(topics=[lidar_pole])]
 stereo_msgs   = [msg for topic,msg,t in bag.read_messages(topics=[stereo_pole])]
+pose2D_msgs   = [msg for topic,msg,t in bag.read_messages(topics=[pose2D])]
 
 L = min([len(gps_msgs),len(lidar_msgs)])
 gps_x = [x.pose.pose.position.x for x in gps_msgs][:L]
@@ -50,7 +55,6 @@ stereo_pole_y = [y.point.y for y in stereo_msgs][:L]
 time = [t.header.stamp.secs+t.header.stamp.nsecs/10.0**9 for t in gps_msgs][:L]
 
 pose2D_msgs   = [msg for topic,msg,t in bag.read_messages(topics=[pose2D])][:L]
-headings = [t.theta for t in pose2D_msgs][:L]
 
 print "lidar X std dev",numpy.std(lidar_pole_x[1:])
 print "lidar Y std dev",numpy.std(lidar_pole_y[1:])
