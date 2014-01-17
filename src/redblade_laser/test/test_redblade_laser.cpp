@@ -172,6 +172,7 @@ TEST(redblade_laser,testInBounds2){
 				 cloud->points[1].y));    
 }
 
+
 TEST(redblade_laser,testFindPole){                       
   std::string surveyFile = "test_survey.txt";
   double offset = 0.1;

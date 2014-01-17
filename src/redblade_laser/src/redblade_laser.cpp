@@ -43,9 +43,43 @@ redblade_laser::redblade_laser(std::string surveyFile,
 }
 
 
-void redblade_laser::scan2cloud(sensor_msgs::LaserScan::Ptr,
-				pcl::PointCloud<pcl::PointXYZ>::Ptr){
-  
+void redblade_laser::scan2cloud(sensor_msgs::LaserScan scan_in,
+				pcl::PointCloud<pcl::PointXYZ>::Ptr pcl_cloud){
+  // laser_geometry::LaserProjection projector_;
+  // projector_.projectLaser(currentScan, cloud); 
+  // pcl::fromROSMsg(cloud,*pcl_cloud);
+
+  /*Copied from laser_geometry.cpp from laser_geometry.h on hydro*/
+  size_t n_pts = scan_in.ranges.size ();
+  Eigen::ArrayXXd ranges (n_pts, 2);
+  Eigen::ArrayXXd output (n_pts, 2);
+
+  // Get the ranges into Eigen format
+  for (size_t i = 0; i < n_pts; ++i){
+    ranges (i, 0) = (double) scan_in.ranges[i];
+    ranges (i, 1) = (double) scan_in.ranges[i];
+  }
+
+  // Check if our existing co_sine_map is valid
+  if (co_sine_map_.rows () != (int)n_pts || angle_min_ != scan_in.angle_min || angle_max_ != scan_in.angle_max )
+    {
+      ROS_DEBUG ("[projectLaser] No precomputed map given. Computing one.");
+      co_sine_map_ = Eigen::ArrayXXd (n_pts, 2);
+      angle_min_ = scan_in.angle_min;
+      angle_max_ = scan_in.angle_max;
+      // Spherical->Cartesian projection
+      for (size_t i = 0; i < n_pts; ++i)
+	{
+	  co_sine_map_ (i, 0) = cos (scan_in.angle_min + (double) i * scan_in.angle_increment);
+	  co_sine_map_ (i, 1) = sin (scan_in.angle_min + (double) i * scan_in.angle_increment);
+	}
+    }
+  output = ranges * co_sine_map_;
+  for(size_t i = 0; i<n_pts;++i){
+    pcl_cloud->points[i].x = output(i,0);
+    pcl_cloud->points[i].y = output(i,1);
+    pcl_cloud->points[i].z = 0;
+  }
 }
 
 
@@ -115,8 +149,8 @@ void redblade_laser::transformLaser2ENU(geometry_msgs::Pose2D& currentPose,
     // ROS_INFO("Robot xc %f yc %f",
     // 	     xc,
     // 	     yc);
-
-    if(xc>0.4){//Filter out the supporting poles on the side of the robot
+    
+    if(sqrt((xc*xc)+(yc*yc))>1.0){//Filter out the supporting poles on the side of the robot
       cloud->points[i].x = xc*cos(theta)-yc*sin(theta)+x0;
       cloud->points[i].y = xc*sin(theta)+yc*cos(theta)+y0;
       cloud->points[i].z = 0;   
@@ -146,7 +180,7 @@ void redblade_laser::filterBackground(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
 
 void redblade_laser::addScan(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud){
   queue.push_back(cloud);
-  if(queue.size()>this->maxSize){
+  if(queue.size()>this->maxSize){  
     queue.pop_front();
   }
 }
@@ -192,7 +226,7 @@ void redblade_laser::cluster(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
   ec.setSearchMethod(tree);
   ec.setInputCloud(cloud);
   ec.extract(cluster_indices);
-  int maxSize = 0;
+  int curSize = 0;
   for(std::vector<pcl::PointIndices>::iterator it = cluster_indices.begin();
       it!=cluster_indices.end(); ++it){
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster(new pcl::PointCloud<pcl::PointXYZ>);
@@ -202,28 +236,35 @@ void redblade_laser::cluster(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
     }
     cloud_cluster->width = cluster->points.size();
     cloud_cluster->height = 1;
-    if(cloud_cluster->points.size()>maxSize){
+    if(cloud_cluster->points.size()>curSize){
       cluster->points.resize(cloud_cluster->points.size());
       std::copy(cloud_cluster->points.begin(),
 		cloud_cluster->points.end(),
 		cluster->points.begin());
       cloud_cluster->width = cluster->points.size();
       cloud_cluster->height = 1;
-      maxSize = cloud_cluster->points.size();
+      curSize = cloud_cluster->points.size();
     }
   }
 }
 
-bool redblade_laser::findPole(geometry_msgs::Point& point,double tolerance){
+bool redblade_laser::findPole(geometry_msgs::Point& point,
+			      pcl::PointCloud<pcl::PointXYZ>::Ptr cluster,
+			      double tolerance){
   boost::shared_ptr<pcl::PointCloud<pcl::PointXYZ> > 
     combined(new pcl::PointCloud<pcl::PointXYZ>());
-  boost::shared_ptr<pcl::PointCloud<pcl::PointXYZ> > 
-    cluster(new pcl::PointCloud<pcl::PointXYZ>());
+  // boost::shared_ptr<pcl::PointCloud<pcl::PointXYZ> > 
+  //   cluster(new pcl::PointCloud<pcl::PointXYZ>());
   this->getClouds(combined);
+  //ROS_INFO("Size of combined %d",combined->points.size());
   if(combined->points.size()==0){
     return false;
   }
   this->cluster(combined,cluster,tolerance);
+  //ROS_INFO("Size of cluster %d",cluster->points.size());
+  if(cluster->points.size() < this->maxSize){
+    return false;
+  }
   this->cloud2point(cluster,point);
   //this->cloud2point(combined,point);
   if(isnan(point.x) or isnan(point.y) or isnan(point.x)){
