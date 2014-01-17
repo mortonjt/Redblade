@@ -83,6 +83,7 @@ int main(int argc, char** argv){
   std::string stereo_namespace,pole_namespace,ekf_namespace;
   int queue_size;
   double ground_height,viewing_radius,viewing_width,pole_width,camera_height,camera_length_offset;  
+  bool searchSnowField,tripleI;
 
   std::string survey_file;
   hasPoints = false; 
@@ -100,6 +101,8 @@ int main(int argc, char** argv){
   n.param("pole_width", pole_width, 0.1);
   n.param("camera_height", camera_height, 1.67);
   n.param("camera_length_offset", camera_length_offset, 0.55);
+  n.param("tripleI", tripleI, true);
+  n.param("search_snowfield", searchSnowField, true);
   n.param("verbose", verbose, false);
 
   ROS_INFO("Stereo Namespace %s",stereo_namespace.c_str());
@@ -109,6 +112,7 @@ int main(int argc, char** argv){
   
   //redblade_stereo redStereo(radius,height,width);
   redStereo = new redblade_stereo(survey_file,
+				  tripleI,searchSnowField,
 				  ground_height,pole_width,
 				  camera_height,camera_length_offset);
   

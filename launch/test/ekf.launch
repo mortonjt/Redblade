@@ -49,7 +49,8 @@
     <node pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc" output="screen" >
     </node>
   </group>
-  
+
+  <node pkg="nodelet" type="nodelet" name="pcl_filter_manager" args="manager"/>  
   <node pkg="nodelet" type="nodelet" name="voxel_filter"
   	args="load pcl/VoxelGrid pcl_filter_manager" output="screen">
     <remap from="~input" to="/stereo_camera/points2"/>

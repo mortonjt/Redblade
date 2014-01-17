@@ -61,6 +61,13 @@ class redblade_stereo{
   
 
   redblade_stereo(std::string surveyFile,
+		  bool tripleI,
+		  bool searchSnowField,
+		  double groundHeight, 
+		  double poleWidth,
+		  double cameraHeight,
+		  double cameraLengthOffset);
+  redblade_stereo(std::string surveyFile,
 		  double groundHeight, 
 		  double poleWidth,
 		  double cameraHeight,

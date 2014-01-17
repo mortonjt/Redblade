@@ -1,7 +1,7 @@
 <launch>
   
   <node pkg="rosbag" type="play" name="rosbag_play"
-  	args="/home/jamie/Documents/data/LIDAR/lidar.bag">
+  	args="/home/redblade/DATA/LIDAR/left_diag.orig.bag">
   </node>
 
   <!-- <node pkg="nodelet" type="nodelet" name="pcl_filter_manager" args="manager"/> -->
@@ -23,22 +23,24 @@
   <!-- 	respawn="true" -->
   <!-- 	output="screen" > -->
   <!--   <param name="stereo_namespace" value="/voxel_filter/output"/> -->
-  <!--   <param name="survey_file" value="/home/jamie/Documents/Redblade/config/survey_enu.tab" /> -->
+  <!--   <param name="survey_file" value="/home/redblade/Documents/Redblade/config/survey_enu.tab" /> -->
   <!--   <param name="verbose" value="true" /> -->
   <!-- </node> -->
-
+  
+  	
   <node pkg="redblade_laser"
   	type="redblade_laser_node"
   	name="redblade_laser_node"
-  	respawn="true"
+	respawn="true"
   	output="screen" >
-    <param name="survey_file" value="/home/jamie/Documents/Redblade/config/survey_enu.tab" />
+    <param name="survey_file" value="/home/redblade/Documents/Redblade/config/survey_enu.tab" />
     <param name="verbose" value="true" />
-    <param name="queue" value="1" />
+    <param name="queue" value="5" />
   </node>
 
+
   <node pkg="rosbag" type="record" name="rosbag_rec"
-  	args="-O /home/jamie/Documents/data/lidar_processed.bag /gps /imu/integrated_gyros_stamped /odom /redblade_ekf/odom /redblade_ekf/2d_pose /lidar/pole">
+  	args="-O /home/redblade/DATA/LIDAR/lidar_processed.bag /gps /imu/integrated_gyros_stamped /odom /redblade_ekf/odom /redblade_ekf/2d_pose /lidar/pole /stereo_camera/pole">
   </node>
 
 
