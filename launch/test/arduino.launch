@@ -1,0 +1,12 @@
+<launch>
+
+  <node pkg="redblade_arduino" type="redblade_arduino_node" name="redblade_arduino_node" output="screen">
+      <!-- <param name="front_or_back" value="back"/> -->
+  </node>
+
+  <node pkg="redblade_rc" type="redblade_rc_node" name="redblade_rc_node" output="screen">
+      <!-- <param name="serial_port" value="some_serial_port"/> -->
+      <!-- <param name="front_or_back" value="back"/> -->
+  </node>
+	
+</launch>

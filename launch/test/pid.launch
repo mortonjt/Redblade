@@ -1,0 +1,22 @@
+<launch>
+  <arg name="filename"/>
+
+
+  <node pkg="snowplow_pid" type="request_next_waypoints_server" name="request_next_waypoints_server" output="screen">
+    <param name="waypoints_filename" value="/home/redblade/Documents/Redblade/config/triple_i_waypoints.csv"/>
+  </node>
+
+  <node pkg="snowplow_pid" type="snowplow_pid_node" name="snowplow_pid_node" output="screen">
+    <param name="FAST_SPEED" value="0.75"/>
+    <param name="SLOW_SPEED" value="0.2"/>
+    <param name="KP" value="1.35"/>
+    <param name="KI" value="0.9441"/>
+    <param name="KD" value="0.4826"/>	
+    <param name="KP_SLOW" value="0.0"/>	
+    <param name="KI_SLOW" value="0.0"/>
+    <param name="pose" value="/redblade_ekf/2d_pose"/>
+    <param name="cmd_vel" value="/cmd_vel"/>
+  </node>
+
+  
+</launch>
