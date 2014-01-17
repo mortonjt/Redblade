@@ -13,7 +13,7 @@
 #include <pcl/filters/extract_indices.h>
 #include <pcl/kdtree/kdtree.h>
 #include <laser_geometry/laser_geometry.h>
-
+#include <Eigen/Core>
 #include <assert.h>
 
 #define singleIZoneWidth  4     //Width of single snow field
@@ -33,6 +33,13 @@ class redblade_laser{
 
   int maxSize;          //Number of scan frames stored in queue
   bool searchSnowField; //Indicates whether to search inside of the snow field or not
+
+  /*Used for polar to cartesian transform*/
+  float angle_min_;
+  float angle_max_;
+  Eigen::ArrayXXd co_sine_map_;
+
+
   /*offset: length displacment of laser from the center of the robot*/
   redblade_laser(std::string surveyFile,
 		 double laserOffset,int queueSize);
@@ -43,8 +50,8 @@ class redblade_laser{
   
   bool saturated();//Tests to see if the queue is full
 
-  void scan2cloud(sensor_msgs::LaserScan::Ptr,
-		  pcl::PointCloud<pcl::PointXYZ>::Ptr);
+  void scan2cloud(sensor_msgs::LaserScan scan_in,
+		  pcl::PointCloud<pcl::PointXYZ>::Ptr pcl_cloud);
   /*Add laser scan to queue*/
   void addScan(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
 
@@ -72,7 +79,9 @@ class redblade_laser{
 	       double tolerance);
   
   /*Finds the pole*/
-  bool findPole(geometry_msgs::Point& point,double tolerance);
+  bool findPole(geometry_msgs::Point& point,
+		pcl::PointCloud<pcl::PointXYZ>::Ptr cluster,
+		double tolerance);
 
   /*Condense point cloud into a single point*/
   void cloud2point(pcl::PointCloud<pcl::PointXYZ>::Ptr in,

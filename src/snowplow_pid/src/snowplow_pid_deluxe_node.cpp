@@ -4,15 +4,12 @@
 #include <geometry_msgs/Vector3.h>
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/Pose2D.h>
+#include <geometry_msgs/Point.h>
 #include <sensor_msgs/Imu.h>
-//#include "snowplow_pid/request_next_waypoints.h"
 #include <string>
 #include <cmath>
 
-//NOT SURE IF THIS WORKS
 #include "waypoint_management.h"
-
-#define ROBOTWIDTH 1.22 //maximum width with plow. we can change this...
 
 //Parameters that will be read in at runtime
 double FAST_SPEED, SLOW_SPEED, KP, KI, KD, KP_SLOW, KI_SLOW, KD_SLOW;
@@ -42,7 +39,6 @@ int avoidance_counter;
 Waypoint avoid_enter, avoid_exit, avoid_thin, avoid_fat;
 //Waypoint start, dest;
 Waypoint pole_est;
-double pole_est_cov;
 
 //keeps angles between -pi and pi so i don't have to
 void wrap_pi(double &angle){
@@ -257,11 +253,36 @@ bool ye_ol_pid(){
   return false;
 }
 
-void poleCallback(const geometry_msgs::PoseWithCovariance::ConstPtr& pole_msg){
-  pole_est.x = pole_msg->pose.position.x;  
-  pole_est.y = pole_msg->pose.position.y;
-  pole_est_cov = pole_msg->covariance[0];
-  //should I do anything else here?
+void poleCallback(const geometry_msgs::Point::ConstPtr& pole_msg){
+  pole_est.x = pole_msg->x;  
+  pole_est.y = pole_msg->y;
+  //this probably isn't how it's being passed
+  
+  bool pole_in_path = false;
+  if(avoidance_counter == 0 || !avoidance_active){
+    pole_in_path =  checkForPole(avoid_enter, avoid_exit, 
+				    avoid_thin, avoid_fat,
+				    start, dest, pole_est);
+  }
+
+  if(pole_in_path){
+    ROS_INFO("POLE IN PATH!!! AVOIDANCE ROUTINE ACTIVATED");
+    avoidance_active = true;
+  }
+  
+  if(avoidance_active && avoidance_counter == 0){
+    ROS_INFO("UPDATING AVOID ENTRANCE BASED ON NEW POLE DATA...");
+    dest.x = avoid_enter.x;
+    dest.y = avoid_enter.y;
+    forward = avoid_enter.forward;
+  }
+  else{
+    ROS_INFO("POLE HAS MOVED OUT OF PATH FOR SOME REASON, RETURNING TO NORMAL DESTINATION...");
+    dest.x = waypoints[0].x;
+    dest.y = waypoints[0].y;
+    dest.forward = waypoints[0].forward;
+  }
+
 }
 
 void poseCallback(const geometry_msgs::Pose2D::ConstPtr& pose_msg){
@@ -275,37 +296,29 @@ void poseCallback(const geometry_msgs::Pose2D::ConstPtr& pose_msg){
     if(ye_ol_pid()){
       usleep(1000000);
 
+      // if avoidance routine in progress, check to see if we've just reached
+      // avoid_enter. if so, add the other two avoidance points and continue as normal.
+      if(avoidance_active){
+	if(avoidance_counter == 0){
+	  //	  waypoints.push_back(avoid_fat);
+	  ROS_INFO("AVOIDANCE ROUTINE FOUND 'AVOID_ENTER'. ADDING THIN/FAT & EXIT...");
+	  waypoints.push_front(avoid_thin);
+	  waypoints.push_front(avoid_exit);
+	  start.x = avoid_enter.x;
+	  start.y = avoid_enter.y;
+	}
+	avoidance_counter++;
+	ROS_INFO("AVOIDANCE ROUTINE HAS REACHED AN AVOIDANCE POINT! AVOID_COUNTER = %d",avoidance_counter);
+
+	if(avoidance_counter == 3)//shut off avoidance once we've done our 3 points
+	  ROS_INFO("AVOIDANCE ROUTINE COMPLETED, AVOIDANCE OFF. RESUMING NORMAL WAYPOINTS...");
+	  avoidance_active = false;
+	  avoidance_counter = 0;
+	}
+      }
+
       if(next_waypoint()){
 	ROS_INFO("Start: (%f,%f) Dest: (%f,%f) Fwd: %d",start.x,start.y,dest.x,dest.y,forward);
-	//check for pole
-	bool pole_in_path =  checkForPole(avoid_enter, avoid_exit, 
-					       avoid_thin, avoid_fat,
-					       start, dest, pole_est, 
-					       pole_est_cov + ROBOTWIDTH/2);
-
-	if(avoidance_active){
-	  if(avoidance_counter < 3)//count off the three points that we added for avoidance
-	    avoidance_counter++;
-	  else{
-	    avoidance_active = false;
-	    avoidance_counter = 0;
-	  }
-	}
-	else if(pole_in_path){
-	  avoidance_active = true;
-	  avoidance_counter = 0;
-	  waypoints.push_front(avoid_exit);
-	  if(false){
-	    // check if fat/thin points are out of bounds,
-	    // then make sure thin point has enough room for
-	    // the robot to pass by.
-	  waypoints.push_front(avoid_fat);
-	  }
-	  waypoints.push_front(avoid_thin);
-	  waypoints.push_front(avoid_enter);
-
-	}
-
       }else{
 	ROS_ERROR("Failed to call service request_next_waypoints");
       }
@@ -317,7 +330,7 @@ void poseCallback(const geometry_msgs::Pose2D::ConstPtr& pose_msg){
       total_num_of_errors = 0;
       error = 0;
       linear_vel = FAST_SPEED;
-    }
+    
   }else{//we turnin'
     if(turn_to_heading()){
       forward_or_turn = 1;
@@ -344,7 +357,6 @@ int main(int argc, char** argv){
   avoidance_counter = 0;
   pole_est.x = 0;
   pole_est.y = 0;
-  pole_est_cov = 0;
 
   nh.param("waypoints_filename", waypoints_filename, std::string("waypoints.txt"));
   
@@ -383,10 +395,6 @@ int main(int argc, char** argv){
   nh.param("KI_SLOW", KI_SLOW, 0.0);
   nh.param("KD_SLOW", KD_SLOW, 0.0);
 
-  // IMPORTANT NOTE: I DON'T KNOW WHAT BOB'S NAMING CONVENTION IS FOR
-  // THE POSITION OF THE POLE, SO THIS PARAM NAME MAY NEED TO CHANGE,
-  // ALONG WITH THE TOPIC (FOR THE DEFAULTS).
-
   nh.param("pose",pose_namespace,std::string("/redblade_ekf/2d_pose"));
   nh.param("cmd_vel",cmd_vel_namespace,std::string("/cmd_vel"));
   ROS_INFO("FAST: %f\tSLOW: %f\tKP: %f\t", FAST_SPEED, SLOW_SPEED, KP);
@@ -396,7 +404,7 @@ int main(int argc, char** argv){
   ros::Subscriber pose_sub = n.subscribe(pose_namespace, 1, poseCallback);
 
   //Subscribe to pole topic
-  nh.param("pole",pole_namespace,std::string("/redblade_ekf/pole"));
+  nh.param("pole",pole_namespace,std::string("/lidar/pole"));
   ros::Subscriber pole_sub = n.subscribe(pole_namespace, 1, poleCallback);
 
   //Set up cmd_vel publisher

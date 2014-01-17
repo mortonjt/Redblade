@@ -3,14 +3,15 @@
 ros::Publisher pub;
 ros::Publisher local_pub;
 ros::Publisher filtered_pub;
+ros::Publisher clustered_pub;
 ros::Publisher transformed_pub;
 
 sensor_msgs::LaserScan currentScan;
 geometry_msgs::Pose2D currentPose;
-laser_geometry::LaserProjection projector_;
 bool hasPoints;
 bool hasPose;
 bool verbose;
+laser_geometry::LaserProjection projector_;
 
 redblade_laser* redLazer;
 
@@ -32,11 +33,14 @@ void scanCallback (const sensor_msgs::LaserScan::ConstPtr& scan_in)
 
 void publish_loop(){
   if(hasPoints and hasPose){
-    sensor_msgs::PointCloud2 cloud,transformed,backFiltered;
+    sensor_msgs::PointCloud2 cloud,transformed,backFiltered,clustered;
     boost::shared_ptr<pcl::PointCloud<pcl::PointXYZ> > 
       pcl_cloud(new pcl::PointCloud<pcl::PointXYZ>());
     boost::shared_ptr<pcl::PointCloud<pcl::PointXYZ> > 
       filtered(new pcl::PointCloud<pcl::PointXYZ>());
+    boost::shared_ptr<pcl::PointCloud<pcl::PointXYZ> > 
+      cluster(new pcl::PointCloud<pcl::PointXYZ>());
+    //redLazer->scan2cloud(currentScan,pcl_cloud);
     projector_.projectLaser(currentScan, cloud); 
     pcl::fromROSMsg(cloud,*pcl_cloud);
     redLazer->transformLaser2ENU(currentPose,pcl_cloud);
@@ -55,7 +59,7 @@ void publish_loop(){
     if(redLazer->saturated()){
       geometry_msgs::Point pt;
       geometry_msgs::PointStamped enuStamped;
-      bool foundPole = redLazer->findPole(pt,0.1);//10 cm
+      bool foundPole = redLazer->findPole(pt,cluster,0.05);
       if(foundPole){
 	enuStamped.header.stamp = ros::Time::now();
 	enuStamped.header.frame_id = "enu";
@@ -63,6 +67,12 @@ void publish_loop(){
 	pub.publish(enuStamped);
 	hasPoints = false;
 	hasPose = false;
+	if(verbose){    
+	  pcl::toROSMsg(*cluster,clustered);
+	  clustered.header = cloud.header;
+	  clustered.header.frame_id = "enu";      
+	  clustered_pub.publish(clustered);}    
+
       }
     }
   }
@@ -100,6 +110,7 @@ int main(int argc, char** argv){
 
   local_pub = nh.advertise<sensor_msgs::PointCloud2> ("/lidar/local", 1);
   filtered_pub = nh.advertise<sensor_msgs::PointCloud2> ("/lidar/filtered", 1);
+  clustered_pub = nh.advertise<sensor_msgs::PointCloud2> ("/lidar/clustered", 1);
   transformed_pub = nh.advertise<sensor_msgs::PointCloud2> ("/lidar/transformed", 1);
   
   ros::AsyncSpinner spinner(2);
