@@ -2,7 +2,8 @@
   <arg name="user" default="redblade"/>
 
   <node pkg="nmea_navsat_driver" type="nmea_serial_driver" name="Topcon_DGPS" output="screen" >
-    <param name="port" value="/dev/ttyDGPS" />
+    <!-- <param name="port" value="/dev/ttyDGPS" /> -->
+    <param name="port" value="/dev/ttyFTDIbottom" />
     <param name="baud" value="115200" /> 
     <param name="frame_id" value="Topcon_DGPS" />
     <param name="useRMC" value="False" /> 
