@@ -8,10 +8,52 @@
 #include <vector>
 #include <deque>
 #include "survey_snow_field.h"
+#include "conversions.h"
 
 //global variable pointbuffer. callback keeps this filled with most recent points
 std::deque<Coordinates> pointBuffer;
 int numDataPoints, numCorners;
+
+void writeENU(std::string filename, std::vector<Coordinates>& cornerList){
+  double northing, easting, latitude, longitude;
+  double initial_e, initial_n;
+  std::string zone;
+  bool initialized = false;
+
+  std::ofstream fs_out(filename.c_str(),std::ofstream::out);
+  
+  if(!fs_out.good()){
+    ROS_WARN("ERROR OPENING FILE 2 OUTPUT");
+    return;
+  }
+
+  //set float precision to exactly 10
+  fs_out.unsetf(std::ofstream::floatfield);
+  fs_out.precision(10);
+  fs_out.setf(std::ofstream::fixed,std::ofstream::floatfield);
+
+  std::string line, comma;
+  for(int i = 0; i < cornerList.size(); i++){
+
+    latitude = cornerList[i].lat;
+    longitude = cornerList[i].lon;
+
+    gps_common::LLtoUTM(latitude, longitude, northing, easting, zone);
+
+    if(!initialized){
+      initialized = true;
+      initial_e = easting;
+      initial_n = northing;
+    }
+
+    easting = easting - initial_e;
+    northing = northing - initial_n;
+    fs_out << easting << "," << northing << std::endl; 
+    ROS_INFO("WROTE AN ENU POINT");
+  }
+  
+  fs_out.close();
+}
 
 void writeData(std::string filename1, std::vector<Coordinates>& cornerList){
 
@@ -120,9 +162,11 @@ int main(int argc, char** argv){
 
   //create filename strings
   std::string filename1(filepath+"survey_geodetic.csv");
+  std::string filename2(filepath+"survey_enu.csv");
 
   //delete files if the already exist
   std::remove(filename1.c_str());
+  std::remove(filename2.c_str());
 
   //create coordinate buffer and corner list
   std::vector<Coordinates> cornerList;
@@ -139,6 +183,8 @@ int main(int argc, char** argv){
   cornerCollector.join();
 
   writeData(filename1, cornerList);
+
+  writeENU(filename2, cornerList);
 
   ROS_INFO("COMPLETE.");
 
