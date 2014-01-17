@@ -7,7 +7,7 @@ import math
 import movingAverage
 
 #gpsBag = "/home/jamie/Documents/data/test4/pole.bag"
-poleBag = "/home/jamie/bagFiles/test_pole1_processed.bag"
+poleBag = "/home/jamie/Documents/data/lidar.bag"
 front_encoders = "/encoders_front"
 back_encoders = "/encoders_back"
 front_cmds = "/roboteq_front/cmd_vel_stamped"
@@ -17,6 +17,7 @@ gps = "/gps"
 cmd_vels = "/cmd_vel"
 lidar_pole = "/lidar/pole"
 stereo_pole = "/stereo_camera/pole"
+pose2D = "/redblade_ekf/2d_pose"
 
 #bag = rosbag.Bag(gpsBag)
 #threshold = 0.1
@@ -38,9 +39,12 @@ threshold = 0.1
 gps_msgs           = [msg for topic,msg,t in bag.read_messages(topics=[gps])]
 lidar_msgs    = [msg for topic,msg,t in bag.read_messages(topics=[lidar_pole])]
 stereo_msgs   = [msg for topic,msg,t in bag.read_messages(topics=[stereo_pole])]
+pose2D_msgs   = [msg for topic,msg,t in bag.read_messages(topics=[pose2D])]
 
 gps_x = [x.pose.pose.position.x for x in gps_msgs]
 gps_y = [y.pose.pose.position.y for y in gps_msgs]
+
+headings = [t.theta for t in ekf_msgs]
 
 lidar_pole_x = [x.point.x for x in lidar_msgs]
 lidar_pole_y = [y.point.y for y in lidar_msgs]
@@ -117,5 +121,13 @@ title("Position vs time of Stereo measurements on y axis")
 legend([p1,p2,p3],["GPS Robot position"," Pole position (STEREO)","Correct position"])
 f6.show() 
 
+
+f7 = figure(7)
+plot(time,headings,'og')
+ylabel("Rad (y)")
+xlabel("time")
+title("heading vs time of Stereo measurements on y axis")
+#legend([p1,p2,p3],["GPS Robot position"," Pole position (STEREO)","Correct position"])
+f7.show() 
 
 raw_input()

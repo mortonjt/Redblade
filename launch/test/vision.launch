@@ -38,7 +38,8 @@
 
   <node pkg="sicktoolbox_wrapper" type="sicklms" name="lidar" output="screen">
   	<param name="port" value="/dev/ttyS0" />
-	<param name="resolution" value="0.0" />
+	<param name="angle" value="100" />
+	<param name="resolution" value="0.25" />
   </node>
   
   <!-- <node pkg="redblade_laser"  -->

@@ -188,6 +188,7 @@ bool ye_ol_pid(){
 }
 
 void poseCallback(const geometry_msgs::Pose2D::ConstPtr& pose_msg){
+  ROS_INFO("EKF callback");
   //grab the current ekf readings
   cur_pos = *pose_msg;
   //do the ol pid dance
@@ -201,6 +202,7 @@ void poseCallback(const geometry_msgs::Pose2D::ConstPtr& pose_msg){
 
 //This method is called every 25 ms and will publish a Twist message for the robot
 void publish_loop(){
+  ROS_INFO("Publishing cmd_vel from PID");
   cmd_vel_pub.publish(vel_targets);
 }
 
@@ -239,6 +241,7 @@ int main(int argc, char** argv){
   start.y = 0;
   dest.x = -20;
   dest.y = 0.01;
+  forward = 1;
   forward_or_turn = 1;
 
   //Set up cmd_vel publisher

@@ -15,7 +15,7 @@ ros::Publisher robo_front_stamped_pub;
 ros::Publisher robo_back_stamped_pub;
 geometry_msgs::Twist front_target;
 geometry_msgs::Twist back_target;
-#define angular_cap 0.3
+#define angular_cap 20
 
 void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& msg){
   //for now, we're just going to push the overall linear and angular velocity through
