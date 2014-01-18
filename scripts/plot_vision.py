@@ -60,10 +60,10 @@ d = [math.sqrt((lidar_pole_y[i]-correct_y)**2 +
                (lidar_pole_x[i]-correct_x)**2) for i in xrange(len(lidar_pole_y))]
 
 f1 = figure(1)
-p1,=plot(lidar_pole_y,lidar_pole_x,'ob')
-p2,=plot(gps_y,gps_x,'og')
+p1,=plot(lidar_pole_x,lidar_pole_y,'ob')
+p2,=plot(gps_x,gps_y,'og')
 
-p3,=plot(correct_y,correct_x,'or')
+p3,=plot(correct_x,correct_y,'or')
 ylabel("x")
 xlabel("y")
 title("Experiment positions")

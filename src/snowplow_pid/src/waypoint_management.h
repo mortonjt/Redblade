@@ -7,8 +7,8 @@
 
 #define ROBOTWIDTH 1.12 //maximum width with plow. we can change this...
 #define ROBOTLENGTH 1.905 //max length with plow. also apt to change.
-#define PASSINGBUFFER 0.1
-#define STOPPINGBUFFER 0.3
+#define PASSINGBUFFER 0.75
+#define STOPPINGBUFFER 1
 
 struct Waypoint{
   double x,y;
@@ -53,9 +53,8 @@ bool read_in_waypoints(){
   return true;
 }
 
-bool next_waypoint(){
+bool next_waypoint(bool avoidance_active){
   //check to make sure we have a valid waypoint to give, if not, loop back to beginning
-  //TODO
 
   if(waypoints.size() > 0){
     //populate waypoints
@@ -65,18 +64,23 @@ bool next_waypoint(){
     dest.y = waypoints[1].y;
     forward = waypoints[1].forward;
 
-    // remove waypoint that we've reached. should probably remove this
-    // from inside the reached destination method.
-    waypoints.pop_front();
+    //push this waypoint onto the 
+    if(avoidance_active){
+      waypoints.push_back(waypoints.front());
+      waypoints.pop_front();
+    }
+    else{
+      waypoints.pop_front();
+    }
 
     ROS_INFO("Next waypoints request received");
     return true;
   }
   else{
+    //we should never get here because we recycle our points
     ROS_WARN("No more waypoints!");
     return false;
   }
-  //waypoint_number++;
   
 }
 
@@ -197,6 +201,11 @@ bool checkForPole(Waypoint& p1, Waypoint& p2, Waypoint& p3, Waypoint& p4,
     }
 
     //DECIDE TO SEND THIN OR FAT
+
+    p1.forward = 1;
+    p2.forward = 1;
+    p3.forward = 1;
+    p4.forward = 1;
 
     //return true because pole is in path
     return true;

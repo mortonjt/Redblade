@@ -1,7 +1,7 @@
 <launch>
   
   <node pkg="rosbag" type="play" name="rosbag_play"
-  	args="/home/redblade/DATA/LIDAR/left_diag.orig.bag">
+  	args="/home/redblade/DATA/LIDAR/flat.bag">
   </node>
 
   <!-- <node pkg="nodelet" type="nodelet" name="pcl_filter_manager" args="manager"/> -->

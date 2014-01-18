@@ -21,6 +21,9 @@ std::vector<std::vector<double> > survey_points;
 double orientation;
 std::string survey_file;
 
+std::vector<geometry_msgs::PointStamped> moving_avg_filter;
+int filter_index;
+
 //dimensions for snow field 
 double SI_snow_length_max = 13;
 double SI_snow_length_min = 3;
@@ -85,7 +88,7 @@ void read_in_survey_points(){
 void get_orientation(){
   orientation = atan2(survey_points[1][1]-survey_points[0][1],
 		      survey_points[1][0]-survey_points[0][0]);
-  ROS_INFO("Orientation: %f", orientation);
+  //ROS_INFO("Orientation: %f", orientation);
 }
 
 //rotate a specified point by a given angle using the
@@ -110,9 +113,9 @@ bool checkBoundaries(double range, double laser_theta){
   laserPoint.y = cur_pos.y + range*sin(laser_theta+cur_pos.theta);
   
 
-  ROS_INFO("Current: (%f, %f) -> %f\n", cur_pos.x, cur_pos.y, cur_pos.theta);
-  ROS_INFO("Laser point: (%f, %f)", laserPoint.x, laserPoint.y);
-  ROS_INFO("Range/theta: %f/%f",range, laser_theta);
+  //ROS_INFO("Current: (%f, %f) -> %f\n", cur_pos.x, cur_pos.y, cur_pos.theta);
+  //ROS_INFO("Laser point: (%f, %f)", laserPoint.x, laserPoint.y);
+  //ROS_INFO("Range/theta: %f/%f",range, laser_theta);
 
   rotation_matrix(laserPoint, -orientation);
 
@@ -153,15 +156,12 @@ void check_for_pole(){
     
     while(1){
       //check for end of array
-      //ROS_INFO("j: %d", j);
-      //ROS_INFO("curr_scan: %f\n",cur_scan.ranges[j]);
       if(j>=(num_scans-1)){
 	if(good >= POLE_HITS){
-	  ROS_INFO("pole hits: %d", good);
+	  //ROS_INFO("pole hits: %d", good);
 	  temp_point[0] = current_range;
 	  temp_point[1] = cur_scan.angle_min + (cur_scan.angle_increment*((j+i)/2));
 	  point_vector.push_back(temp_point);
-	  //ROS_INFO("Object Position: range->%f\tangle->%f", temp_point[0], temp_point[1]);
 	}
 	break;
       }else if(fabs(cur_scan.ranges[j]-current_range) > RANGE_THRESH){
@@ -173,7 +173,7 @@ void check_for_pole(){
 	    temp_point[0] = current_range;
 	    temp_point[1] = cur_scan.angle_min + (cur_scan.angle_increment*((j+i)/2));
 	    point_vector.push_back(temp_point);
-	    ROS_INFO("pole hits: %d", good);
+	    //ROS_INFO("pole hits: %d", good);
 	    //ROS_INFO("Object Position: range->%f\tangle->%f", temp_point[0], temp_point[1]);
 	    i = j;
 	  }
@@ -208,6 +208,22 @@ void check_for_pole(){
       laserPoint.point.x = cur_pos.x + range*cos(theta+cur_pos.theta);
       laserPoint.point.y = cur_pos.y + range*sin(theta+cur_pos.theta);
       
+      //add to average and filter point
+      if(moving_avg_filter.size() < 10){
+      	moving_avg_filter.push_back(laserPoint);
+      }else{
+      	moving_avg_filter[filter_index%9] = laserPoint;
+      	filter_index++;
+      }
+      laserPoint.point.x =0;
+      laserPoint.point.y =0;
+      for(int i = 0; i < moving_avg_filter.size(); i++){
+      	laserPoint.point.x += moving_avg_filter[i].point.x;
+      	laserPoint.point.y += moving_avg_filter[i].point.y;
+      }
+      
+      laserPoint.point.x /= moving_avg_filter.size();
+      laserPoint.point.y /= moving_avg_filter.size();
       pole_pub.publish(laserPoint);
       
       break;
@@ -267,6 +283,9 @@ int main(int argc, char** argv){
   //lidar_file.open("/home/redblade/Documents/Redblade/lidar_collect.csv");
   read_in_survey_points();
   get_orientation();
+
+  //filter index
+  filter_index = 0;
 
   ros::AsyncSpinner spinner(2);
   spinner.start();

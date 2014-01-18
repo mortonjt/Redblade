@@ -4,12 +4,13 @@
 #include <geometry_msgs/Vector3.h>
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/Pose2D.h>
-#include <geometry_msgs/Point.h>
+#include <geometry_msgs/PointStamped.h>
 #include <sensor_msgs/Imu.h>
 #include <string>
 #include <cmath>
 
 #include "waypoint_management.h"
+//#include "boundaryCheck.h"
 
 //Parameters that will be read in at runtime
 double FAST_SPEED, SLOW_SPEED, KP, KI, KD, KP_SLOW, KI_SLOW, KD_SLOW;
@@ -37,8 +38,10 @@ bool avoidance_active;
 int avoidance_counter;
 
 Waypoint avoid_enter, avoid_exit, avoid_thin, avoid_fat;
-//Waypoint start, dest;
 Waypoint pole_est;
+std::vector<std::vector<double> > survey_points;
+double orientation;
+std::string survey_filename;
 
 //keeps angles between -pi and pi so i don't have to
 void wrap_pi(double &angle){
@@ -152,11 +155,42 @@ double distance_to_goal(){
   return d;
 }
 
+/*This method calculates the "cross track error", or the perpendicular distance from
+a line that the robot is trying to follow. It takes as inputs the starting point, the destination point,
+and the current point
+                       
+                       current point
+                            |\
+                            | \
+			    |  |->CTE
+start                       | /                           end   
+ ^__________________________|/_____________________________^
+
+*/
+double calculate_cte(){
+  double rot;
+  geometry_msgs::Pose2D start_rot, cur_rot;
+
+  //find out how many rads we need to rotate the field by
+  rot = atan2(dest.y-start.y, dest.x-start.x);
+
+  //rotate start point
+  start_rot.x = start.x * cos(-rot) - start.y * sin(-rot);
+  start_rot.y = start.x * sin(-rot) + start.y * cos(-rot);
+
+  //rotate current point
+  cur_rot.x = cur_pos.x * cos(-rot) - cur_pos.y * sin(-rot);
+  cur_rot.y = cur_pos.x * sin(-rot) + cur_pos.y * cos(-rot);
+
+  //calculate cross track error
+  return (cur_rot.y - start_rot.y);
+}
+
 //returns true when destination is reached
 bool ye_ol_pid(){
-  ROS_INFO("Ye Old Pid");
+  //ROS_INFO("Ye Old Pid");
   //local variables
-  double desired_heading, kp_corr, ki_corr, kd_corr, pid, distance;
+  double desired_heading, kp_corr, ki_corr, kd_corr, pid, distance, cte, correction_vel;
   //double current_heading = current_imu.z;
   double current_heading = cur_pos.theta;
 
@@ -183,12 +217,36 @@ bool ye_ol_pid(){
   // 			       dest.x-cur_pos.x);
   desired_heading = atan2(dest.y-cur_pos.y,
 			  dest.x-cur_pos.x);
+
   wrap_pi(desired_heading);
   if(!forward){
     current_heading -= M_PI;
     wrap_pi(current_heading);
   }
   error = desired_heading - current_heading;
+
+  //calculate extra error from cte
+  cte = calculate_cte();
+
+  //when cte error is positive, the robot is to the left of the current desired path,
+  //so our correction should be negative, i.e. a negative angular velocity
+  correction_vel = 10;
+  correction_vel *= (M_PI/180);
+  if(fabs(cte) > 0.05 && fabs(cte) < 1){
+    if(cte > 0){
+      error -= (((fabs(cte)-0.05)/0.95) * correction_vel);
+    }else{
+      error += (((fabs(cte)-0.05)/0.95) * correction_vel);
+    }
+  }else if(fabs(cte) > 1){
+    //apply constant correction for very large cte
+    if(cte > 0){
+      error -= correction_vel;
+    }else{
+      error += correction_vel;
+    }
+  }
+
   wrap_pi(error);
   /*ROS_INFO("Error %f",error);
     ROS_INFO("Current Heading %f",current_heading);
@@ -224,8 +282,8 @@ bool ye_ol_pid(){
   ROS_INFO("Current (%f,%f) Dest (%f,%f)",
 	   cur_pos.x,cur_pos.y,
 	   dest.x,dest.y);*/
-  ROS_INFO("Error: %f\tCurrent Heading: %f\t Desired Heading: %f",(error*(180/M_PI)),(current_heading*(180/M_PI)),(desired_heading*(180/M_PI)));
-  ROS_INFO("PID: %f\tDistance: %f\t Current (%f, %f), Desination (%f, %f)\n",pid,distance,cur_pos.x,cur_pos.y,dest.x,dest.y);
+  //ROS_INFO("Error: %f\tCTE: %f\tCurrent Heading: %f\t Desired Heading: %f",(error*(180/M_PI)),cte,(current_heading*(180/M_PI)),(desired_heading*(180/M_PI)));
+  //ROS_INFO("PID: %f\tDistance: %f\t Current (%f, %f), Desination (%f, %f)\n",pid,distance,cur_pos.x,cur_pos.y,dest.x,dest.y);
 
   
   if(distance < 0.1){
@@ -253,10 +311,12 @@ bool ye_ol_pid(){
   return false;
 }
 
-void poleCallback(const geometry_msgs::Point::ConstPtr& pole_msg){
-  pole_est.x = pole_msg->x;  
-  pole_est.y = pole_msg->y;
+void poleCallback(const geometry_msgs::PointStamped::ConstPtr& pole_msg){
+  pole_est.x = pole_msg->point.x;  
+  pole_est.y = pole_msg->point.y;
   //this probably isn't how it's being passed
+
+  ROS_INFO("POLE POINT: (%f,%f) ",pole_est.x,pole_est.y);
   
   bool pole_in_path = false;
   if(avoidance_counter == 0 || !avoidance_active){
@@ -266,21 +326,25 @@ void poleCallback(const geometry_msgs::Point::ConstPtr& pole_msg){
   }
 
   if(pole_in_path){
-    ROS_INFO("POLE IN PATH!!! AVOIDANCE ROUTINE ACTIVATED");
+    ROS_INFO("POLE IN PATH!!! AVOIDANCE ROUTINE ACTIVE");
     avoidance_active = true;
   }
   
   if(avoidance_active && avoidance_counter == 0){
-    ROS_INFO("UPDATING AVOID ENTRANCE BASED ON NEW POLE DATA...");
-    dest.x = avoid_enter.x;
-    dest.y = avoid_enter.y;
-    forward = avoid_enter.forward;
-  }
-  else{
-    ROS_INFO("POLE HAS MOVED OUT OF PATH FOR SOME REASON, RETURNING TO NORMAL DESTINATION...");
-    dest.x = waypoints[0].x;
-    dest.y = waypoints[0].y;
-    dest.forward = waypoints[0].forward;
+    if(pole_in_path){
+      dest.x = avoid_enter.x;
+      dest.y = avoid_enter.y;
+      forward = avoid_enter.forward;
+      ROS_INFO("UPDATING AVOID_ENTRANCE: Start: (%f,%f) Dest: (%f,%f) Fwd: %d",start.x,start.y,dest.x,dest.y,forward);
+    }
+    else{
+      dest.x = waypoints[0].x;
+      dest.y = waypoints[0].y;
+      dest.forward = waypoints[0].forward;
+      avoidance_active = false;
+      avoidance_counter = 0;
+      ROS_INFO("POLE MOVED OUT OF PATH, RESUME ORIG DEST Start: (%f,%f) Dest: (%f,%f) Fwd: %d",start.x,start.y,dest.x,dest.y,forward);
+    }
   }
 
 }
@@ -289,56 +353,70 @@ void poseCallback(const geometry_msgs::Pose2D::ConstPtr& pose_msg){
   //grab the current ekf readings
 
   cur_pos = *pose_msg;
+
+  ROS_INFO("CUR POS: x:%f, y:%f, theta:%f",cur_pos.x,cur_pos.y,cur_pos.theta);
   
-  ROS_INFO("Forward or Turn %d",forward_or_turn);
+  //ROS_INFO("Forward or Turn %d",forward_or_turn);
   if(forward_or_turn){
     //do the ol pid dance
     if(ye_ol_pid()){
-      usleep(1000000);
+      usleep(500000);
 
       // if avoidance routine in progress, check to see if we've just reached
       // avoid_enter. if so, add the other two avoidance points and continue as normal.
       if(avoidance_active){
 	if(avoidance_counter == 0){
-	  //	  waypoints.push_back(avoid_fat);
+	  //	  waypoints.push_front(avoid_fat);
 	  ROS_INFO("AVOIDANCE ROUTINE FOUND 'AVOID_ENTER'. ADDING THIN/FAT & EXIT...");
-	  waypoints.push_front(avoid_thin);
+
 	  waypoints.push_front(avoid_exit);
-	  start.x = avoid_enter.x;
-	  start.y = avoid_enter.y;
+	  // if(checkBounds(avoid_thin))
+	  //   waypoints.push_front(avoid_thin);
+	  // else
+	  //   waypoints.push_front(avoid_fat);
+	  waypoints.push_front(avoid_thin);
+	  waypoints.push_front(avoid_enter);
 	}
 	avoidance_counter++;
 	ROS_INFO("AVOIDANCE ROUTINE HAS REACHED AN AVOIDANCE POINT! AVOID_COUNTER = %d",avoidance_counter);
-
-	if(avoidance_counter == 3)//shut off avoidance once we've done our 3 points
-	  ROS_INFO("AVOIDANCE ROUTINE COMPLETED, AVOIDANCE OFF. RESUMING NORMAL WAYPOINTS...");
-	  avoidance_active = false;
-	  avoidance_counter = 0;
-	}
+	ROS_INFO("DISTANCE TO POLE: %f", sqrt( (pole_est.x - cur_pos.x)*(pole_est.x - cur_pos.x) + 
+					       (pole_est.y - cur_pos.y)*(pole_est.y - cur_pos.y) ));
       }
 
-      if(next_waypoint()){
+      if(next_waypoint(avoidance_active)){
 	ROS_INFO("Start: (%f,%f) Dest: (%f,%f) Fwd: %d",start.x,start.y,dest.x,dest.y,forward);
       }else{
-	ROS_ERROR("Failed to call service request_next_waypoints");
+	ROS_ERROR("Failed to get another waypoint");
       }
       forward_or_turn = 0;
+
+      if(avoidance_counter == 3){//shut off avoidance once we've done our 3 points
+	ROS_INFO("AVOIDANCE ROUTINE COMPLETED, AVOIDANCE OFF. RESUMING NORMAL WAYPOINTS...");
+	avoidance_active = false;
+	avoidance_counter = 0;
+      }
     
       //reinitialize all errors to zero
       previous_error = 0;
       sum_of_errors = 0;
       total_num_of_errors = 0;
       error = 0;
-      linear_vel = FAST_SPEED;
-    
+
+      if(distance_to_goal() < 2){
+	linear_vel = SLOW_SPEED;
+      }else{
+	linear_vel = FAST_SPEED;
+      }
+    }
+
   }else{//we turnin'
     if(turn_to_heading()){
+      usleep(500000);
       forward_or_turn = 1;
     }
   }
 
 }
-
 
 //This method is called every 25 ms and will publish a Twist message for the robot
 void publish_loop(){
@@ -359,12 +437,16 @@ int main(int argc, char** argv){
   pole_est.y = 0;
 
   nh.param("waypoints_filename", waypoints_filename, std::string("waypoints.txt"));
+  // nh.param("survey_filename", survey_filename, std::string("/home/redblade/Documents/Redblade/config/survey_enu.csv"));
   
   ROS_INFO("Waypoints file:%s", waypoints_filename.c_str());
   bool file_good = read_in_waypoints();
+
+  //survey_points = read_in_survey_points(survey_filename);
+  //orientation = getOrientation();
   
   if(!file_good){
-    ROS_ERROR("Error in waypoints service.");
+    ROS_ERROR("Error reading in waypoints.");
     return 1;
   }
   ROS_INFO("Number of waypoints:%d", (int)waypoints.size());
@@ -374,10 +456,10 @@ int main(int argc, char** argv){
   }
 
   //grab the inital waypoint
-  if(next_waypoint()){
+  if(next_waypoint(avoidance_active)){
     ROS_INFO("Start: (%f,%f) Dest: (%f,%f) Fwd: %s",start.x,start.y,dest.x,dest.y,forward?"true":"false");
   }else{
-    ROS_ERROR("Failed to call service request_next_waypoints");
+    ROS_ERROR("Failed to get first waypoint");
   }
   forward_or_turn = 1;//
   
@@ -427,12 +509,14 @@ int main(int argc, char** argv){
   total_num_of_errors = 0;
   error = 0;
   linear_vel = FAST_SPEED;
- 
-  while(ros::ok()){
-    publish_loop();
-    
+
+  //CHANGEDBOB
+  ros::AsyncSpinner spinner(1);
+  spinner.start();    
+  while(ros::ok()){ 
+    publish_loop();    
     cmd_vel_rate.sleep();
-    ros::spinOnce();
   }
+  spinner.stop();  
   
 }
