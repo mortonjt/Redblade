@@ -8,7 +8,7 @@ import movingAverage
 
 #gpsBag = "/home/jamie/Documents/data/test4/pole.bag"
 #poleBag = "/home/jamie/Documents/data/lidar.bag"
-poleBag = "/home/redblade/DATA/LIDAR/lidar_processed.bag"
+poleBag = "/home/jamie/DATA/LIDAR/lidar_processed.bag"
 front_encoders = "/encoders_front"
 back_encoders = "/encoders_back"
 front_cmds = "/roboteq_front/cmd_vel_stamped"

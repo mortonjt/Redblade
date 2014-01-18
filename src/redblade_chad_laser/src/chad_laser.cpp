@@ -3,6 +3,13 @@
 #include <geometry_msgs/Vector3.h>
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/Pose2D.h>
+/*
+  Suggestions:
+  1) Throw out bad laser scans
+     When moving average filter is full, compare incoming measurements with every other scan to see if 
+     the new reading is within 0.5 meters away from at least one of the scans in the filter
+ */
+
 #include <geometry_msgs/PointStamped.h>
 #include <sensor_msgs/Imu.h>
 #include <sensor_msgs/LaserScan.h>

@@ -1,3 +1,11 @@
+/*
+ Suggestions
+ 1) Initialize the EKF using the coordinates of the field (line 244)
+ 2) Propagate the EKF using wheel encoders (line 102)
+ 3) Throw out bad gps measurements?
+ 4) Plot the wheel encoders over time to gage accuracy of propagation
+*/
+
 #include <ros/ros.h>
 #include <geometry_msgs/Vector3.h>
 #include <geometry_msgs/Pose2D.h>
@@ -92,6 +100,7 @@ void gpsCallback(const nav_msgs::Odometry::ConstPtr& gps_msg){
     daters << z(1) << "," << z(2) << "," << z(3) << "," << z(4) << "," << z(5) << ",";
     //ROS_INFO("%lf, %lf, %lf, %lf, %lf", z(1), z(2), z(3), z(4), z(5));
     
+    //Todo: Move all of this logic into a separate publish_loop() and do ekf.predict(u) when no gps is present
     ekf.step(u, z);
     x = ekf.getX();
 
@@ -240,6 +249,7 @@ int main(int argc, char **argv){
   x(4) = 0.0;
   x(5) = 0.0;
   x(6) = 0.0;
+  //TODO: Be able to initalize the EKF just based off of the field
   //intialize ze filter
   ekf.init(x, P0);
 

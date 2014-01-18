@@ -40,8 +40,8 @@ void publish_loop(){
       filtered(new pcl::PointCloud<pcl::PointXYZ>());
     boost::shared_ptr<pcl::PointCloud<pcl::PointXYZ> > 
       cluster(new pcl::PointCloud<pcl::PointXYZ>());
-    //redLazer->scan2cloud(currentScan,pcl_cloud);
-    projector_.projectLaser(currentScan, cloud); 
+    redLazer->scan2cloud(currentScan,pcl_cloud);
+    //projector_.projectLaser(currentScan, cloud); 
     //pcl::fromROSMsg(cloud,*pcl_cloud);
     redLazer->transformLaser2ENU(currentPose,pcl_cloud);
     redLazer->filterBackground(pcl_cloud,filtered);

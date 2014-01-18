@@ -1,7 +1,7 @@
 <launch>
   
   <node pkg="rosbag" type="play" name="rosbag_play"
-  	args="/home/redblade/DATA/LIDAR/slant2.bag">
+  	args="/home/jamie/DATA/LIDAR/flat.bag">
   </node>
 
   <!-- <node pkg="nodelet" type="nodelet" name="pcl_filter_manager" args="manager"/> -->
@@ -45,11 +45,12 @@
     <param name="laser_namespace" value="/scan"/>
     <param name="pole_namespace" value="/lidar/pole"/>
     <param name="single_or_triple" value="false"/>
+    <param name="survey_file" value="/home/jamie/Documents/Redblade/config/survey_enu.csv"/>
   </node>
 
 
   <node pkg="rosbag" type="record" name="rosbag_rec"
-  	args="-O /home/redblade/DATA/LIDAR/lidar_processed.bag /gps /imu/integrated_gyros_stamped /odom /redblade_ekf/odom /redblade_ekf/2d_pose /lidar/pole">
+  	args="-O /home/jamie/DATA/LIDAR/lidar_processed.bag /gps /imu/integrated_gyros_stamped /odom /redblade_ekf/odom /redblade_ekf/2d_pose /lidar/pole">
   </node>
 
 
