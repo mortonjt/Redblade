@@ -1,0 +1,57 @@
+<launch>
+  
+  <node pkg="rosbag" type="play" name="rosbag_play"
+  	args="/home/redblade/DATA/LIDAR/slant2.bag">
+  </node>
+
+  <!-- <node pkg="nodelet" type="nodelet" name="pcl_filter_manager" args="manager"/> -->
+  <!-- <node pkg="nodelet" type="nodelet" name="voxel_filter" -->
+  <!-- 	args="load pcl/VoxelGrid pcl_filter_manager" -->
+  <!-- 	output="screen"> -->
+  <!--   <remap from="~input" to="/stereo_camera/points2"/> -->
+  <!--   <rosparam> -->
+  <!--     filter_field_name: z -->
+  <!--     filter_limit_min: 0.01 -->
+  <!--     filter_limit_max: 10.0 -->
+  <!--     leaf_size: 0.01 -->
+  <!--   </rosparam> -->
+  <!-- </node> -->
+
+  <!-- <node pkg="redblade_stereo" -->
+  <!-- 	type="redblade_stereo_node" -->
+  <!-- 	name="redblade_stereo_node" -->
+  <!-- 	respawn="true" -->
+  <!-- 	output="screen" > -->
+  <!--   <param name="stereo_namespace" value="/voxel_filter/output"/> -->
+  <!--   <param name="survey_file" value="/home/jamie/Documents/Redblade/config/survey_enu.tab" /> -->
+  <!--   <param name="verbose" value="true" /> -->
+  <!-- </node> -->
+
+  <!-- <node pkg="redblade_laser" -->
+  <!-- 	type="redblade_laser_node" -->
+  <!-- 	name="redblade_laser_node" -->
+  <!-- 	respawn="true" -->
+  <!-- 	output="screen" > -->
+  <!--   <param name="survey_file" value="/home/redblade/Documents/Redblade/config/survey_enu.tab" /> -->
+  <!--   <param name="verbose" value="true" /> -->
+  <!--   <param name="queue" value="1" /> -->
+  <!-- </node> -->
+
+  <node pkg="redblade_chad_laser"
+  	type="redblade_chad_laser_node"
+  	name="redblade_chad_laser_node"
+  	output="screen">
+    <param name="ekf_namespace" value="/redblade_ekf/2d_pose"/>
+    <param name="laser_namespace" value="/scan"/>
+    <param name="pole_namespace" value="/lidar/pole"/>
+    <param name="single_or_triple" value="false"/>
+  </node>
+
+
+  <node pkg="rosbag" type="record" name="rosbag_rec"
+  	args="-O /home/redblade/DATA/LIDAR/lidar_processed.bag /gps /imu/integrated_gyros_stamped /odom /redblade_ekf/odom /redblade_ekf/2d_pose /lidar/pole">
+  </node>
+
+
+</launch>
+ 
