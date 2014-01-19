@@ -109,6 +109,9 @@ add_library(redblade_ekf
 add_executable(redblade_ekf_node src/redblade_ekf_node.cpp)
 target_link_libraries(redblade_ekf_node redblade_ekf ${catkin_LIBRARIES} kalman)
 
+add_executable(redblade_ekf_test_node src/redblade_ekf_test_node.cpp)
+target_link_libraries(redblade_ekf_test_node redblade_ekf ${catkin_LIBRARIES} kalman)
+
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 # add_dependencies(redblade_ekf_node redblade_ekf_generate_messages_cpp)
