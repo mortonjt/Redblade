@@ -48,6 +48,11 @@ def getLinearVels(bagFile,
     gps_x = [x.pose.pose.position.x for x in gps_msgs]
     gps_y = [y.pose.pose.position.y for y in gps_msgs]
     time = [t.header.stamp.secs+t.header.stamp.nsecs/10.0**9 for t in gps_msgs]
+    gps_x = [x[i] for i in range(0,len(gps_x),2)]
+    gps_y = [x[i] for i in range(0,len(gps_y),2)]
+    time  = [x[i] for i in range(0,len(time),2)]
+
+    print time
     gps_time    = movingAverage.movingAverage(\
         [t.header.stamp.secs+t.header.stamp.nsecs/10.0**9
          for t in gps_msgs],1)
@@ -78,7 +83,7 @@ def plot(bagFile,
     gps_x = [x.pose.pose.position.x for x in gps_msgs]
     gps_y = [y.pose.pose.position.y for y in gps_msgs]
     time = [t.header.stamp.secs+t.header.stamp.nsecs/10.0**9 for t in gps_msgs]
-
+    gpsTimes = time[:-1]
     # gps_x = movingAverage.exponentialMovingAverage(\
     #     [x.pose.pose.position.x for x in gps_msgs],alpha=0.5)
     # gps_y = movingAverage.exponentialMovingAverage(\
@@ -86,9 +91,9 @@ def plot(bagFile,
     # time  = movingAverage.exponentialMovingAverage(\
     #     [t.header.stamp.secs+t.header.stamp.nsecs/10.0**9 for t in gps_msgs],alpha=0.5)
 
-    gpsTimes    = movingAverage.movingAverage(\
-        [t.header.stamp.secs+t.header.stamp.nsecs/10.0**9
-         for t in gps_msgs],1)
+    # gpsTimes    = movingAverage.movingAverage(\
+    #     [t.header.stamp.secs+t.header.stamp.nsecs/10.0**9
+    #      for t in gps_msgs],1)
 
     # gpsVels    = movingAverage.exponentialMovingAverage(\
     #     velocity.getLinearGPSVelocities(gps_x,gps_y,time),alpha=0.5)
@@ -223,21 +228,21 @@ def plot(bagFile,
     ylim([-.75,.75])
     f7.show() 
 
-# bagFile        = "/home/redblade/ROBOTEQDATA/gps_test7/circle.bag"
-# front_encoders = "/encoders_front"
-# back_encoders  = "/encoders_back"
-# front_cmds     = "/roboteq_front/cmd_vel_stamped"
-# back_cmds      = "/roboteq_back/cmd_vel_stamped"
-# imu            = "/imu/data"
-# gps            = "/gps"
-# cmd_vels       = "/Arduino_RC"
+bagFile        = "/home/jamie/DATA/EKF/ekf_processed.bag"
+front_encoders = "/encoders_front"
+back_encoders  = "/encoders_back"
+front_cmds     = "/roboteq_front/cmd_vel_stamped"
+back_cmds      = "/roboteq_back/cmd_vel_stamped"
+imu            = "/imu/data"
+gps            = "/gps"
+cmd_vels       = "/Arduino_RC"
 
-# go(bagFile,        
-#    front_encoders, 
-#    back_encoders,  
-#    front_cmds,     
-#    back_cmds,      
-#    imu,            
-#    gps,            
-#    cmd_vels)
-# raw_input()
+plot(bagFile,        
+     front_encoders, 
+     back_encoders,  
+     front_cmds,     
+     back_cmds,      
+     imu,            
+     gps,            
+     cmd_vels)
+raw_input()

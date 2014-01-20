@@ -70,7 +70,6 @@ ros::Publisher ekf_2d_pub;
 geometry_msgs::Pose2D pose;
 //ros::Publisher cmd_vel_pub;
 //geometry_msgs::Twist cmd_vel;
-
 //tf::TransformBroadcaster* odom_broadcaster;
 
 bool odom_init = false;
@@ -146,9 +145,18 @@ void publish_loop(){
       x = ekf.getX();
       hasGPS=false;
     }else{
-      x = ekf.predict(u);
+      Vector z(5);
+      double heading = pose.theta+current_odom.twist.twist.angular.z*0.2;
+      z(1) = pose.x+current_odom.twist.twist.linear.x*cos( heading )*0.2;
+      z(2) = pose.y+current_odom.twist.twist.linear.x*sin( heading )*0.2;
+      z(3) = current_odom.twist.twist.linear.x;
+      z(4) = current_imu.z + heading_offset*2*M_PI;
+      z(5) = current_odom.twist.twist.angular.z;
+      
+      ekf.step(u,z);
+      x = ekf.getX();
+      //x = ekf.predict(u);
     }
-    
     //construct 2D pose message and publish
     pose.x = x(1);
     pose.y = x(2);
@@ -295,12 +303,13 @@ int main(int argc, char **argv){
   ros::Subscriber imu_sub = n.subscribe ("/imu/integrated_gyros", 1, imuCallback);
   ros::Subscriber gps_sub = n.subscribe ("/gps", 1, gpsCallback);
   ros::Subscriber odom_sub = n.subscribe ("/odom", 10, odomCallback);
-  ros::Rate pub_rate(4.5); //publish at 4.5 hz.
+  ros::Rate pub_rate(0.01); 
   ros::AsyncSpinner spinner(3);
+  spinner.start();
   while(ros::ok()) {
-    pub_rate.sleep();
     publish_loop();
-    ros::spinOnce();
+    pub_rate.sleep();
+    //usleep(200000);
   }
   //ros::spin();
   spinner.stop();  
