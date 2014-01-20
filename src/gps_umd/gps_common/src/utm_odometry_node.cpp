@@ -29,20 +29,14 @@ void split_to_double(const std::string &s, char delim, std::vector<double> &elem
   }
 }
 
-void initializeAndConvCorners(){
+void initialize(){
   double northing, easting, latitude, longitude;
   std::string zone;
-  bool initialized = false;
 
   std::ifstream fs1(filename1.c_str(),std::ifstream::in);
-  std::ofstream fs2(filename2.c_str(),std::ofstream::out);
   
   if(!fs1.good()){
     ROS_WARN("ERROR OPENING FILE 1 INPUT");
-    return;
-  }
-  if(!fs2.good()){
-    ROS_WARN("ERROR OPENING FILE 2 OUTPUT");
     return;
   }
 
@@ -50,37 +44,24 @@ void initializeAndConvCorners(){
   fs1.unsetf(std::ofstream::floatfield);
   fs1.precision(10);
   fs1.setf(std::ofstream::fixed,std::ofstream::floatfield);
-  fs2.unsetf(std::ofstream::floatfield);
-  fs2.precision(10);
-  fs2.setf(std::ofstream::fixed,std::ofstream::floatfield);
 
   std::string line, comma;
-  while(std::getline(fs1,line)){
+  std::getline(fs1,line);
 
-    std::vector<double> elements;
-    split_to_double(line, ',', elements);
+  std::vector<double> elements;
+  split_to_double(line, ',', elements);
 
-    latitude = elements[0];
-    longitude = elements[1];
+  latitude = elements[0];
+  longitude = elements[1];
 
-    LLtoUTM(latitude, longitude, northing, easting, zone);
+  LLtoUTM(latitude, longitude, northing, easting, zone);
 
-    std::cout<< "LATLONG: " << latitude << "," << longitude << std::endl;
-    
-    if(!initialized){
-      initialized = true;
-      initial_e = easting;
-      initial_n = northing;
-    }
+  ROS_INFO("LATLONG: %f,%f",latitude,longitude);
 
-    easting = easting - initial_e;
-    northing = northing - initial_n;
-    fs2 << easting << "," << northing << std::endl; 
-    ROS_INFO("WROTE AN ENU POINT");
-  }
-  
+  initial_e = easting;
+  initial_n = northing;
+
   fs1.close();
-  fs2.close();
 }
 
 
@@ -158,13 +139,9 @@ int main (int argc, char **argv) {
 
   //create filename strings
   filename1 = filepath+"survey_geodetic.csv";
-  filename2 = filepath+"survey_enu.csv";
-
-  //delete files if the already exist
-  std::remove(filename2.c_str());
 
   //initialize east/north and convert field corners to ENU
-  initializeAndConvCorners();
+  initialize();
 
   odom_pub = node.advertise<nav_msgs::Odometry>("odom", 10);
 

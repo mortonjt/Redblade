@@ -126,7 +126,8 @@ void publish_loop(){
     Matrix P;
     //bool blockedGPS = rand_gen.random();
     rand_gen.add();
-    bool blockedGPS = (rand_gen.index%50>25 and rand_gen.index%50<50);
+    bool blockedGPS = false;
+    //bool blockedGPS = (rand_gen.index%50>25 and rand_gen.index%50<50);
     //ROS_INFO("Blocked GPS:%d Markov Index:%d",blockedGPS,rand_gen.index);
     if(hasGPS and not blockedGPS){
       Vector z(5);
@@ -361,7 +362,7 @@ int main(int argc, char **argv){
     x(5) = 0.0;//she ain't turnin'
     x(6) = -orientation;
   }
-  //TODO: Be able to initalize the EKF just based off of the field
+
   //intialize ze filter
   ekf.init(x, P0);
 
