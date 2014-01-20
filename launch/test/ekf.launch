@@ -35,49 +35,49 @@
   <node name="redblade_ekf" pkg="redblade_ekf" type="redblade_ekf_node" cwd="node" output="screen">
   </node>
   
-  <node pkg="camera1394stereo" type="camera1394stereo_node" name="camera1394stereo_node" output="screen" >
-    <param name="video_mode" value="format7_mode3" />
-    <param name="format7_color_coding" value="raw16" />
-    <param name="bayer_pattern" value="grbg" />
-    <param name="bayer_method" value="" />
-    <param name="stereo_method" value="Interlaced" />
-    <param name="camera_info_url_left" value="" />
-    <param name="camera_info_url_right" value="" />
-  </node>
+  <!-- <node pkg="camera1394stereo" type="camera1394stereo_node" name="camera1394stereo_node" output="screen" > -->
+  <!--   <param name="video_mode" value="format7_mode3" /> -->
+  <!--   <param name="format7_color_coding" value="raw16" /> -->
+  <!--   <param name="bayer_pattern" value="grbg" /> -->
+  <!--   <param name="bayer_method" value="" /> -->
+  <!--   <param name="stereo_method" value="Interlaced" /> -->
+  <!--   <param name="camera_info_url_left" value="" /> -->
+  <!--   <param name="camera_info_url_right" value="" /> -->
+  <!-- </node> -->
   
-  <group ns = "stereo_camera">
-    <node pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc" output="screen" >
-    </node>
-  </group>
+  <!-- <group ns = "stereo_camera"> -->
+  <!--   <node pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc" output="screen" > -->
+  <!--   </node> -->
+  <!-- </group> -->
 
-  <node pkg="nodelet" type="nodelet" name="pcl_filter_manager" args="manager"/>  
-  <node pkg="nodelet" type="nodelet" name="voxel_filter"
-  	args="load pcl/VoxelGrid pcl_filter_manager" output="screen">
-    <remap from="~input" to="/stereo_camera/points2"/>
-    <rosparam>
-      filter_field_name: z
-      filter_limit_min: 0.01
-      filter_limit_max: 10.0
-      leaf_size: 0.03
-    </rosparam>
-  </node>
+  <!-- <node pkg="nodelet" type="nodelet" name="pcl_filter_manager" args="manager"/>   -->
+  <!-- <node pkg="nodelet" type="nodelet" name="voxel_filter" -->
+  <!-- 	args="load pcl/VoxelGrid pcl_filter_manager" output="screen"> -->
+  <!--   <remap from="~input" to="/stereo_camera/points2"/> -->
+  <!--   <rosparam> -->
+  <!--     filter_field_name: z -->
+  <!--     filter_limit_min: 0.01 -->
+  <!--     filter_limit_max: 10.0 -->
+  <!--     leaf_size: 0.03 -->
+  <!--   </rosparam> -->
+  <!-- </node> -->
 
-  <node pkg="redblade_stereo"
-  	type="redblade_stereo_node"
-  	name="redblade_stereo_node"
-  	respawn="true"
-  	output="screen" >
-    <param name="stereo_namespace" value="/voxel_filter/output"/>
-    <param name="survey_file" value="/home/jamie/Documents/Redblade/config/field.txt" />
-    <param name="verbose" value="false" />
-  </node>
+  <!-- <node pkg="redblade_stereo" -->
+  <!-- 	type="redblade_stereo_node" -->
+  <!-- 	name="redblade_stereo_node" -->
+  <!-- 	respawn="true" -->
+  <!-- 	output="screen" > -->
+  <!--   <param name="stereo_namespace" value="/voxel_filter/output"/> -->
+  <!--   <param name="survey_file" value="/home/jamie/Documents/Redblade/config/field.txt" /> -->
+  <!--   <param name="verbose" value="false" /> -->
+  <!-- </node> -->
 
 
-  <node pkg="sicktoolbox_wrapper" type="sicklms" name="lidar" output="screen">
-  	<param name="port" value="/dev/ttyS0" />
-	<param name="angle" value="100" />
-	<param name="resolution" value="0.25" />
-  </node>
+  <!-- <node pkg="sicktoolbox_wrapper" type="sicklms" name="lidar" output="screen"> -->
+  <!-- 	<param name="port" value="/dev/ttyS0" /> -->
+  <!-- 	<param name="angle" value="100" /> -->
+  <!-- 	<param name="resolution" value="0.25" /> -->
+  <!-- </node> -->
   
   <!-- <node pkg="redblade_laser" -->
   <!-- 	type="redblade_laser_node" -->
@@ -90,15 +90,15 @@
   <!--   <param name="verbose" value="true" /> -->
   <!-- </node> -->
 
-  <node pkg="redblade_chad_laser"
-  	type="redblade_chad_laser_node"
-  	name="redblade_chad_laser_node"
-  	output="screen">
-    <param name="ekf_namespace" value="/redblade_ekf/2d_pose"/>
-    <param name="laser_namespace" value="/scan"/>
-    <param name="pole_namespace" value="/lidar/pole"/>
-    <param name="single_or_triple" value="false"/>
-  </node>
+  <!-- <node pkg="redblade_chad_laser" -->
+  <!-- 	type="redblade_chad_laser_node" -->
+  <!-- 	name="redblade_chad_laser_node" -->
+  <!-- 	output="screen"> -->
+  <!--   <param name="ekf_namespace" value="/redblade_ekf/2d_pose"/> -->
+  <!--   <param name="laser_namespace" value="/scan"/> -->
+  <!--   <param name="pole_namespace" value="/lidar/pole"/> -->
+  <!--   <param name="single_or_triple" value="false"/> -->
+  <!-- </node> -->
 
 </launch>
  

@@ -1,8 +1,5 @@
 <launch>
   <arg name="filename"/>
-  <!-- <node pkg="rosbag" type="record" name="rosbag_rec"  -->
-  <!-- 	args="-O /home/redblade/DATA/EKF/$(arg filename) /cmd_vel /encoders_back /encoders_front /gps /fix /imu/data /imu/integrated_gyros /imu/integrated_gyros_stamped /roboteq_back/cmd_vel_stamped /roboteq_front/cmd_vel_stamped /odom /redblade_ekf/odom /redblade_ekf/2d_pose /scan /lidar/pole /stereo_camera/points2 /stereo_camera/pole"> -->
-  <!-- </node> -->
   <node pkg="rosbag" type="record" name="rosbag_rec" 
 	args="-O /home/redblade/DATA/LIDAR/$(arg filename) /cmd_vel /encoders_back /encoders_front /gps /fix /imu/data /imu/integrated_gyros /imu/integrated_gyros_stamped /roboteq_back/cmd_vel_stamped /roboteq_front/cmd_vel_stamped /odom /redblade_ekf/odom /redblade_ekf/2d_pose /lidar/pole /scan">
   </node>

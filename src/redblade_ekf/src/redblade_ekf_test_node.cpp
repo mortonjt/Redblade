@@ -77,7 +77,6 @@ bool imu_init = false;
 bool hasGPS = false;
 bool theta_covar_thresh_reached = false;
 
-
 void wrapToPi(double &angle){
   while(angle > M_PI || angle < -M_PI){
     if(angle > M_PI){
@@ -257,44 +256,111 @@ void publish_loop(){
   }    
 }
 
+//method to split string by a delimiter
+void split_to_double(const std::string &s, char delim, std::vector<double> &elements){
+  std::stringstream ss(s);
+  std::string item;
+  while(std::getline(ss,item,delim)){
+    elements.push_back(atof(item.c_str()));
+  }
+}
+
+//convienence method so i don't have to do this over and over
+void parse_file_to_vector(std::string &filename, std::vector<std::string> &lines){
+  std::string item;
+  std::ifstream file(filename.c_str());
+  while(std::getline(file, item, '\n')){
+    lines.push_back(item);
+  }
+}
+
+//read in the survey points
+void read_in_survey_points(std::vector<std::vector<double> > &survey_points, std::string survey_file){
+  std::vector<std::string> lines;
+  parse_file_to_vector(survey_file, lines);
+  for(int i = 0; i < lines.size(); i++){
+    std::vector<double> temp_doubles;
+    split_to_double(lines[i], ',', temp_doubles);
+    survey_points.push_back(temp_doubles);
+  }
+}
+
+//rotate a specified point by a given angle using the
+//origin as the rotation center
+void rotation_matrix(std::vector<double> &point, double theta){
+  double x = point[0];
+  double y = point[1];
+  point[0] = x*cos(theta) - y*sin(theta);
+  point[1] = x*sin(theta) + y*cos(theta);
+}
+
 
 int main(int argc, char **argv){
   ros::init(argc, argv, "redblade_ekf");
   ros::NodeHandle n;
+  ros::NodeHandle nh;
+  
+  //params
+  std::string survey_file;
+  bool single_i;
 
-  //odom_broadcaster = new tf::TransformBroadcaster();
+  //read in parameters
+  nh.param("survey_file", survey_file, std::string("survey_enu.csv"));
+  nh.param("single_or_triple", single_i, true);
 
-  //ekf.odom_broadcaster = new tf::TransformBroadcaster();
-
+  //publishers
   ekf_2d_pub = n.advertise<geometry_msgs::Pose2D>("redblade_ekf/2d_pose",10);
   ekf_odom_pub = n.advertise<nav_msgs::Odometry>("redblade_ekf/odom", 10);
-  //cmd_vel_pub = n.advertise<geometry_msgs::Twist>("cmd_vel", 2);
-  
+
+  //open csv for writing (debug stuff)
   daters.open("/home/redblade/Documents/Redblade/ekf_data_collect.txt");
-  //daters << "Test";
   heading_offset = 0;
+
+  //read in survey file
+  std::vector<std::vector<double> > survey_points;
+  read_in_survey_points(survey_points, survey_file);
+  double orientation = atan2(survey_points[1][1]-survey_points[0][1],
+			     survey_points[1][0]-survey_points[0][0]);
 
   //initialize ekf
   const unsigned num_states = 6;
   const unsigned m = 5;//number of measures
   
   //initial covariance of estimate
-  static const double _P0[] = {400, 0.0, 0.0, 0.0, 0.0, 0.0,
-			       0.0, 400, 0.0, 0.0, 0.0, 0.0,
-			       0.0, 0.0, pow(1.57,2), 0.0, 0.0, 0.0,
-			       0.0, 0.0, 0.0, .25, 0.0, 0.0,
-			       0.0, 0.0, 0.0, 0.0, 0.0625, 0.0,
-			       0.0, 0.0, 0.0, 0.0, 0.0, pow(1.57,2)};
+  static const double _P0[] = {0.04, 0.0, 0.0, 0.0, 0.0, 0.0,
+			       0.0, 0.04, 0.0, 0.0, 0.0, 0.0,
+			       0.0, 0.0, 0.0012, 0.0, 0.0, 0.0,
+			       0.0, 0.0, 0.0, 0.01, 0.0, 0.0,
+			       0.0, 0.0, 0.0, 0.0, 0.01, 0.0,
+			       0.0, 0.0, 0.0, 0.0, 0.0, 0.0012};//still gotta figure out this bias
   Matrix P0(num_states,num_states,_P0);
   
-  //initial estimate
+  //initial estimate, different for single i vs. triple i
   Vector x(num_states);
-  x(1) = 0.0;
-  x(2) = 0.0;
-  x(3) = 1.57;
-  x(4) = 0.0;
-  x(5) = 0.0;
-  x(6) = 0.0;
+  std::vector<double> start_position;
+  if(single_i){
+    start_position[0] = 1.715;//determined by rj, jamie, and bob
+    start_position[1] = 1.73;//determined by rj, jamie, and bob
+    rotation_matrix(start_position, orientation);
+    x(1) = start_position[0];
+    x(2) = start_position[1];
+    x(3) = orientation;
+    x(4) = 0.0;//she ain't moving
+    x(5) = 0.0;//she ain't turnin'
+    x(6) = -orientation;//TODO, based on x(3)
+  }else{
+    start_position[0] = 2.53;//determined by rj, jamie, and bob
+    start_position[1] = 4.385;//determined by rj, jamie, and bob
+    rotation_matrix(start_position, orientation);
+    orientation -= (M_PI/2);
+    wrapToPi(orientation);
+    x(1) = start_position[0];
+    x(2) = start_position[1];
+    x(3) = orientation;
+    x(4) = 0.0;//she ain't moving
+    x(5) = 0.0;//she ain't turnin'
+    x(6) = -orientation;
+  }
   //TODO: Be able to initalize the EKF just based off of the field
   //intialize ze filter
   ekf.init(x, P0);
