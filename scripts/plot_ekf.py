@@ -12,7 +12,7 @@ import sync
 #import plot_velocity
 
 clicks_per_m = 15768.6
-bagFile = "/home/jamie/DATA/EKF/ekf_processed.bag"
+bagFile = "/home/redblade/DATA/EKF/processed_run.bag"
 imu = "/imu/data"
 gyros = "/imu/integrated_gyros_stamped"
 gps = "/gps"
@@ -27,7 +27,7 @@ back_cmds      = "/roboteq_back/cmd_vel_stamped"
 imu            = "/imu/data"
 gps            = "/gps"
 cmd_vels       = "/Arduino_RC"
-odom       = "/odom"
+odom           = "/odom"
 
 bag = rosbag.Bag(bagFile)
 threshold = 0.2
@@ -65,10 +65,10 @@ errorY = [gps_sync_y[i]-ekf_sync_y[i] for i in range(len(ekf_sync_y))]
 #print "\n".join(map(str,zip(gps_sync_x,ekf_sync_x)))
 #print "\n".join(map(str,zip(time,ekf_time)))
 #print "\n".join(map(str,gps_time))
-font = {'weight' : 'bold',
-        'size'   : 22}
 
-matplotlib.rc('font', **font)
+# font = {'weight' : 'bold',
+#         'size'   : 22}
+# matplotlib.rc('font', **font)
 
 denied_x1 = gps_x[25:50]
 denied_y1 = gps_y[25:50]
@@ -90,69 +90,69 @@ xlabel("Easting (m)")
 ylabel("Northing (m)")
 f1.show()
 
-#distance_err = [math.sqrt(errorX[i]*errorX[i]+errorY[i]*errorY[i])]
+distance_err = [math.sqrt(errorX[i]*errorX[i]+errorY[i]*errorY[i])]
 
-# error = [0]*len(ekf_z)
-# for i in range(0,len(ekf_z)):
-#     if(abs(ekf_z[i]-gyro_z[i])<math.pi):
-#         error[i] = ekf_z[i]-gyro_z[i]
-#     else:
-#         error[i] = ekf_z[i]-gyro_z[i]+2*math.pi
-# t = range(len(error))
+error = [0]*len(ekf_z)
+for i in range(0,len(ekf_z)):
+    if(abs(ekf_z[i]-gyro_z[i])<math.pi):
+        error[i] = ekf_z[i]-gyro_z[i]
+    else:
+        error[i] = ekf_z[i]-gyro_z[i]+2*math.pi
+t = range(len(error))
 
-# f2=figure(2)
-# plot(t,error)
-# title("IMU error")
-# f2.show()
+f2=figure(2)
+plot(t,error)
+title("IMU error")
+f2.show()
 
-# tX = range(len(errorX))
-# f3=figure(3)
-# plot(tX,errorX)
-# title("X error")
-# f3.show()
+tX = range(len(errorX))
+f3=figure(3)
+plot(tX,errorX)
+title("X error")
+f3.show()
 
-# tY = range(len(errorY))
-# f4=figure(4)
-# plot(tY,errorY)
-# title("Y error")
-# f4.show()
+tY = range(len(errorY))
+f4=figure(4)
+plot(tY,errorY)
+title("Y error")
+f4.show()
 
-# f5=figure(5)
-# title("X Position")
-# p1,=plot(gps_time,gps_x,'ob')
-# p2,=plot(ekf_time,ekf_x,'r')
-# legend([p1,p2],["GPS Robot position","EKF position"])
-# f5.show()
+f5=figure(5)
+title("X Position")
+p1,=plot(gps_time,gps_x,'-ob')
+p2,=plot(ekf_time,ekf_x,'-or')
+legend([p1,p2],["GPS Robot position","EKF position"])
+f5.show()
 
-# f6=figure(6)
-# title("Y Position")
-# p1,=plot(gps_time,gps_y,'ob')
-# p2,=plot(ekf_time,ekf_y,'r')
-# legend([p1,p2],["GPS Robot position","EKF position"])
-# f6.show()
+f6=figure(6)
+title("Y Position")
+p1,=plot(gps_time,gps_y,'-ob')
+p2,=plot(ekf_time,ekf_y,'-or')
+legend([p1,p2],["GPS Robot position","EKF position"])
+f6.show()
 
-# f7=figure(7)
-# title("Velocity")
-# p1,plot(gps_time[:-1],gpsVels,'ob')
-# p2,plot(odom_time,odom_vel,'or')
-# legend([p1,p2],["GPS velocities","Encoder Velocities"])
-# f7.show()
+f7=figure(7)
+title("Velocity")
+p1,plot(gps_time[:-1],gpsVels,'ob')
+p2,plot(odom_time,odom_vel,'or')
+legend([p1,p2],["GPS velocities","Encoder Velocities"])
+f7.show()
 
-# f8=figure(8)
-# title("Angular Velocity")
-# plot(odom_time,odom_ang,'or')
-# f8.show()
+f8=figure(8)
+title("Angular Velocity")
+plot(odom_time,odom_ang,'or')
+f8.show()
 
-# dT = [odom_time[i] - odom_time[i-1] for i in range(0,len(odom_time))]
-# odom_ang_diff = [dT[i-1]*odom_ang[i] for i in range(1,len(odom_ang))]
-# odom_ang_pos  = [odom_ang_diff[0]]*len(odom_ang_diff)
-# for i in range(1,len(odom_ang_pos)):
-#     odom_ang_pos[i] = odom_ang_diff[i]+odom_ang_pos[i-1]
+dT = [odom_time[i] - odom_time[i-1] for i in range(0,len(odom_time))]
+odom_ang_diff = [dT[i-1]*odom_ang[i] for i in range(1,len(odom_ang))]
+odom_ang_pos  = [odom_ang_diff[0]]*len(odom_ang_diff)
+for i in range(1,len(odom_ang_pos)):
+    odom_ang_pos[i] = odom_ang_diff[i]+odom_ang_pos[i-1]
 
-# f9=figure(9)
-# title("Angular Displacement")
-# plot(odom_time[:len(odom_ang_pos)],odom_ang_pos,'or')
-# plot(gyro_time[:len(gyro_z)],gyro_z,'ob')
-# f9.show()
+f9=figure(9)
+title("Angular Displacement")
+plot(odom_time[:len(odom_ang_pos)],odom_ang_pos,'or')
+plot(gyro_time[:len(gyro_z)],gyro_z,'ob')
+f9.show()
 
 raw_input()

@@ -26,16 +26,16 @@ redblade_ekf::redblade_ekf() {
   beta_angular = 0.1;
   sigma_w1 = sqrt(0.0025);//was .000025
   sigma_w2 = sqrt(0.0025);//was .000025
-  sigma_w3 = sqrt(0.0001);//was 0.0001
-  sigma_w4 = sqrt(0.1);
-  sigma_w5 = sqrt(0.0625);//was.0625
-  sigma_w6 = sqrt(0.0001156);
+  sigma_w3 = sqrt(0.000003046);//was 0.0001
+  sigma_w4 = sqrt(0.0025);
+  sigma_w5 = sqrt(0.000302);//was.0625
+  sigma_w6 = sqrt(0.0001156);//
   
   sigma_z1 = sqrt(0.0025);
   sigma_z2 = sqrt(0.0025);
   sigma_z3 = sqrt(0.0025);
   sigma_z4 = sqrt(0.0000076);
-  sigma_z5 = sqrt(0.0025);
+  sigma_z5 = sqrt(0.0025);//was 0.000302
 }
 
 redblade_ekf::~redblade_ekf(){

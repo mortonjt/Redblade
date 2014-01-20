@@ -72,7 +72,7 @@ aligned facing at exactly 0 degrees
  */
 void generate_single_i_waypoints(){
   //define a bunch of stuff needed for calculations
-  std::vector<double> temp(3,0);
+  std::vector<double> temp(4,0);
   field_length = 10.0;
   field_width = 1.0;
   
@@ -100,15 +100,17 @@ void generate_single_i_waypoints(){
   waypoints.push_back(temp);
 
   //now the robot will turn counter clockwise and go forward again
-  temp[1] = center_of_snowfield + (plow_width/2) - (overlap_width/2) + back_up_distance;
+  temp[1] = center_of_snowfield + (plow_width/2) - (overlap_width/2);
   temp[2] = 1;
+  temp[3] = 1;//this is a fake point
   waypoints.push_back(temp);
+  temp[3] = 0;//reset back to real points
 
   //now back up a little bit
-  temp[0] = start_of_snowfield + field_length + end_of_snowfield - rotation_center_to_rear - buffer;
+  /*temp[0] = start_of_snowfield + field_length + end_of_snowfield - rotation_center_to_rear - buffer;
   temp[1] = temp[1] - back_up_distance;
   temp[2] = 0;
-  waypoints.push_back(temp);
+  waypoints.push_back(temp);*/
 
   //now the robot will turn counter clockwise and go forward again
   temp[0] = rotation_center_to_front + buffer;

@@ -6,9 +6,10 @@
 #include <deque>
 
 #define ROBOTWIDTH 1.12 //maximum width with plow. we can change this...
-#define ROBOTLENGTH 1.905 //max length with plow. also apt to change.
-#define PASSINGBUFFER 0.75
-#define STOPPINGBUFFER 1
+#define ROBOTFRONT 1.285 //max length with plow. also apt to change.
+#define ROBOTBACK 0.615
+#define PI 3.141592653589
+#define BUFFER 0.25
 
 struct Waypoint{
   double x,y;
@@ -20,6 +21,13 @@ std::deque<Waypoint> waypoints;
 Waypoint start, dest;
 bool forward;
 int waypoint_number;
+
+void rotation_matrix(Waypoint &point, double theta){
+  double x = point.x;
+  double y = point.y;
+  point.x = x*cos(theta) - y*sin(theta);
+  point.y = x*sin(theta) + y*cos(theta);
+}
 
 void split_to_double(const std::string &s, char delim, std::vector<double> &elements){
   std::stringstream ss(s);
@@ -55,7 +63,7 @@ bool read_in_waypoints(){
 
 bool next_waypoint(bool avoidance_active){
   //check to make sure we have a valid waypoint to give, if not, loop back to beginning
-
+  
   if(waypoints.size() > 0){
     //populate waypoints
     start.x = waypoints[0].x;
@@ -64,12 +72,13 @@ bool next_waypoint(bool avoidance_active){
     dest.y = waypoints[1].y;
     forward = waypoints[1].forward;
 
-    //push this waypoint onto the 
+    //push top waypoint onto the back of the queue if not 
+    //an avoidance waypoint
     if(avoidance_active){
-      waypoints.push_back(waypoints.front());
       waypoints.pop_front();
     }
     else{
+      waypoints.push_back(waypoints.front());
       waypoints.pop_front();
     }
 
@@ -105,27 +114,28 @@ double projectPoint(Waypoint p1, Waypoint a, Waypoint b){
   return point_line_dist;
 }
 
-bool checkForPole(Waypoint& p1, Waypoint& p2, Waypoint& p3, Waypoint& p4,
-		  Waypoint a, Waypoint b, Waypoint c){
+bool checkForPole(std::deque<Waypoint>& avoidance_points,
+		  Waypoint a, Waypoint b, Waypoint c, double heading){
 
-  double radius_parallel = ROBOTLENGTH/2 + STOPPINGBUFFER;
-  double radius_perp = ROBOTWIDTH/2 + PASSINGBUFFER;
+  avoidance_points.clear();
+  bool is_left;
+  Waypoint entrance;
+
+  double radius_front = ROBOTFRONT + BUFFER;
+  //double radius_back = ROBOTBACK + BUFFER;
+  double radius_side = ROBOTWIDTH/2 + BUFFER;
 
   // VARIABLE DEFINITIONS
+  // avoidance_points: list of avoidance points to return
   // a : 1st point in line
   // b : 2nd point in line
   // c : approximate location of pole
-  // p1 : entrance point 
-  // p2 : exit point
-  // p3 : side point (thin)
-  // p4 : side point (fat)
-  // *all points are in ENU
 
   // this could be replaced by a call to point_line_dist, 
   // but I need waypoint 'e' coords & Dirx/Diry and I don't really want to make
   // point_line_dist have to spit out those items for every call.
   double line_dist = sqrt((b.x-a.x)*(b.x-a.x) + (b.y-a.y)*(b.y-a.y));
-  double Dirx = (b.x-a.x)/line_dist; //direction vector x
+  double Dirx = (b.x-a.x)/line_dist; //direction vector x  
   double Diry = (b.y-a.y)/line_dist; //direction vector y
   double t = Dirx*(c.x-a.x) + Diry*(c.y-a.y);
   
@@ -139,11 +149,12 @@ bool checkForPole(Waypoint& p1, Waypoint& p2, Waypoint& p3, Waypoint& p4,
   //find distance from proj point to center of circle
   double ec_dist = sqrt( (e.x-c.x)*(e.x-c.x) + (e.y-c.y)*(e.y-c.y) );
 
-  if(ec_dist < radius_perp){
+  // find out if the line even intersects with the circle
+  if(ec_dist < radius_side){
 
     // line intersects with circle
     // find distance from proj point to center of circle
-    double dt = sqrt( radius_parallel*radius_parallel - ec_dist*ec_dist );
+    double dt = sqrt( radius_front*radius_front - ec_dist*ec_dist );
     
     Waypoint temp1, temp2;
     temp1.x = (t-dt)*Dirx + a.x; 
@@ -154,64 +165,56 @@ bool checkForPole(Waypoint& p1, Waypoint& p2, Waypoint& p3, Waypoint& p4,
     // check distances to make sure entrance/exit points labeled correctly
     double dist_temp1 = sqrt( (temp1.x-a.x)*(temp1.x-a.x) + (temp1.y-a.y)*(temp1.y-a.y) );
     double ac_dist = sqrt( (c.x-a.x)*(c.x-a.x) + (c.y-a.y)*(c.y-a.y) );
+    
+    entrance.forward = 1;
     if(dist_temp1 < ac_dist){
-      p1.x = temp1.x;
-      p1.y = temp1.y;
-      p2.x = temp2.x;
-      p2.y = temp2.y;
+      entrance.x = temp1.x;
+      entrance.y = temp1.y;
     }
     else{
-      p1.x = temp2.x;
-      p1.y = temp2.y;
-      p2.x = temp1.x;
-      p2.y = temp1.y;
+      entrance.x = temp2.x;
+      entrance.y = temp2.y;
     }
 
-    // this is a magic simplification of what was just done to find the
-    // first two intersection points but now we're using the projected point
-    // and the center of the circle to get a perpendicular line to find the
-    // side waypoints... and I just sort of simplified it down a bit. 
+    //make a circle of points to go to:
 
-    double perp_line_dist = sqrt((c.x-e.x)*(c.x-e.x) + (c.y-e.y)*(c.y-e.y));
-    double perp_Dirx = (c.x-e.x)/perp_line_dist; 
-    double perp_Diry = (c.y-e.y)/perp_line_dist;
-    
-    Waypoint tempside1, tempside2;
+    // rotate points e and c to find if we're on the left
+    // or right side of the pole
+    rotation_matrix(e,-heading);
+    rotation_matrix(c,-heading);
 
-    tempside1.x = (perp_line_dist-radius_perp) * perp_Dirx + e.x;
-    tempside1.y = (perp_line_dist-radius_perp) * perp_Diry + e.y;
-    tempside2.x = (perp_line_dist+radius_perp) * perp_Dirx + e.x;
-    tempside2.y = (perp_line_dist+radius_perp) * perp_Diry + e.y;
+    if(c.y - e.y >= 0)
+      is_left = false;
+    else
+      is_left = true;
 
-    // assign side points based on which one is thin(p3) / fat(p4)
+    double theta_increment = PI/4;
+    Waypoint nextPoint;
 
-    double dist_tempside1 = sqrt( (tempside1.x-e.x)*(tempside1.x-e.x) + (tempside1.y-e.y)*(tempside1.y-e.y) );
+    // in the coordinate frame of the robot heading 
+    for(int ii = -3; ii <= 7; ii++){
+      nextPoint.x = c.x + cos(ii*theta_increment)*radius_side;
+      nextPoint.y = c.y + sin(ii*theta_increment)*radius_side;
+      nextPoint.forward = 1;
 
-    if(dist_tempside1 < radius_perp){
-      p3.x = tempside1.x;
-      p3.y = tempside1.y;
-      p4.x = tempside2.x;
-      p4.y = tempside2.y;
-    }
-    else {
-      p3.x = tempside2.x;
-      p3.y = tempside2.y;
-      p4.x = tempside1.x;
-      p4.y = tempside1.y;
+      rotation_matrix(nextPoint,heading);
+      avoidance_points.push_back(nextPoint);
     }
 
-    //DECIDE TO SEND THIN OR FAT
+    // remove the first point if we're approaching from the right
+    // because it's only there for a smooth entrance from the left
+    if(!is_left){
+      avoidance_points.pop_front();
+      ROS_INFO("WE'RE APPROACHING POLE FROM RIGHT SIDE");
+    }
 
-    p1.forward = 1;
-    p2.forward = 1;
-    p3.forward = 1;
-    p4.forward = 1;
+    avoidance_points.push_front(entrance);
 
     //return true because pole is in path
     return true;
 
   }
-  else if( ec_dist == radius_perp){ 
+  else if( ec_dist == radius_side){ 
     // line is tangent to circle. let's not do anything about it for now.
     // I'm just hoping this never happens.
     return false;

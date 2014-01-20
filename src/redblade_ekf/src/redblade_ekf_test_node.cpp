@@ -108,6 +108,7 @@ void imuCallback(const geometry_msgs::Vector3::ConstPtr& imu_msg){
 void gpsCallback(const nav_msgs::Odometry::ConstPtr& gps_msg){
   hasGPS = true;
   current_gps = *gps_msg;
+  //ROS_INFO("GPS");
 }
 
 void odomCallback(const nav_msgs::Odometry::ConstPtr& odom_msg){
@@ -120,15 +121,18 @@ void odomCallback(const nav_msgs::Odometry::ConstPtr& odom_msg){
 
 
 void publish_loop(){  
+  //ROS_INFO("Odom init:%d imu_init:%d",odom_init,imu_init);
   if(odom_init && imu_init){
     Vector u;
     Vector x;
     Matrix P;
     //bool blockedGPS = rand_gen.random();
     rand_gen.add();
-    bool blockedGPS = false;
+    //bool blockedGPS = false;
+    bool blockedGPS = rand_gen.index>250;
     //bool blockedGPS = (rand_gen.index%50>25 and rand_gen.index%50<50);
-    //ROS_INFO("Blocked GPS:%d Markov Index:%d",blockedGPS,rand_gen.index);
+    //ROS_INFO("Blocked GPS:%d hasGPS:%d",blockedGPS,hasGPS);
+    
     if(hasGPS and not blockedGPS){
       Vector z(5);
       z(1) = current_gps.pose.pose.position.x;
@@ -140,6 +144,10 @@ void publish_loop(){
       daters << (ros::Time::now()).toSec() << ",";
       daters << z(1) << "," << z(2) << "," << z(3) << "," << z(4) << "," << z(5) << ",";
       //ROS_INFO("%lf, %lf, %lf, %lf, %lf", z(1), z(2), z(3), z(4), z(5));
+      double test_x = (pose.x+current_odom.twist.twist.linear.x*cos( pose.theta )*0.2)+(cos(pose.theta)*0.21);
+      double test_y = (pose.y+current_odom.twist.twist.linear.x*sin( pose.theta )*0.2)+(sin(pose.theta)*0.21);
+      ROS_INFO("linear velocity: %lf", z(3));
+      ROS_INFO("(%lf, %lf)\t(%lf, %lf)\t(%lf,%lf)\n",z(1),z(2),test_x,test_y,(fabs(test_x-z(1))),(fabs(test_y-z(2))));
       
       ekf.step(u, z);
       x = ekf.getX();
@@ -147,14 +155,15 @@ void publish_loop(){
     }else{
       Vector z(5);
       double heading = pose.theta+current_odom.twist.twist.angular.z*0.2;
-      z(1) = pose.x+current_odom.twist.twist.linear.x*cos( heading )*0.2;
-      z(2) = pose.y+current_odom.twist.twist.linear.x*sin( heading )*0.2;
+      z(1) = (pose.x+current_odom.twist.twist.linear.x*cos( heading )*0.2)+(cos(heading)*0.21);
+      z(2) = (pose.y+current_odom.twist.twist.linear.x*sin( heading )*0.2)+(sin(heading)*0.21);
       z(3) = current_odom.twist.twist.linear.x;
       z(4) = current_imu.z + heading_offset*2*M_PI;
       z(5) = current_odom.twist.twist.angular.z;
       
       ekf.step(u,z);
       x = ekf.getX();
+      //ROS_INFO("No GPS available, faking measurements");
       //x = ekf.predict(u);
     }
     //construct 2D pose message and publish
@@ -299,7 +308,7 @@ void rotation_matrix(std::vector<double> &point, double theta){
 int main(int argc, char **argv){
   ros::init(argc, argv, "redblade_ekf");
   ros::NodeHandle n;
-  ros::NodeHandle nh;
+  ros::NodeHandle nh("~");
   
   //params
   std::string survey_file;
@@ -322,46 +331,65 @@ int main(int argc, char **argv){
   read_in_survey_points(survey_points, survey_file);
   double orientation = atan2(survey_points[1][1]-survey_points[0][1],
 			     survey_points[1][0]-survey_points[0][0]);
-
+  
   //initialize ekf
   const unsigned num_states = 6;
   const unsigned m = 5;//number of measures
   
   //initial covariance of estimate
-  static const double _P0[] = {0.04, 0.0, 0.0, 0.0, 0.0, 0.0,
-			       0.0, 0.04, 0.0, 0.0, 0.0, 0.0,
-			       0.0, 0.0, 0.0012, 0.0, 0.0, 0.0,
-			       0.0, 0.0, 0.0, 0.01, 0.0, 0.0,
-			       0.0, 0.0, 0.0, 0.0, 0.01, 0.0,
-			       0.0, 0.0, 0.0, 0.0, 0.0, 0.0012};//still gotta figure out this bias
+  // static const double _P0[] = {0.04, 0.0, 0.0, 0.0, 0.0, 0.0,
+  // 			       0.0, 0.04, 0.0, 0.0, 0.0, 0.0,
+  // 			       0.0, 0.0, 0.0012, 0.0, 0.0, 0.0,
+  // 			       0.0, 0.0, 0.0, 0.01, 0.0, 0.0,
+  // 			       0.0, 0.0, 0.0, 0.0, 0.01, 0.0,
+  // 			       0.0, 0.0, 0.0, 0.0, 0.0, 0.0012};//still gotta figure out this bias
+  // Matrix P0(num_states,num_states,_P0);
+  
+  // //initial estimate, different for single i vs. triple i
+  // Vector x(num_states);
+  // std::vector<double> start_position;
+  // if(single_i){
+  //   start_position[0] = 1.715;//determined by rj, jamie, and bob
+  //   start_position[1] = 1.73;//determined by rj, jamie, and bob
+  //   rotation_matrix(start_position, orientation);
+  //   x(1) = start_position[0];
+  //   x(2) = start_position[1];
+  //   x(3) = orientation;
+  //   x(4) = 0.0;//she ain't moving
+  //   x(5) = 0.0;//she ain't turnin'
+  //   x(6) = -orientation;//TODO, based on x(3)
+  // }else{
+  //   start_position[0] = 2.53;//determined by rj, jamie, and bob
+  //   start_position[1] = 4.385;//determined by rj, jamie, and bob
+  //   rotation_matrix(start_position, orientation);
+  //   orientation -= (M_PI/2);
+  //   wrapToPi(orientation);
+  //   x(1) = start_position[0];
+  //   x(2) = start_position[1];
+  //   x(3) = orientation;
+  //   x(4) = 0.0;//she ain't moving
+  //   x(5) = 0.0;//she ain't turnin'
+  //   x(6) = -orientation;
+  // }
+
+
+
+  static const double _P0[] = {400, 0.0, 0.0, 0.0, 0.0, 0.0,
+			     0.0, 400, 0.0, 0.0, 0.0, 0.0,
+			     0.0, 0.0, pow(1.57,2), 0.0, 0.0, 0.0,
+			     0.0, 0.0, 0.0, .25, 0.0, 0.0,
+			     0.0, 0.0, 0.0, 0.0, 0.0625, 0.0,
+			     0.0, 0.0, 0.0, 0.0, 0.0, pow(1.57,2)};
   Matrix P0(num_states,num_states,_P0);
   
-  //initial estimate, different for single i vs. triple i
+  //initial estimate
   Vector x(num_states);
-  std::vector<double> start_position;
-  if(single_i){
-    start_position[0] = 1.715;//determined by rj, jamie, and bob
-    start_position[1] = 1.73;//determined by rj, jamie, and bob
-    rotation_matrix(start_position, orientation);
-    x(1) = start_position[0];
-    x(2) = start_position[1];
-    x(3) = orientation;
-    x(4) = 0.0;//she ain't moving
-    x(5) = 0.0;//she ain't turnin'
-    x(6) = -orientation;//TODO, based on x(3)
-  }else{
-    start_position[0] = 2.53;//determined by rj, jamie, and bob
-    start_position[1] = 4.385;//determined by rj, jamie, and bob
-    rotation_matrix(start_position, orientation);
-    orientation -= (M_PI/2);
-    wrapToPi(orientation);
-    x(1) = start_position[0];
-    x(2) = start_position[1];
-    x(3) = orientation;
-    x(4) = 0.0;//she ain't moving
-    x(5) = 0.0;//she ain't turnin'
-    x(6) = -orientation;
-  }
+  x(1) = 0.0;
+  x(2) = 0.0;
+  x(3) = 1.57;
+  x(4) = 0.0;
+  x(5) = 0.0;
+  x(6) = 0.0;
 
   //intialize ze filter
   ekf.init(x, P0);
@@ -370,7 +398,7 @@ int main(int argc, char **argv){
   ros::Subscriber imu_sub = n.subscribe ("/imu/integrated_gyros", 1, imuCallback);
   ros::Subscriber gps_sub = n.subscribe ("/gps", 1, gpsCallback);
   ros::Subscriber odom_sub = n.subscribe ("/odom", 10, odomCallback);
-  ros::Rate pub_rate(0.01); 
+  ros::Rate pub_rate(5); 
   ros::AsyncSpinner spinner(3);
   spinner.start();
   while(ros::ok()) {

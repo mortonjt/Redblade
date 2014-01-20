@@ -7,7 +7,7 @@ import velocity
 
 clicks_per_m = 15768.6
 
-bagFile = "/home/redblade/DATA/gps.bag"
+bagFile = "/home/redblade/DATA/EKF/test_run2.bag"
 front_encoders = "/roboteq_front/encoders"
 back_encoders = "/roboteq_back/encoders"
 front_cmds = "/roboteq_front/cmd_vel"
@@ -44,8 +44,8 @@ back_time  = movingAverage.movingAverage(\
     [t.header.stamp.secs+t.header.stamp.nsecs/10.0**9
      for t in back_encoder_msgs],1)
 
-plot(gps_x,gps_y,'b')
-plot(ekf_x,ekf_y,'r')
+plot(gps_x,gps_y,'-ob')
+plot(ekf_x,ekf_y,'-or')
 xlim([-16,2])
 ylim([-10,0])
 

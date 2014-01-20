@@ -73,11 +73,11 @@
   <!-- </node> -->
 
 
-  <!-- <node pkg="sicktoolbox_wrapper" type="sicklms" name="lidar" output="screen"> -->
-  <!-- 	<param name="port" value="/dev/ttyS0" /> -->
-  <!-- 	<param name="angle" value="100" /> -->
-  <!-- 	<param name="resolution" value="0.25" /> -->
-  <!-- </node> -->
+  <node pkg="sicktoolbox_wrapper" type="sicklms" name="lidar" output="screen">
+  	<param name="port" value="/dev/ttyS0" />
+  	<param name="angle" value="100" />
+  	<param name="resolution" value="0.25" />
+  </node>
   
   <!-- <node pkg="redblade_laser" -->
   <!-- 	type="redblade_laser_node" -->
@@ -90,15 +90,15 @@
   <!--   <param name="verbose" value="true" /> -->
   <!-- </node> -->
 
-  <!-- <node pkg="redblade_chad_laser" -->
-  <!-- 	type="redblade_chad_laser_node" -->
-  <!-- 	name="redblade_chad_laser_node" -->
-  <!-- 	output="screen"> -->
-  <!--   <param name="ekf_namespace" value="/redblade_ekf/2d_pose"/> -->
-  <!--   <param name="laser_namespace" value="/scan"/> -->
-  <!--   <param name="pole_namespace" value="/lidar/pole"/> -->
-  <!--   <param name="single_or_triple" value="false"/> -->
-  <!-- </node> -->
+  <node pkg="redblade_chad_laser"
+  	type="redblade_chad_laser_node"
+  	name="redblade_chad_laser_node"
+  	output="screen">
+    <param name="ekf_namespace" value="/redblade_ekf/2d_pose"/>
+    <param name="laser_namespace" value="/scan"/>
+    <param name="pole_namespace" value="/lidar/pole"/>
+    <param name="single_or_triple" value="false"/>
+  </node>
 
 </launch>
  

@@ -1,7 +1,7 @@
 <launch>
-  <arg name="filename"/>
+  <arg name="filename" default="test"/>
   <node pkg="rosbag" type="record" name="rosbag_rec" 
-	args="-O /home/redblade/DATA/LIDAR/$(arg filename) /cmd_vel /encoders_back /encoders_front /gps /fix /imu/data /imu/integrated_gyros /imu/integrated_gyros_stamped /roboteq_back/cmd_vel_stamped /roboteq_front/cmd_vel_stamped /odom /redblade_ekf/odom /redblade_ekf/2d_pose /lidar/pole /scan">
+	args="-O /home/redblade/DATA/EKF/$(arg filename) /cmd_vel /encoders_back /encoders_front /gps /fix /imu/data /imu/integrated_gyros /imu/integrated_gyros_stamped /roboteq_back/cmd_vel_stamped /roboteq_front/cmd_vel_stamped /odom /redblade_ekf/odom /redblade_ekf/2d_pose /lidar/pole /scan">
   </node>
 
 </launch>

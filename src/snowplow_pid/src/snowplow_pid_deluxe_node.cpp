@@ -36,6 +36,8 @@ double linear_vel;
 bool forward_or_turn;//1 forward
 bool avoidance_active;
 int avoidance_counter;
+std::deque<Waypoint> avoidance_points;
+int num_avoidance_points;
 
 Waypoint avoid_enter, avoid_exit, avoid_thin, avoid_fat;
 Waypoint pole_est;
@@ -67,7 +69,7 @@ double get_d_correction(double error){
 
 //Turning method
 bool turn_to_heading(){
-  ROS_INFO("Start Turning to Correct Heading");
+  //ROS_INFO("Start Turning to Correct Heading");
   double desired_heading = atan2(dest.y-start.y,
 				 dest.x-start.x);
   
@@ -89,13 +91,13 @@ bool turn_to_heading(){
     vel_targets.angular.z = -0.3;
   }
 
-  ROS_INFO("Desired heading %lf Current Heading %lf Error %lf",desired_heading,cur_pos.theta,error);
+  //ROS_INFO("Desired heading %lf Current Heading %lf Error %lf",desired_heading,cur_pos.theta,error);
 
   // iterate until within a certain threshold
   //TODO: make this threshold a parameter
   if(fabs(error) < 0.15){
     //fairly certain I can delete part this next line that gives warning. looks like it was just for debugging abs/fabs....
-    ROS_INFO("Final Error: %lf fabs(error) %lf abs(error) %lf",error,fabs(error),abs(error));
+    //ROS_INFO("Final Error: %lf fabs(error) %lf abs(error) %lf",error,fabs(error),abs(error));
     vel_targets.linear.x = 0;
     vel_targets.angular.z = 0;
     return true;
@@ -320,9 +322,8 @@ void poleCallback(const geometry_msgs::PointStamped::ConstPtr& pole_msg){
   
   bool pole_in_path = false;
   if(avoidance_counter == 0 || !avoidance_active){
-    pole_in_path =  checkForPole(avoid_enter, avoid_exit, 
-				    avoid_thin, avoid_fat,
-				    start, dest, pole_est);
+    pole_in_path =  checkForPole(avoidance_points,
+				 start, dest, pole_est, cur_pos.theta);
   }
 
   if(pole_in_path){
@@ -332,9 +333,9 @@ void poleCallback(const geometry_msgs::PointStamped::ConstPtr& pole_msg){
   
   if(avoidance_active && avoidance_counter == 0){
     if(pole_in_path){
-      dest.x = avoid_enter.x;
-      dest.y = avoid_enter.y;
-      forward = avoid_enter.forward;
+      dest.x = avoidance_points[0].x;
+      dest.y = avoidance_points[0].y;
+      forward = avoidance_points[0].forward;
       ROS_INFO("UPDATING AVOID_ENTRANCE: Start: (%f,%f) Dest: (%f,%f) Fwd: %d",start.x,start.y,dest.x,dest.y,forward);
     }
     else{
@@ -366,18 +367,23 @@ void poseCallback(const geometry_msgs::Pose2D::ConstPtr& pose_msg){
       // avoid_enter. if so, add the other two avoidance points and continue as normal.
       if(avoidance_active){
 	if(avoidance_counter == 0){
-	  //	  waypoints.push_front(avoid_fat);
-	  ROS_INFO("AVOIDANCE ROUTINE FOUND 'AVOID_ENTER'. ADDING THIN/FAT & EXIT...");
 
-	  waypoints.push_front(avoid_exit);
-	  // if(checkBounds(avoid_thin))
-	  //   waypoints.push_front(avoid_thin);
-	  // else
-	  //   waypoints.push_front(avoid_fat);
-	  waypoints.push_front(avoid_thin);
-	  waypoints.push_front(avoid_enter);
+	  ROS_INFO("AVOIDANCE ROUTINE FOUND 'AVOID_ENTER'. ADDING CIRCLE POINTS...");
+	  
+	  // push avoidance points onto normal waypoints queue
+	  // backwards because they're in reverse order.
+	  // also remember the number of points we added.
+	  num_avoidance_points = avoidance_points.size();
+	  for(int ii = 0; ii < num_avoidance_points; ii++){
+	    waypoints.push_front(avoidance_points.back());
+	    avoidance_points.pop_back();
+
+	    ROS_INFO("AVOIDANCE POINT %d; x: %f, y: %f",num_avoidance_points-ii,waypoints[0].x,waypoints[0].y);
+	  }
+
 	}
 	avoidance_counter++;
+
 	ROS_INFO("AVOIDANCE ROUTINE HAS REACHED AN AVOIDANCE POINT! AVOID_COUNTER = %d",avoidance_counter);
 	ROS_INFO("DISTANCE TO POLE: %f", sqrt( (pole_est.x - cur_pos.x)*(pole_est.x - cur_pos.x) + 
 					       (pole_est.y - cur_pos.y)*(pole_est.y - cur_pos.y) ));
@@ -390,7 +396,7 @@ void poseCallback(const geometry_msgs::Pose2D::ConstPtr& pose_msg){
       }
       forward_or_turn = 0;
 
-      if(avoidance_counter == 3){//shut off avoidance once we've done our 3 points
+      if(avoidance_counter == num_avoidance_points){//shut off avoidance once we've done our X points
 	ROS_INFO("AVOIDANCE ROUTINE COMPLETED, AVOIDANCE OFF. RESUMING NORMAL WAYPOINTS...");
 	avoidance_active = false;
 	avoidance_counter = 0;
@@ -433,6 +439,7 @@ int main(int argc, char** argv){
   waypoint_number = 0;
   avoidance_active = false;
   avoidance_counter = 0;
+  num_avoidance_points = 0;
   pole_est.x = 0;
   pole_est.y = 0;
 
