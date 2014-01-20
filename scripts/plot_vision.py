@@ -7,11 +7,8 @@ import math
 import movingAverage
 
 #gpsBag = "/home/jamie/Documents/data/test4/pole.bag"
-<<<<<<< HEAD
-poleBag = "/home/jamie/Documents/data/lidar.bag"
-=======
-poleBag = "/home/jamie/Documents/data/lidar_processed.bag"
->>>>>>> a739648346a33fe2011a5667476118ef8350a325
+#poleBag = "/home/jamie/Documents/data/lidar.bag"
+poleBag = "/home/jamie/DATA/LIDAR/lidar_processed.bag"
 front_encoders = "/encoders_front"
 back_encoders = "/encoders_back"
 front_cmds = "/roboteq_front/cmd_vel_stamped"
@@ -35,8 +32,8 @@ pose2D = "/redblade_ekf/2d_pose"
 #print min(time),max(time),len(time)
 #print "Average GPS position",numpy.mean(gps_x[-50:]),numpy.mean(gps_y[-50:])
 
-correct_x = -11.5
-correct_y = -4.6
+correct_x = -11.4
+correct_y = -4.7
 
 bag = rosbag.Bag(poleBag)
 threshold = 0.1
@@ -63,10 +60,10 @@ d = [math.sqrt((lidar_pole_y[i]-correct_y)**2 +
                (lidar_pole_x[i]-correct_x)**2) for i in xrange(len(lidar_pole_y))]
 
 f1 = figure(1)
-p1,=plot(lidar_pole_y,lidar_pole_x,'ob')
-p2,=plot(gps_y,gps_x,'og')
+p1,=plot(lidar_pole_x,lidar_pole_y,'ob')
+p2,=plot(gps_x,gps_y,'og')
 
-p3,=plot(correct_y,correct_x,'or')
+p3,=plot(correct_x,correct_y,'or')
 ylabel("x")
 xlabel("y")
 title("Experiment positions")
@@ -128,23 +125,14 @@ f3.show()
 # legend([p1,p2,p3],["GPS Robot position"," Pole position (STEREO)","Correct position"])
 # f6.show() 
 
-# f6 = figure(6)
-# p1,=plot(time,gps_y,'og')
-# p2,=plot(time,stereo_pole_y,'ob')
-# p3,=plot(time,[correct_y]*len(time),'or')
-# ylabel("Distance (y)")
-# xlabel("time")
-# title("Position vs time of Stereo measurements on y axis")
-# legend([p1,p2,p3],["GPS Robot position"," Pole position (STEREO)","Correct position"])
-# f6.show() 
 
 # print len(time),len(headings)
-f7 = figure(7)
-plot(time,headings,'og')
-ylabel("Rad (y)")
-xlabel("time")
-title("heading vs time of Stereo measurements on y axis")
-#legend([p1,p2,p3],["GPS Robot position"," Pole position (STEREO)","Correct position"])
-f7.show() 
+# f7 = figure(7)
+# plot(time,headings,'og')
+# ylabel("Rad (y)")
+# xlabel("time")
+# title("heading vs time of Stereo measurements on y axis")
+# #legend([p1,p2,p3],["GPS Robot position"," Pole position (STEREO)","Correct position"])
+# f7.show() 
 
 raw_input()

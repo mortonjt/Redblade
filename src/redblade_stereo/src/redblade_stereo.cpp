@@ -43,6 +43,8 @@ redblade_stereo::redblade_stereo(double viewingRadius,
 }
 
 redblade_stereo::redblade_stereo(std::string surveyFile,
+				 bool tripleI,
+				 bool searchSnowField,
 				 double groundHeight, 
 				 double poleWidth,
 				 double cameraHeight,
@@ -69,6 +71,35 @@ redblade_stereo::redblade_stereo(std::string surveyFile,
   fieldAngle = -atan2(y[1],x[1]);
 
 }
+
+redblade_stereo::redblade_stereo(std::string surveyFile,
+				 double groundHeight, 
+				 double poleWidth,
+				 double cameraHeight,
+				 double cameraLengthOffset){
+  this->surveyFile = surveyFile;
+  this->groundHeight = groundHeight;
+  this->poleWidth = poleWidth;
+  this->towerWidth = towerWidth;
+  this->cameraHeight = cameraHeight;
+  this->cameraLengthOffset = cameraLengthOffset;
+  
+  this->x.resize(4);
+  this->y.resize(4);
+  std::ifstream h((char*)surveyFile.c_str());
+  h>>x[0]>>y[0]
+   >>x[1]>>y[1];
+  h.close();
+  /*Make sure that the length of the field is within 1 cm of expected*/
+  //assert( fabs((((x[0]-x[1])*(x[0]-x[1]) + (y[0]-y[1])*(y[0]-y[1]))) - zoneLength*zoneLength)<0.5);
+  if(fabs((sqrt((x[0]-x[1])*(x[0]-x[1]) + (y[0]-y[1])*(y[0]-y[1]))) - zoneLength)>0.5){
+    ROS_WARN("Double check survey - Measured Length:%lf Actual Length:%lf",
+	     sqrt((x[0]-x[1])*(x[0]-x[1]) + (y[0]-y[1])*(y[0]-y[1])),zoneLength);
+  }
+  fieldAngle = -atan2(y[1],x[1]);
+
+}
+
 bool redblade_stereo::inSnowField(double transformedX, double transformedY){
     if(tripleI){
       double width = 3;        //Width of snowfield
@@ -290,23 +321,24 @@ void redblade_stereo::cloud2point(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
 //Finds the pole using the RANSAC algorithm
 bool redblade_stereo::findPole(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
 			       pcl::PointCloud<pcl::PointXYZ>::Ptr pole){
-  //ROS_INFO("Size of input cloud %d",in->points.size());
+  ROS_INFO("Size of input cloud %d",in->points.size());
+  if(in->points.size()<sigSize){//Significance test
+    return false;
+  }
   Eigen::VectorXf coeff;
   coeff.resize(6);
   ransac(in,pole,coeff);
-  //ROS_INFO("Size of coefficients %d",coeff.size());
+  ROS_INFO("Size of coefficients %d",coeff.size());
   if(coeff.size()==0){
     return false;
-  }
-  
-  // ROS_INFO("Model Coefficients (x:%f,y:%f,z:%f)+(dx:%f,dy:%f,dz:%f)",
-  // 	   coeff[0],coeff[1],coeff[2],coeff[3],coeff[4],coeff[5]);
+  }  
+  ROS_INFO("Model Coefficients (x:%f,y:%f,z:%f)+(dx:%f,dy:%f,dz:%f)",
+   	   coeff[0],coeff[1],coeff[2],coeff[3],coeff[4],coeff[5]);
   if(fabs(coeff[5])>verticalTolerance){     //Vertical line test
     if(pole->points.size()>sigSize){//Significance test
       // int clusters = cluster(pole,0.01); //1 cm
       // if(clusters==1){              //Test to see if the line is one contiguous segment
-      // 	ROS_INFO("Size of line %d, Number of clusters %d",
-      // 		 pole->points.size(),clusters);
+      ROS_INFO("Size of line %d",pole->points.size());
       // ROS_INFO("Model Coefficients (x:%f,y:%f,z:%f)+(dx:%f,dy:%f,dz:%f)",
       // 	       coeff[0],coeff[1],coeff[2],coeff[3],coeff[4],coeff[5]);
       return true;}}

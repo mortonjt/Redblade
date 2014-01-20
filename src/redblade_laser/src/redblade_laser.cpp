@@ -1,6 +1,11 @@
 #include "redblade_laser.h"
 #include <iostream>
 
+#define POLE_HITS 5
+#define BAD_HITS 1
+#define RANGE_THRESH 0.05
+#define LASER_OFFSET 0.3
+
 
 redblade_laser::redblade_laser(std::string surveyFile,
 			       double laserOffset,
@@ -49,37 +54,124 @@ void redblade_laser::scan2cloud(sensor_msgs::LaserScan scan_in,
   // projector_.projectLaser(currentScan, cloud); 
   // pcl::fromROSMsg(cloud,*pcl_cloud);
 
-  /*Copied from laser_geometry.cpp from laser_geometry.h on hydro*/
-  size_t n_pts = scan_in.ranges.size ();
-  Eigen::ArrayXXd ranges (n_pts, 2);
-  Eigen::ArrayXXd output (n_pts, 2);
+  // int num_scans = (int)((scan_in.angle_max-scan_in.angle_min)/scan_in.angle_increment);
+  // //int num_scans = scan_in.ranges.size();
+  // for(int i = 0; i < num_scans; i++){
+  //   if(scan_in.ranges[i]==INFINITY ||
+  //      std::isnan(scan_in.ranges[i])){
+  //     continue;
+  //   }
+  //   double r = scan_in.ranges[i];
+  //   double theta = scan_in.angle_min + (scan_in.angle_increment*(i));
+  //   pcl::PointXYZ pt;
+  //   pt.x = r*cos(theta);
+  //   pt.y = r*sin(theta);
+  //   pt.z = 0;
+  //   pcl_cloud->points.push_back(pt);
+  // }
 
-  // Get the ranges into Eigen format
-  for (size_t i = 0; i < n_pts; ++i){
-    ranges (i, 0) = (double) scan_in.ranges[i];
-    ranges (i, 1) = (double) scan_in.ranges[i];
-  }
-
-  // Check if our existing co_sine_map is valid
-  if (co_sine_map_.rows () != (int)n_pts || angle_min_ != scan_in.angle_min || angle_max_ != scan_in.angle_max )
-    {
-      ROS_DEBUG ("[projectLaser] No precomputed map given. Computing one.");
-      co_sine_map_ = Eigen::ArrayXXd (n_pts, 2);
-      angle_min_ = scan_in.angle_min;
-      angle_max_ = scan_in.angle_max;
-      // Spherical->Cartesian projection
-      for (size_t i = 0; i < n_pts; ++i)
-	{
-	  co_sine_map_ (i, 0) = cos (scan_in.angle_min + (double) i * scan_in.angle_increment);
-	  co_sine_map_ (i, 1) = sin (scan_in.angle_min + (double) i * scan_in.angle_increment);
-	}
+  //loop through each scan
+  int num_scans = (int)((scan_in.angle_max-scan_in.angle_min)/scan_in.angle_increment);
+  for(int i = 0; i < num_scans; i++){
+    if(scan_in.ranges[i]==INFINITY ||
+       std::isnan(scan_in.ranges[i])){
+      continue;
     }
-  output = ranges * co_sine_map_;
-  for(size_t i = 0; i<n_pts;++i){
-    pcl_cloud->points[i].x = output(i,0);
-    pcl_cloud->points[i].y = output(i,1);
-    pcl_cloud->points[i].z = 0;
+    //ROS_INFO("looping through scans %d", i);
+    
+    double current_range = scan_in.ranges[i];
+    int good = 1;
+    int bad = 0;
+    int j = i+1;
+    std::vector<pcl::PointXYZ> good_points;
+    while(1){
+      //check for end of array
+      //ROS_INFO("j: %d", j);
+      //ROS_INFO("curr_scan: %f\n",scan_in.ranges[j]);
+      if(j>=(num_scans-1)){
+  	if(good >= POLE_HITS){
+	  // for(int k = 0;k <good_points.size();k++){
+	  //   pcl_cloud->points.push_back(good_points[k]);
+	  // }
+  	  pcl::PointXYZ pt;
+  	  double r = current_range;
+  	  double theta = scan_in.angle_min + (scan_in.angle_increment*(i+j)/2);
+  	  pt.x = r*cos(theta);
+  	  pt.y = r*sin(theta);
+  	  pt.z = 0;
+	  pcl_cloud->points.push_back(pt);
+	  good_points.clear();
+  	  i = j;
+  	}
+  	break;
+      }else if(fabs(scan_in.ranges[j]-current_range) > RANGE_THRESH){
+  	bad++;
+  	if(bad <= BAD_HITS){
+  	  continue;
+  	}else{
+  	  if(good >= POLE_HITS){
+  	    // for(int k = 0;k <good_points.size();k++){
+  	    //   pcl_cloud->points.push_back(good_points[k]);
+  	    // }
+  	    pcl::PointXYZ pt;
+  	    double r = current_range;
+  	    double theta = scan_in.angle_min + (scan_in.angle_increment*(i+j)/2);
+  	    pt.x = r*cos(theta);
+  	    pt.y = r*sin(theta);
+  	    pt.z = 0;
+	    pcl_cloud->points.push_back(pt);
+  	    good_points.clear();
+  	    i = j;
+  	  }
+  	  break;
+  	}
+      }else if(fabs(scan_in.ranges[j]-current_range) < RANGE_THRESH){
+  	// pcl::PointXYZ pt;
+  	// double r = scan_in.ranges[j];
+  	// double theta = scan_in.angle_min + (scan_in.angle_increment*(j));
+  	// pt.x = r*cos(theta);
+  	// pt.y = r*sin(theta);
+  	// pt.z = 0;
+  	// good_points.push_back(pt);
+  	good++;
+      }
+      j++;
+    }
   }
+  
+
+
+  /*Copied from laser_geometry.cpp from laser_geometry.h on hydro*/
+  // size_t n_pts = scan_in.ranges.size ();
+  // Eigen::ArrayXXd ranges (n_pts, 2);
+  // Eigen::ArrayXXd output (n_pts, 2);
+  
+  // // Get the ranges into Eigen format
+  // for (size_t i = 0; i < n_pts; ++i){
+  //   ranges (i, 0) = (double) scan_in.ranges[i];
+  //   ranges (i, 1) = (double) scan_in.ranges[i];
+  // }
+
+  // // Check if our existing co_sine_map is valid
+  // if (co_sine_map_.rows () != (int)n_pts || angle_min_ != scan_in.angle_min || angle_max_ != scan_in.angle_max )
+  //   {
+  //     ROS_DEBUG ("[projectLaser] No precomputed map given. Computing one.");
+  //     co_sine_map_ = Eigen::ArrayXXd (n_pts, 2);
+  //     angle_min_ = scan_in.angle_min;
+  //     angle_max_ = scan_in.angle_max;
+  //     // Spherical->Cartesian projection
+  //     for (size_t i = 0; i < n_pts; ++i)
+  // 	{
+  // 	  co_sine_map_ (i, 0) = cos (scan_in.angle_min + (double) i * scan_in.angle_increment);
+  // 	  co_sine_map_ (i, 1) = sin (scan_in.angle_min + (double) i * scan_in.angle_increment);
+  // 	}
+  //   }
+  // output = ranges * co_sine_map_;
+  // for(size_t i = 0; i<n_pts;++i){
+  //   pcl_cloud->points[i].x = output(i,0);
+  //   pcl_cloud->points[i].y = output(i,1);
+  //   pcl_cloud->points[i].z = 0;
+  // }
 }
 
 
@@ -203,13 +295,15 @@ void redblade_laser::cloud2point(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
     totalz+= in->points[i].z;
   }
   //Use the median
-  // point.x = x[n/2];
-  // point.y = y[n/2];
-  // point.z = 0;
+  //point.x = x[n/2];
+  //point.y = y[n/2];
+  //point.z = 0;
 
   point.x = totalx/((double)in->points.size());
-  point.y = totaly/((double)in->points.size());
-  point.z = totalz/((double)in->points.size());
+  point.y = totaly/((double)in->points.size()); 
+  point.z = 0;
+ 
+  //point.z = totalz/((double)in->points.size());
 }
 
 

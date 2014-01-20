@@ -40,9 +40,9 @@ void publish_loop(){
       filtered(new pcl::PointCloud<pcl::PointXYZ>());
     boost::shared_ptr<pcl::PointCloud<pcl::PointXYZ> > 
       cluster(new pcl::PointCloud<pcl::PointXYZ>());
-    //redLazer->scan2cloud(currentScan,pcl_cloud);
-    projector_.projectLaser(currentScan, cloud); 
-    pcl::fromROSMsg(cloud,*pcl_cloud);
+    redLazer->scan2cloud(currentScan,pcl_cloud);
+    //projector_.projectLaser(currentScan, cloud); 
+    //pcl::fromROSMsg(cloud,*pcl_cloud);
     redLazer->transformLaser2ENU(currentPose,pcl_cloud);
     redLazer->filterBackground(pcl_cloud,filtered);
     if(verbose){
@@ -59,7 +59,7 @@ void publish_loop(){
     if(redLazer->saturated()){
       geometry_msgs::Point pt;
       geometry_msgs::PointStamped enuStamped;
-      bool foundPole = redLazer->findPole(pt,cluster,0.05);
+      bool foundPole = redLazer->findPole(pt,cluster,0.02);
       if(foundPole){
 	enuStamped.header.stamp = ros::Time::now();
 	enuStamped.header.frame_id = "enu";
@@ -76,6 +76,7 @@ void publish_loop(){
       }
     }
   }
+  
 }
 
 int main(int argc, char** argv){

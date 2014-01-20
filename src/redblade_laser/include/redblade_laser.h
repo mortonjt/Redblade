@@ -15,7 +15,7 @@
 #include <laser_geometry/laser_geometry.h>
 #include <Eigen/Core>
 #include <assert.h>
-
+#include <numeric>
 #define singleIZoneWidth  4     //Width of single snow field
 #define tripleIZoneWidth  7     //Width of triple snow field
 #define zoneLength    15   //Length of plowing zone

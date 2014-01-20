@@ -301,7 +301,7 @@ void poseCallback(const geometry_msgs::Pose2D::ConstPtr& pose_msg){
   if(forward_or_turn){
     //do the ol pid dance
     if(ye_ol_pid()){
-      usleep(1000000);
+      usleep(500000);
       //TODO: use service to grab the next waypoint
       snowplow_pid::request_next_waypoints srv;
       if(waypoint_client.call(srv)){
@@ -321,14 +321,14 @@ void poseCallback(const geometry_msgs::Pose2D::ConstPtr& pose_msg){
       error = 0;
       //CHANGEDBOB
       if(distance_to_goal() < 2){
-	linear_vel = SLOW_SPEED;
+	linear_vel = SLOW_SPEED
       }else{
 	linear_vel = FAST_SPEED;
       }
     }
   }else{//we turnin'
     if(turn_to_heading()){
-      usleep(1000000);//CHANGEDBOB
+      usleep(500000);//CHANGEDBOB
       forward_or_turn = 1;
     }
   }

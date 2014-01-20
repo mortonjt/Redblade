@@ -1,5 +1,5 @@
 /*
- Suggestions
+- Suggestions
  1) Initialize the EKF using the coordinates of the field (line 244)
  2) Propagate the EKF using wheel encoders (line 102)
  3) Throw out bad gps measurements?
@@ -30,6 +30,32 @@ using namespace Kalman;
 //using namespace tf;
 //using namespace ros;
 
+//Random number generator to test GPS blockage
+/*
+  A->A   A->B
+  B->A   B->B
+
+  A = 0 = GPS is present
+  B = 1 = GPS is not present    
+*/
+double probs[] = {0.9,0.1,
+		  0.2,0.8};
+// double probs[] = {1.0,0.0,
+// 		  0.25,0.75};
+//int index;
+struct markov_gen{
+  int index;
+  int random(){
+    double r = ((double)rand())/(INT_MAX);
+    if(index==0){index=(r<probs[0])?(0):(1);return 0;}
+    if(index==1){index=(r<probs[2])?(0):(1);return 1;}
+  };
+  int add(){
+    index++;
+  };
+};
+
+markov_gen rand_gen;//Just for testing GPS blockage
 
 geometry_msgs::Vector3 current_imu;
 nav_msgs::Odometry current_gps;
@@ -38,18 +64,17 @@ ros::Time imu_stamp;
 redblade_ekf ekf;
 ofstream daters;
 int heading_offset;
-
 ros::Publisher ekf_odom_pub;
 nav_msgs::Odometry ekf_odom;
 ros::Publisher ekf_2d_pub;
 geometry_msgs::Pose2D pose;
 //ros::Publisher cmd_vel_pub;
 //geometry_msgs::Twist cmd_vel;
-
 //tf::TransformBroadcaster* odom_broadcaster;
 
 bool odom_init = false;
 bool imu_init = false;
+bool hasGPS = false;
 bool theta_covar_thresh_reached = false;
 
 
@@ -81,29 +106,57 @@ void imuCallback(const geometry_msgs::Vector3::ConstPtr& imu_msg){
     imu_stamp = ros::Time::now();
   }
 }
-
 void gpsCallback(const nav_msgs::Odometry::ConstPtr& gps_msg){
-  
+  hasGPS = true;
+  current_gps = *gps_msg;
+}
+
+void odomCallback(const nav_msgs::Odometry::ConstPtr& odom_msg){
+  if(!odom_init){
+    odom_init = true;
+  }else{
+    current_odom = *odom_msg;
+  }
+}
+
+
+void publish_loop(){  
   if(odom_init && imu_init){
     Vector u;
-    Vector z(5);
     Vector x;
     Matrix P;
-    
-    z(1) = gps_msg->pose.pose.position.x;
-    z(2) = gps_msg->pose.pose.position.y;
-    z(3) = current_odom.twist.twist.linear.x;
-    z(4) = current_imu.z + heading_offset*2*M_PI;
-    z(5) = current_odom.twist.twist.angular.z;
-    //ofstream daters("ekf_data_collect.txt",std::ofstream::app);
-    daters << (ros::Time::now()).toSec() << ",";
-    daters << z(1) << "," << z(2) << "," << z(3) << "," << z(4) << "," << z(5) << ",";
-    //ROS_INFO("%lf, %lf, %lf, %lf, %lf", z(1), z(2), z(3), z(4), z(5));
-    
-    //Todo: Move all of this logic into a separate publish_loop() and do ekf.predict(u) when no gps is present
-    ekf.step(u, z);
-    x = ekf.getX();
-
+    //bool blockedGPS = rand_gen.random();
+    rand_gen.add();
+    bool blockedGPS = (rand_gen.index%50>25 and rand_gen.index%50<50);
+    //ROS_INFO("Blocked GPS:%d Markov Index:%d",blockedGPS,rand_gen.index);
+    if(hasGPS and not blockedGPS){
+      Vector z(5);
+      z(1) = current_gps.pose.pose.position.x;
+      z(2) = current_gps.pose.pose.position.y;
+      z(3) = current_odom.twist.twist.linear.x;
+      z(4) = current_imu.z + heading_offset*2*M_PI;
+      z(5) = current_odom.twist.twist.angular.z;
+      //ofstream daters("ekf_data_collect.txt",std::ofstream::app);
+      daters << (ros::Time::now()).toSec() << ",";
+      daters << z(1) << "," << z(2) << "," << z(3) << "," << z(4) << "," << z(5) << ",";
+      //ROS_INFO("%lf, %lf, %lf, %lf, %lf", z(1), z(2), z(3), z(4), z(5));
+      
+      ekf.step(u, z);
+      x = ekf.getX();
+      hasGPS=false;
+    }else{
+      Vector z(5);
+      double heading = pose.theta+current_odom.twist.twist.angular.z*0.2;
+      z(1) = pose.x+current_odom.twist.twist.linear.x*cos( heading )*0.2;
+      z(2) = pose.y+current_odom.twist.twist.linear.x*sin( heading )*0.2;
+      z(3) = current_odom.twist.twist.linear.x;
+      z(4) = current_imu.z + heading_offset*2*M_PI;
+      z(5) = current_odom.twist.twist.angular.z;
+      
+      ekf.step(u,z);
+      x = ekf.getX();
+      //x = ekf.predict(u);
+    }
     //construct 2D pose message and publish
     pose.x = x(1);
     pose.y = x(2);
@@ -204,13 +257,6 @@ void gpsCallback(const nav_msgs::Odometry::ConstPtr& gps_msg){
   }    
 }
 
-void odomCallback(const nav_msgs::Odometry::ConstPtr& odom_msg){
-  if(!odom_init){
-    odom_init = true;
-  }else{
-    current_odom = *odom_msg;
-  }
-}
 
 int main(int argc, char **argv){
   ros::init(argc, argv, "redblade_ekf");
@@ -234,11 +280,11 @@ int main(int argc, char **argv){
   
   //initial covariance of estimate
   static const double _P0[] = {400, 0.0, 0.0, 0.0, 0.0, 0.0,
-			     0.0, 400, 0.0, 0.0, 0.0, 0.0,
-			     0.0, 0.0, pow(1.57,2), 0.0, 0.0, 0.0,
-			     0.0, 0.0, 0.0, .25, 0.0, 0.0,
-			     0.0, 0.0, 0.0, 0.0, 0.0625, 0.0,
-			     0.0, 0.0, 0.0, 0.0, 0.0, pow(1.57,2)};
+			       0.0, 400, 0.0, 0.0, 0.0, 0.0,
+			       0.0, 0.0, pow(1.57,2), 0.0, 0.0, 0.0,
+			       0.0, 0.0, 0.0, .25, 0.0, 0.0,
+			       0.0, 0.0, 0.0, 0.0, 0.0625, 0.0,
+			       0.0, 0.0, 0.0, 0.0, 0.0, pow(1.57,2)};
   Matrix P0(num_states,num_states,_P0);
   
   //initial estimate
@@ -253,45 +299,22 @@ int main(int argc, char **argv){
   //intialize ze filter
   ekf.init(x, P0);
 
- 
+  rand_gen.index = 0;
   ros::Subscriber imu_sub = n.subscribe ("/imu/integrated_gyros", 1, imuCallback);
   ros::Subscriber gps_sub = n.subscribe ("/gps", 1, gpsCallback);
   ros::Subscriber odom_sub = n.subscribe ("/odom", 10, odomCallback);
-
-  ros::spin();
+  ros::Rate pub_rate(0.01); 
+  ros::AsyncSpinner spinner(3);
+  spinner.start();
+  while(ros::ok()) {
+    publish_loop();
+    pub_rate.sleep();
+    //usleep(200000);
+  }
+  //ros::spin();
+  spinner.stop();  
 
   return 0;
 }
 
 
-  /*ros::init(argc,argv,"Arduino_RC");
-  ros::NodeHandle n;
-  ros::Publisher Arduino_RC_pub = n.advertise<geometry_msgs::Twist>("Arduino_RC",100);
-  ros::Rate loop_rate(20); //publish at 20 hz.
-  //ros::init(argc, argv, "redblade_ekf_node");
-  ros::NodeHandle n;
-  ros::Publisher redblade_ekf_pub_ = n.advertise<geometry_msgs::Pose2D>("redblade_ekf",5);
-  ros::Rate loop_rate(5);//5 Hz
-
-  
-  while(ros::ok()) {
-    //PUBLISH LINEAR & ANGULAR(RAD/SEC) VELOCITIES, BOTH INTS
-    /*geometry_msgs::Twist msg;
-    msg.linear.x = speedInMps;
-    msg.linear.y = 0;
-    msg.linear.z = 0;
-    msg.angular.x = 0;
-    msg.angular.y = 0;
-    msg.angular.z = ((right-left)/wheelbase)*roboteqUnits/angresolution;
-
-    Arduino_RC_pub.publish(msg);
-    
-    loop_rate.sleep();
-    
-    
-  }
-  
-  //delete ekf;
-  
-  return 0;
-*/
