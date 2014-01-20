@@ -10,3 +10,4 @@ devel
 *.zip
 src/b110_testing
 correctBag.launch
+config
