@@ -128,8 +128,8 @@ void publish_loop(){
     Matrix P;
     //bool blockedGPS = rand_gen.random();
     rand_gen.add();
-    //bool blockedGPS = false;
-    bool blockedGPS = rand_gen.index>250;
+    bool blockedGPS = false;
+    //bool blockedGPS = rand_gen.index>250;
     //bool blockedGPS = (rand_gen.index%50>25 and rand_gen.index%50<50);
     //ROS_INFO("Blocked GPS:%d hasGPS:%d",blockedGPS,hasGPS);
     
@@ -146,8 +146,8 @@ void publish_loop(){
       //ROS_INFO("%lf, %lf, %lf, %lf, %lf", z(1), z(2), z(3), z(4), z(5));
       double test_x = (pose.x+current_odom.twist.twist.linear.x*cos( pose.theta )*0.2)+(cos(pose.theta)*0.21);
       double test_y = (pose.y+current_odom.twist.twist.linear.x*sin( pose.theta )*0.2)+(sin(pose.theta)*0.21);
-      ROS_INFO("linear velocity: %lf", z(3));
-      ROS_INFO("(%lf, %lf)\t(%lf, %lf)\t(%lf,%lf)\n",z(1),z(2),test_x,test_y,(fabs(test_x-z(1))),(fabs(test_y-z(2))));
+      //ROS_INFO("linear velocity: %lf", z(3));
+      //ROS_INFO("(%lf, %lf)\t(%lf, %lf)\t(%lf,%lf)\n",z(1),z(2),test_x,test_y,(fabs(test_x-z(1))),(fabs(test_y-z(2))));
       
       ekf.step(u, z);
       x = ekf.getX();
@@ -331,50 +331,48 @@ int main(int argc, char **argv){
   read_in_survey_points(survey_points, survey_file);
   double orientation = atan2(survey_points[1][1]-survey_points[0][1],
 			     survey_points[1][0]-survey_points[0][0]);
-  
+
   //initialize ekf
   const unsigned num_states = 6;
   const unsigned m = 5;//number of measures
   
   //initial covariance of estimate
-  // static const double _P0[] = {0.04, 0.0, 0.0, 0.0, 0.0, 0.0,
-  // 			       0.0, 0.04, 0.0, 0.0, 0.0, 0.0,
-  // 			       0.0, 0.0, 0.0012, 0.0, 0.0, 0.0,
-  // 			       0.0, 0.0, 0.0, 0.01, 0.0, 0.0,
-  // 			       0.0, 0.0, 0.0, 0.0, 0.01, 0.0,
-  // 			       0.0, 0.0, 0.0, 0.0, 0.0, 0.0012};//still gotta figure out this bias
-  // Matrix P0(num_states,num_states,_P0);
+  static const double _P0[] = {0.04, 0.0, 0.0, 0.0, 0.0, 0.0,
+  			       0.0, 0.04, 0.0, 0.0, 0.0, 0.0,
+  			       0.0, 0.0, 0.0012, 0.0, 0.0, 0.0,
+  			       0.0, 0.0, 0.0, 0.01, 0.0, 0.0,
+  			       0.0, 0.0, 0.0, 0.0, 0.01, 0.0,
+  			       0.0, 0.0, 0.0, 0.0, 0.0, 0.0012};//still gotta figure out this bias
+  Matrix P0(num_states,num_states,_P0);
   
-  // //initial estimate, different for single i vs. triple i
-  // Vector x(num_states);
-  // std::vector<double> start_position;
-  // if(single_i){
-  //   start_position[0] = 1.715;//determined by rj, jamie, and bob
-  //   start_position[1] = 1.73;//determined by rj, jamie, and bob
-  //   rotation_matrix(start_position, orientation);
-  //   x(1) = start_position[0];
-  //   x(2) = start_position[1];
-  //   x(3) = orientation;
-  //   x(4) = 0.0;//she ain't moving
-  //   x(5) = 0.0;//she ain't turnin'
-  //   x(6) = -orientation;//TODO, based on x(3)
-  // }else{
-  //   start_position[0] = 2.53;//determined by rj, jamie, and bob
-  //   start_position[1] = 4.385;//determined by rj, jamie, and bob
-  //   rotation_matrix(start_position, orientation);
-  //   orientation -= (M_PI/2);
-  //   wrapToPi(orientation);
-  //   x(1) = start_position[0];
-  //   x(2) = start_position[1];
-  //   x(3) = orientation;
-  //   x(4) = 0.0;//she ain't moving
-  //   x(5) = 0.0;//she ain't turnin'
-  //   x(6) = -orientation;
-  // }
+  //initial estimate, different for single i vs. triple i
+  Vector x(num_states);
+  std::vector<double> start_position(2,0);
+  if(single_i){
+    start_position[0] = 1.715;//determined by rj, jamie, and bob
+    start_position[1] = 1.73;//determined by rj, jamie, and bob
+    rotation_matrix(start_position, orientation);
+    x(1) = start_position[0];
+    x(2) = start_position[1];
+    x(3) = orientation;
+    x(4) = 0.0;//she ain't moving
+    x(5) = 0.0;//she ain't turnin'
+    x(6) = -orientation;//TODO, based on x(3)
+  }else{
+    start_position[0] = 2.53;//determined by rj, jamie, and bob
+    start_position[1] = 4.385;//determined by rj, jamie, and bob
+    rotation_matrix(start_position, orientation);
+    orientation -= (M_PI/2);
+    wrapToPi(orientation);
+    x(1) = start_position[0];
+    x(2) = start_position[1];
+    x(3) = orientation;
+    x(4) = 0.0;//she ain't moving
+    x(5) = 0.0;//she ain't turnin'
+    x(6) = -orientation;
+  }
 
-
-
-  static const double _P0[] = {400, 0.0, 0.0, 0.0, 0.0, 0.0,
+  /*static const double _P0[] = {400, 0.0, 0.0, 0.0, 0.0, 0.0,
 			     0.0, 400, 0.0, 0.0, 0.0, 0.0,
 			     0.0, 0.0, pow(1.57,2), 0.0, 0.0, 0.0,
 			     0.0, 0.0, 0.0, .25, 0.0, 0.0,
@@ -390,7 +388,7 @@ int main(int argc, char **argv){
   x(4) = 0.0;
   x(5) = 0.0;
   x(6) = 0.0;
-
+  */
   //intialize ze filter
   ekf.init(x, P0);
 

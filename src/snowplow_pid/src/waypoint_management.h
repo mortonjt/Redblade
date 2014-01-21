@@ -4,40 +4,15 @@
 #include <sstream>
 #include <fstream>
 #include <deque>
+//#include "common_deluxe_functions.h"
+#include "boundaryCheck.h"
 
-#define ROBOTWIDTH 1.12 //maximum width with plow. we can change this...
-#define ROBOTFRONT 1.285 //max length with plow. also apt to change.
-#define ROBOTBACK 0.615
-#define PI 3.141592653589
-#define BUFFER 0.25
-
-struct Waypoint{
-  double x,y;
-  bool forward;
-};
-
-std::string waypoints_filename;
 std::deque<Waypoint> waypoints;
 Waypoint start, dest;
 bool forward;
 int waypoint_number;
 
-void rotation_matrix(Waypoint &point, double theta){
-  double x = point.x;
-  double y = point.y;
-  point.x = x*cos(theta) - y*sin(theta);
-  point.y = x*sin(theta) + y*cos(theta);
-}
-
-void split_to_double(const std::string &s, char delim, std::vector<double> &elements){
-  std::stringstream ss(s);
-  std::string item;
-  while(std::getline(ss,item,delim)){
-    elements.push_back(atof(item.c_str()));
-  }
-}
-
-bool read_in_waypoints(){
+bool read_in_waypoints(std::string waypoints_filename){
   //first, read in each line
   std::vector<std::string> elements;
   std::string item;
@@ -115,15 +90,19 @@ double projectPoint(Waypoint p1, Waypoint a, Waypoint b){
 }
 
 bool checkForPole(std::deque<Waypoint>& avoidance_points,
-		  Waypoint a, Waypoint b, Waypoint c, double heading){
+		  Waypoint a, Waypoint b, Waypoint c, 
+		  double field_orientation, bool is_single_i){
 
   avoidance_points.clear();
-  bool is_left;
-  Waypoint entrance;
+  bool approach_left, going_left;
+  Waypoint entrancePoint,exitPoint,backupPoint;
 
-  double radius_front = ROBOTFRONT + BUFFER;
-  //double radius_back = ROBOTBACK + BUFFER;
-  double radius_side = ROBOTWIDTH/2 + BUFFER;
+  double heading = atan2((b.y-a.y),(b.x-a.x));
+
+  double backup_dist = 1.5;
+  double radius_front = ROBOTFRONT + 0.5;
+  double radius_back = ROBOTBACK + 0.5;
+  double radius_side = ROBOTWIDTH/2 + 0.5;
 
   // VARIABLE DEFINITIONS
   // avoidance_points: list of avoidance points to return
@@ -155,7 +134,7 @@ bool checkForPole(std::deque<Waypoint>& avoidance_points,
     // line intersects with circle
     // find distance from proj point to center of circle
     double dt = sqrt( radius_front*radius_front - ec_dist*ec_dist );
-    
+
     Waypoint temp1, temp2;
     temp1.x = (t-dt)*Dirx + a.x; 
     temp1.y = (t-dt)*Diry + a.y; 
@@ -166,14 +145,15 @@ bool checkForPole(std::deque<Waypoint>& avoidance_points,
     double dist_temp1 = sqrt( (temp1.x-a.x)*(temp1.x-a.x) + (temp1.y-a.y)*(temp1.y-a.y) );
     double ac_dist = sqrt( (c.x-a.x)*(c.x-a.x) + (c.y-a.y)*(c.y-a.y) );
     
-    entrance.forward = 1;
+    entrancePoint.forward = 1;
+    exitPoint.forward = 1;
     if(dist_temp1 < ac_dist){
-      entrance.x = temp1.x;
-      entrance.y = temp1.y;
+      entrancePoint.x = temp1.x;
+      entrancePoint.y = temp1.y;
     }
     else{
-      entrance.x = temp2.x;
-      entrance.y = temp2.y;
+      entrancePoint.x = temp2.x;
+      entrancePoint.y = temp2.y;
     }
 
     //make a circle of points to go to:
@@ -184,31 +164,108 @@ bool checkForPole(std::deque<Waypoint>& avoidance_points,
     rotation_matrix(c,-heading);
 
     if(c.y - e.y >= 0)
-      is_left = false;
+      approach_left = false;
     else
-      is_left = true;
+      approach_left = true;
 
-    double theta_increment = PI/4;
-    Waypoint nextPoint;
+    /* //UNCOMMENT TO MAKE THE ROBOT GO IN A CIRCLE: */
 
-    // in the coordinate frame of the robot heading 
-    for(int ii = -3; ii <= 7; ii++){
-      nextPoint.x = c.x + cos(ii*theta_increment)*radius_side;
-      nextPoint.y = c.y + sin(ii*theta_increment)*radius_side;
-      nextPoint.forward = 1;
+    /* double theta_increment = PI/4; */
+    /* Waypoint nextPoint; */
 
-      rotation_matrix(nextPoint,heading);
-      avoidance_points.push_back(nextPoint);
+    /* // in the coordinate frame of the robot heading  */
+    /* for(int ii = -3; ii <= 7; ii++){ */
+    /*   nextPoint.x = c.x + cos(ii*theta_increment)*radius_side; */
+    /*   nextPoint.y = c.y + sin(ii*theta_increment)*radius_side; */
+    /*   nextPoint.forward = 1; */
+
+    /*   rotation_matrix(nextPoint,heading); */
+    /*   avoidance_points.push_back(nextPoint); */
+    /* } */
+
+    Waypoint nextPoint,rightmost_point,leftmost_point, left_smooth_point,right_smooth_point;
+    //remember, c and e are still in coord frame of robot heading
+
+    //-135 deg point for approaching right side so it 
+    //doesn't cut into the pole
+    right_smooth_point.x = c.x + cos(-3/4*PI)*radius_side;
+    right_smooth_point.y = c.y + sin(-3/4*PI)*radius_side;
+    right_smooth_point.forward = 1;
+    rotation_matrix(right_smooth_point,heading);
+
+    //+135 deg point for approaching left side so it 
+    //doesn't cut into the pole
+    left_smooth_point.x = c.x + cos(3/4*PI)*radius_side;
+    left_smooth_point.y = c.y + sin(3/4*PI)*radius_side;
+    left_smooth_point.forward = 1;
+    rotation_matrix(left_smooth_point,heading);
+
+    //try -90 deg point (right side point)
+    rightmost_point.x = c.x;
+    rightmost_point.y = c.y - radius_side;
+    rightmost_point.forward = 1;
+    rotation_matrix(rightmost_point,heading);
+      
+    //next put in +90 deg point (left side point)
+    leftmost_point.x = c.x;
+    leftmost_point.y = c.y + radius_side;
+    leftmost_point.forward = 1;
+    rotation_matrix(leftmost_point,heading);
+
+    if(!checkBoundaries(rightmost_point,is_single_i,field_orientation)){
+      ROS_INFO("PLOWING AROUND THE RIGHT SIDE WOULD BE OUT OF BOUNDS (%f,%f), TRYING LEFT",
+	       rightmost_point.x,rightmost_point.y);
+
+      if(!checkBoundaries(leftmost_point,is_single_i,field_orientation)){
+	ROS_INFO("PLOWING AROUND THE LEFT SIDE WOULD BE OUT OF BOUNDS (%f,%f), TIME FOR A HIT AND RUN.",
+	       leftmost_point.x,leftmost_point.y);
+	return false; //tell the pid that the pole has gone away.
+      }
+      going_left = true;
+    }
+    else{
+      going_left = false;
     }
 
-    // remove the first point if we're approaching from the right
-    // because it's only there for a smooth entrance from the left
-    if(!is_left){
-      avoidance_points.pop_front();
-      ROS_INFO("WE'RE APPROACHING POLE FROM RIGHT SIDE");
+    if(approach_left && going_left){
+      avoidance_points.push_back(leftmost_point);
+      ROS_INFO("APPROACHING LEFT, GOING LEFT");
+    }
+    else if(!approach_left && going_left){
+      //avoidance_points.push_back(left_smooth_point);
+      avoidance_points.push_back(leftmost_point);
+      ROS_INFO("APPROACHING RIGHT, GOING LEFT");
+    }
+    else if(approach_left && !going_left){
+      //avoidance_points.push_back(right_smooth_point);
+      avoidance_points.push_back(rightmost_point);
+      ROS_INFO("APPROACHING LEFT, GOING RIGHT");
+    }
+    else if(!approach_left && !going_left){
+      avoidance_points.push_back(rightmost_point);
+      ROS_INFO("APPROACHING RIGHT, GOING RIGHT");
     }
 
-    avoidance_points.push_front(entrance);
+    //next put in exit point (enough room for back end of robot to
+    //swing in when it turns straight back to its orig heading)
+
+    rotation_matrix(entrancePoint,-heading);
+
+    exitPoint.x = c.x + radius_back;
+    exitPoint.y = entrancePoint.y;
+    exitPoint.forward = 1;
+    rotation_matrix(exitPoint,heading);
+    avoidance_points.push_back(exitPoint);
+
+    //backup point
+    backupPoint.x = entrancePoint.x - backup_dist;
+    backupPoint.y = entrancePoint.y;
+    backupPoint.forward = 0;
+    rotation_matrix(backupPoint,heading);
+    avoidance_points.push_front(backupPoint);
+
+    rotation_matrix(entrancePoint,heading);
+    avoidance_points.push_front(entrancePoint);
 
     //return true because pole is in path
     return true;

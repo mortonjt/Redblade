@@ -55,21 +55,12 @@ void initialize(){
   longitude = elements[1];
 
   LLtoUTM(latitude, longitude, northing, easting, zone);
-<<<<<<< HEAD
 
   ROS_INFO("LATLONG: %f,%f",latitude,longitude);
 
   initial_e = easting;
   initial_n = northing;
 
-=======
-
-  std::cout<< "LATLONG: " << latitude << "," << longitude << std::endl;
-    
-  initial_e = easting;
-  initial_n = northing;
-
->>>>>>> e49d16c162926e83e691c60d6f8ca2c6535627c0
   fs1.close();
 }
 

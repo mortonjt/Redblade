@@ -10,7 +10,6 @@
 #include <cmath>
 
 #include "waypoint_management.h"
-//#include "boundaryCheck.h"
 
 //Parameters that will be read in at runtime
 double FAST_SPEED, SLOW_SPEED, KP, KI, KD, KP_SLOW, KI_SLOW, KD_SLOW;
@@ -34,16 +33,20 @@ double total_num_of_errors;
 double error;
 double linear_vel;
 bool forward_or_turn;//1 forward
+
+bool is_single_i;
+
 bool avoidance_active;
 int avoidance_counter;
 std::deque<Waypoint> avoidance_points;
 int num_avoidance_points;
-
-Waypoint avoid_enter, avoid_exit, avoid_thin, avoid_fat;
 Waypoint pole_est;
 std::vector<std::vector<double> > survey_points;
 double orientation;
 std::string survey_filename;
+
+std::ofstream csvStream;
+std::string waypoint_gen_file;
 
 //keeps angles between -pi and pi so i don't have to
 void wrap_pi(double &angle){
@@ -284,8 +287,8 @@ bool ye_ol_pid(){
   ROS_INFO("Current (%f,%f) Dest (%f,%f)",
 	   cur_pos.x,cur_pos.y,
 	   dest.x,dest.y);*/
-  //ROS_INFO("Error: %f\tCTE: %f\tCurrent Heading: %f\t Desired Heading: %f",(error*(180/M_PI)),cte,(current_heading*(180/M_PI)),(desired_heading*(180/M_PI)));
-  //ROS_INFO("PID: %f\tDistance: %f\t Current (%f, %f), Desination (%f, %f)\n",pid,distance,cur_pos.x,cur_pos.y,dest.x,dest.y);
+  ROS_INFO("Error: %f\tCTE: %f\tCurrent Heading: %f\t Desired Heading: %f",(error*(180/M_PI)),cte,(current_heading*(180/M_PI)),(desired_heading*(180/M_PI)));
+  ROS_INFO("PID: %f\tDistance: %f\t Current (%f, %f), Start (%f, %f), Desination (%f, %f)\n",pid,distance,cur_pos.x,cur_pos.y,start.x,start.y,dest.x,dest.y);
 
   
   if(distance < 0.1){
@@ -319,11 +322,13 @@ void poleCallback(const geometry_msgs::PointStamped::ConstPtr& pole_msg){
   //this probably isn't how it's being passed
 
   ROS_INFO("POLE POINT: (%f,%f) ",pole_est.x,pole_est.y);
-  
+  ROS_INFO("CUR POS: x:%f, y:%f, theta:%f",cur_pos.x,cur_pos.y,cur_pos.theta);
+
   bool pole_in_path = false;
   if(avoidance_counter == 0 || !avoidance_active){
     pole_in_path =  checkForPole(avoidance_points,
-				 start, dest, pole_est, cur_pos.theta);
+				 start, dest, pole_est, 
+				 orientation,is_single_i);
   }
 
   if(pole_in_path){
@@ -336,7 +341,6 @@ void poleCallback(const geometry_msgs::PointStamped::ConstPtr& pole_msg){
       dest.x = avoidance_points[0].x;
       dest.y = avoidance_points[0].y;
       forward = avoidance_points[0].forward;
-      ROS_INFO("UPDATING AVOID_ENTRANCE: Start: (%f,%f) Dest: (%f,%f) Fwd: %d",start.x,start.y,dest.x,dest.y,forward);
     }
     else{
       dest.x = waypoints[0].x;
@@ -354,8 +358,6 @@ void poseCallback(const geometry_msgs::Pose2D::ConstPtr& pose_msg){
   //grab the current ekf readings
 
   cur_pos = *pose_msg;
-
-  ROS_INFO("CUR POS: x:%f, y:%f, theta:%f",cur_pos.x,cur_pos.y,cur_pos.theta);
   
   //ROS_INFO("Forward or Turn %d",forward_or_turn);
   if(forward_or_turn){
@@ -413,6 +415,11 @@ void poseCallback(const geometry_msgs::Pose2D::ConstPtr& pose_msg){
       }else{
 	linear_vel = FAST_SPEED;
       }
+
+
+      //write csv for bob to debug with
+      csvStream << waypoints[0].x << "," << waypoints[0].y << std::endl;
+
     }
 
   }else{//we turnin'
@@ -435,22 +442,33 @@ int main(int argc, char** argv){
   ros::NodeHandle n;//global namespace
   ros::NodeHandle nh("~");//local namespace, used for params
 
+  nh.param("is_single_i", is_single_i, true);
+
   //WAYPOINTS ~~~~~~~~~~~~~~~~~~~~~
+  std::string waypoints_filename;
+
+  waypoint_gen_file = "/home/redblade/Documents/Redblade/config/waypoints_4bob.csv";
+  csvStream.open(waypoint_gen_file.c_str());
+
   waypoint_number = 0;
   avoidance_active = false;
   avoidance_counter = 0;
-  num_avoidance_points = 0;
+  num_avoidance_points = -1;//important, don't start it at 0
   pole_est.x = 0;
   pole_est.y = 0;
 
   nh.param("waypoints_filename", waypoints_filename, std::string("waypoints.txt"));
-  // nh.param("survey_filename", survey_filename, std::string("/home/redblade/Documents/Redblade/config/survey_enu.csv"));
+  nh.param("survey_filename", survey_filename, std::string("/home/redblade/Documents/Redblade/config/survey_enu.csv"));
   
   ROS_INFO("Waypoints file:%s", waypoints_filename.c_str());
-  bool file_good = read_in_waypoints();
+  bool file_good = read_in_waypoints(waypoints_filename);
 
-  //survey_points = read_in_survey_points(survey_filename);
-  //orientation = getOrientation();
+  read_in_survey_points(survey_filename,survey_points);
+
+  //use two survey points to find the angle of the field with respect
+  //to an ENU coordinate frame
+  orientation = atan2(survey_points[1][1]-survey_points[0][1],
+		    survey_points[1][0]-survey_points[0][0]);
   
   if(!file_good){
     ROS_ERROR("Error reading in waypoints.");
@@ -465,6 +483,11 @@ int main(int argc, char** argv){
   //grab the inital waypoint
   if(next_waypoint(avoidance_active)){
     ROS_INFO("Start: (%f,%f) Dest: (%f,%f) Fwd: %s",start.x,start.y,dest.x,dest.y,forward?"true":"false");
+    if(!is_single_i){
+      // do not recycle the first waypoint if it's triple i because there's
+      // one temporary waypoint at the beginning
+      waypoints.pop_back(); 
+    }
   }else{
     ROS_ERROR("Failed to get first waypoint");
   }
@@ -525,5 +548,7 @@ int main(int argc, char** argv){
     cmd_vel_rate.sleep();
   }
   spinner.stop();  
+
+  csvStream.close();
   
 }

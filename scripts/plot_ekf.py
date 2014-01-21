@@ -12,7 +12,7 @@ import sync
 #import plot_velocity
 
 clicks_per_m = 15768.6
-bagFile = "/home/redblade/DATA/EKF/processed_run.bag"
+bagFile = "/home/redblade/DATA/EKF/test.bag"
 imu = "/imu/data"
 gyros = "/imu/integrated_gyros_stamped"
 gps = "/gps"
@@ -48,8 +48,7 @@ odom_ang    = [t.twist.twist.angular.z for t in odom_msgs]
 ekf_z       = [t.theta for t in ekf_2d_msgs]
 ekf_x       = [t.x for t in ekf_2d_msgs]
 ekf_y       = [t.y for t in ekf_2d_msgs]
-
-ekf_z,gyro_z = sync.matchInput(ekf_time,ekf_z,gyro_time,gyro_z,threshold)
+#ekf_z,gyro_z = sync.matchInput(ekf_time,ekf_z,gyro_time,gyro_z,threshold)
 gps_x = [x.pose.pose.position.x for x in gps_msgs]
 gps_y = [y.pose.pose.position.y for y in gps_msgs]
 
@@ -66,9 +65,9 @@ errorY = [gps_sync_y[i]-ekf_sync_y[i] for i in range(len(ekf_sync_y))]
 #print "\n".join(map(str,zip(time,ekf_time)))
 #print "\n".join(map(str,gps_time))
 
-# font = {'weight' : 'bold',
-#         'size'   : 22}
-# matplotlib.rc('font', **font)
+font = {'weight' : 'bold',
+        'size'   : 22}
+matplotlib.rc('font', **font)
 
 denied_x1 = gps_x[25:50]
 denied_y1 = gps_y[25:50]
@@ -90,7 +89,6 @@ xlabel("Easting (m)")
 ylabel("Northing (m)")
 f1.show()
 
-distance_err = [math.sqrt(errorX[i]*errorX[i]+errorY[i]*errorY[i])]
 
 error = [0]*len(ekf_z)
 for i in range(0,len(ekf_z)):
@@ -154,5 +152,22 @@ title("Angular Displacement")
 plot(odom_time[:len(odom_ang_pos)],odom_ang_pos,'or')
 plot(gyro_time[:len(gyro_z)],gyro_z,'ob')
 f9.show()
+
+
+distance_err = [math.sqrt(errorX[i]*errorX[i]+errorY[i]*errorY[i]) for i in range(len(errorX))]
+denied_error1 = distance_err[25:50]
+denied_error2 = distance_err[75:100]
+error_time  = numpy.linspace(gps_time[0],gps_time[-1],len(distance_err))
+error_time = [error_time[i]-error_time[0] for i in range(len(error_time))]
+f10=figure(10)
+title("Distance error over time")
+p2,=plot(error_time[25:50],denied_error1,'-c',linewidth=20.0)
+plot(error_time[75:100],denied_error2,'-c',linewidth=20.0)
+p1,=plot(error_time,distance_err,'-or',linewidth=6.0,markersize=10.0)
+xlabel("Time (sec)")
+ylabel("Error (m)")
+legend([p1,p2],["EKF error","EKF error denied GPS"],loc=2)
+f10.show()
+
 
 raw_input()

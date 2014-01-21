@@ -84,7 +84,8 @@ void generate_single_i_waypoints(){
   //i field is relatively simple, the number of points can be hardcoded
   
   //start point for robot
-  temp[0] = start_of_snowfield - rotation_center_to_front - buffer;
+  //temp[0] = start_of_snowfield - rotation_center_to_front - buffer;
+  temp[0] = start_of_snowfield - rotation_center_to_front;
   temp[1] = center_of_snowfield - (plow_width/2) + (overlap_width/2);
   temp[2] = 1;//this one doesn't matter too much, shouldn't ever be used
   waypoints.push_back(temp);
@@ -142,9 +143,16 @@ void generate_triple_i_waypoints(){
   end_of_snowfield = 2.0;//wrt ending outer boundary
 
   //we'll use a 4/6 pass strategy, we'll hit the outside first, then the inside, then the outside again
+
+  //first waypoint, needed for triple i because we start rotated by 90 degrees
+  temp[0] = 2.53;
+  temp[1] = 4.385;
+  temp[2] = 0;
+  waypoints.push_back(temp);
   
   //starting point, first we do the loop around the outside
-  temp[0] = start_of_snowfield - rotation_center_to_front - buffer;
+  //temp[0] = start_of_snowfield - rotation_center_to_front - buffer;
+  temp[0] = start_of_snowfield - rotation_center_to_front;
   temp[1] = center_of_snowfield + (overlap_width/2) - plow_width + (overlap_width) - (plow_width/2);
   temp[2] = 1;
   waypoints.push_back(temp);
