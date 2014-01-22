@@ -1,4 +1,3 @@
-
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Vector3.h>
@@ -18,6 +17,7 @@ double FAST_SPEED, SLOW_SPEED, KP, KI, KD, KP_SLOW, KI_SLOW, KD_SLOW;
 ros::Publisher cmd_vel_pub;
 geometry_msgs::Twist vel_targets;
 geometry_msgs::Pose2D cur_pos;
+geometry_msgs::Vector3 current_imu;
 bool imu_init = false;
 //ros::ServiceClient waypoint_client;
 
@@ -48,6 +48,13 @@ std::string survey_filename;
 std::ofstream csvStream;
 std::string waypoint_gen_file;
 
+//debug ekf stuff
+geometry_msgs::Pose2D initial_pose;
+geometry_msgs::Vector3 initial_gyros;
+bool turning_active;
+double gyro_heading, gyro_start_heading;
+int waypoint_number;
+
 //keeps angles between -pi and pi so i don't have to
 void wrap_pi(double &angle){
   while(angle > M_PI || angle < -M_PI){
@@ -72,26 +79,36 @@ double get_d_correction(double error){
 
 //Turning method
 bool turn_to_heading(){
-  //ROS_INFO("Start Turning to Correct Heading");
-  double desired_heading = atan2(dest.y-start.y,
-				 dest.x-start.x);
-  
+  double desired_heading = atan2(dest.y-cur_pos.y,
+   				 dest.x-cur_pos.x);
+  double initial_wrapped = initial_pose.theta;
+
   wrap_pi(desired_heading);
   if(!forward){
+    initial_wrapped -= M_PI;
     desired_heading -= M_PI;
+    wrap_pi(initial_wrapped);
     wrap_pi(desired_heading);
   }
+
+  //hacked together solution for ekf problems
+  //desired_heading - initial theta gives us the desired change in yaw
+  double desired_delta_yaw = desired_heading - initial_pose.theta;
+  wrap_pi(desired_delta_yaw);
+  
+  double current_delta_yaw = current_imu.z - initial_gyros.z;
+  wrap_pi(current_delta_yaw);
   
   usleep(50000);
-  double error = desired_heading - cur_pos.theta;
+  double error = desired_delta_yaw - current_delta_yaw;
   wrap_pi(error);
 
   if(error > 0){
     vel_targets.linear.x = 0;
-    vel_targets.angular.z = 0.3;
+    vel_targets.angular.z = 0.4;
   }else{
     vel_targets.linear.x = 0;
-    vel_targets.angular.z = -0.3;
+    vel_targets.angular.z = -0.4;
   }
 
   //ROS_INFO("Desired heading %lf Current Heading %lf Error %lf",desired_heading,cur_pos.theta,error);
@@ -101,6 +118,10 @@ bool turn_to_heading(){
   if(fabs(error) < 0.15){
     //fairly certain I can delete part this next line that gives warning. looks like it was just for debugging abs/fabs....
     //ROS_INFO("Final Error: %lf fabs(error) %lf abs(error) %lf",error,fabs(error),abs(error));
+    //hacked up solution for ekf
+    gyro_heading = initial_pose.theta + current_delta_yaw;
+    gyro_start_heading = current_imu.z;
+    
     vel_targets.linear.x = 0;
     vel_targets.angular.z = 0;
     return true;
@@ -196,8 +217,24 @@ bool ye_ol_pid(){
   //ROS_INFO("Ye Old Pid");
   //local variables
   double desired_heading, kp_corr, ki_corr, kd_corr, pid, distance, cte, correction_vel;
+  double current_heading;
   //double current_heading = current_imu.z;
-  double current_heading = cur_pos.theta;
+
+  //hacked up method to fix ekf
+  double distance_from_start = sqrt(pow(cur_pos.y-start.y,2)+pow(cur_pos.x-start.x,2));
+
+  if((distance_from_start > 1) || (waypoint_number == 0)){
+    current_heading = cur_pos.theta;
+  }else{
+    double change_since_start_gyros = current_imu.z - gyro_start_heading;
+    current_heading = gyro_heading + change_since_start_gyros;
+    wrap_pi(current_heading);
+    // ROS_INFO("waypoint number: %d", waypoint_number);
+    // ROS_INFO("change_since_start_gyros: %lf", change_since_start_gyros);
+    // ROS_INFO("current_heading: %lf", current_heading);
+    // ROS_INFO("gyro_heading: %lf", gyro_heading);
+    // ROS_INFO("gyro_start_heading: %lf\n", gyro_start_heading);
+  }
 
   //geometry_msgs::Pose2D cur_pos;
   //cur_pos.x = current_pose.x;
@@ -287,8 +324,8 @@ bool ye_ol_pid(){
   ROS_INFO("Current (%f,%f) Dest (%f,%f)",
 	   cur_pos.x,cur_pos.y,
 	   dest.x,dest.y);*/
-  ROS_INFO("Error: %f\tCTE: %f\tCurrent Heading: %f\t Desired Heading: %f",(error*(180/M_PI)),cte,(current_heading*(180/M_PI)),(desired_heading*(180/M_PI)));
-  ROS_INFO("PID: %f\tDistance: %f\t Current (%f, %f), Start (%f, %f), Desination (%f, %f)\n",pid,distance,cur_pos.x,cur_pos.y,start.x,start.y,dest.x,dest.y);
+  //ROS_INFO("Error: %f\tCTE: %f\tCurrent Heading: %f\t Desired Heading: %f",(error*(180/M_PI)),cte,(current_heading*(180/M_PI)),(desired_heading*(180/M_PI)));
+  //ROS_INFO("PID: %f\tDistance: %f\t Current (%f, %f), Start (%f, %f), Desination (%f, %f)\n",pid,distance,cur_pos.x,cur_pos.y,start.x,start.y,dest.x,dest.y);
 
   
   if(distance < 0.1){
@@ -363,6 +400,7 @@ void poseCallback(const geometry_msgs::Pose2D::ConstPtr& pose_msg){
   if(forward_or_turn){
     //do the ol pid dance
     if(ye_ol_pid()){
+      waypoint_number++;//used with ekf hack
       usleep(500000);
 
       // if avoidance routine in progress, check to see if we've just reached
@@ -423,12 +461,30 @@ void poseCallback(const geometry_msgs::Pose2D::ConstPtr& pose_msg){
     }
 
   }else{//we turnin'
+    //debug ekf
+    if(!turning_active){
+      initial_pose = cur_pos;
+      initial_gyros = current_imu;
+      turning_active = true;
+    }
+    
     if(turn_to_heading()){
       usleep(500000);
       forward_or_turn = 1;
+
+      double ekf_diff = cur_pos.theta - initial_pose.theta;
+      double gyro_diff = current_imu.z - initial_gyros.z;
+      wrap_pi(ekf_diff);
+      wrap_pi(gyro_diff);
+      ROS_INFO("EKF delta yaw: %lf\tGyro delta yaw: %lf", ekf_diff, gyro_diff);
+      turning_active = false;
     }
   }
 
+}
+
+void imuCallback(const geometry_msgs::Vector3::ConstPtr& imu_msg){
+  current_imu = *imu_msg;
 }
 
 //This method is called every 25 ms and will publish a Twist message for the robot
@@ -518,7 +574,11 @@ int main(int argc, char** argv){
   //Subscribe to pole topic
   nh.param("pole",pole_namespace,std::string("/lidar/pole"));
   ros::Subscriber pole_sub = n.subscribe(pole_namespace, 1, poleCallback);
-
+  
+  //subscribe to integrated gyros
+  ros::Subscriber imu_sub = n.subscribe ("/imu/integrated_gyros", 1, imuCallback);
+  turning_active = false;
+  
   //Set up cmd_vel publisher
   cmd_vel_pub = n.advertise<geometry_msgs::Twist>(cmd_vel_namespace, 10);
   

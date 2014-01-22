@@ -10,7 +10,7 @@
 std::deque<Waypoint> waypoints;
 Waypoint start, dest;
 bool forward;
-int waypoint_number;
+//int waypoint_number;
 
 bool read_in_waypoints(std::string waypoints_filename){
   //first, read in each line
@@ -101,7 +101,7 @@ bool checkForPole(std::deque<Waypoint>& avoidance_points,
 
   double backup_dist = 1.5;
   double radius_front = ROBOTFRONT + 0.5;
-  double radius_back = ROBOTBACK + 0.5;
+  double radius_back = ROBOTBACK + 0.8;
   double radius_side = ROBOTWIDTH/2 + 0.5;
 
   // VARIABLE DEFINITIONS

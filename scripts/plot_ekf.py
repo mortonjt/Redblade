@@ -1,3 +1,4 @@
+
 from pylab import *
 import os
 import rosbag
@@ -12,7 +13,7 @@ import sync
 #import plot_velocity
 
 clicks_per_m = 15768.6
-bagFile = "/home/redblade/DATA/EKF/test.bag"
+bagFile = "/home/redblade/DATA/EKF/path_plan.bag"
 imu = "/imu/data"
 gyros = "/imu/integrated_gyros_stamped"
 gps = "/gps"
@@ -65,9 +66,9 @@ errorY = [gps_sync_y[i]-ekf_sync_y[i] for i in range(len(ekf_sync_y))]
 #print "\n".join(map(str,zip(time,ekf_time)))
 #print "\n".join(map(str,gps_time))
 
-font = {'weight' : 'bold',
-        'size'   : 22}
-matplotlib.rc('font', **font)
+# font = {'weight' : 'bold',
+#         'size'   : 22}
+# matplotlib.rc('font', **font)
 
 denied_x1 = gps_x[25:50]
 denied_y1 = gps_y[25:50]
@@ -76,7 +77,6 @@ denied_y2 = gps_y[75:100]
 f1=figure(1)
 title("Truth vs. EKF Position")
 grid()
-
 p3,=plot(denied_x1,denied_y1,'-c',linewidth=20.0)
 plot(denied_x2[:-1],denied_y2[:-1],'-c',linewidth=20.0)
 p1,=plot(gps_x[:-1],gps_y[:-1],'-ob',linewidth=6.0,markersize=10.0)
@@ -168,6 +168,37 @@ xlabel("Time (sec)")
 ylabel("Error (m)")
 legend([p1,p2],["EKF error","EKF error denied GPS"],loc=2)
 f10.show()
+
+
+way_pts = [(-12.9964,-1.86427), 
+           (-12.9878,-2.70422),
+           (-13.9608,-2.41425),
+           (-1.66148,-2.28727),
+           (-1.96146,-2.29037),
+           (-1.69705,-1.74761),
+           (-13.2964,-1.86736),
+           (-12.9964,-1.86427),
+           (-12.9878,-2.70422),
+           (-13.9608,-2.41425),
+           (-1.66148,-2.28727),
+           (-1.96146,-2.29037)]
+
+way_pts_x,way_pts_y = zip(*way_pts)
+
+f11=figure(11)
+title("Truth vs. EKF Position")
+grid()
+p1,=plot(gps_x[:-1],gps_y[:-1],'-ob',linewidth=6.0,markersize=10.0)
+p2,=plot(ekf_x[1:],ekf_y[1:],'-or',linewidth=3.0)
+p4,=plot(gps_x[0],gps_y[0],'og',markersize=20.0)
+p5,=plot(gps_x[-2],gps_y[-2],'ok',markersize=20.0)
+p3,=plot(way_pts_x,way_pts_y,'-oc',linewidth=1.0,markersize=5.0)
+legend([p1,p2,p3,p4,p5],["Truth position","EKF position","Way Points","Start","End"],loc=2)
+xlabel("Easting (m)")
+ylabel("Northing (m)")
+xlim([-15,0])
+ylim([-3.5,0])
+f11.show()
 
 
 raw_input()

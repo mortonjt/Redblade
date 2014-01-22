@@ -205,6 +205,8 @@ void odometry_skid_steer::getVelocities(const redblade_ax2550::StampedEncoders& 
   double Vr = (right_encoders/clicks_per_m)/delta_time;
   double Vl = (left_encoders/clicks_per_m)/delta_time;
   double Vx = (Vr+Vl)/2;
+  if(fabs(Vx)<0.05){
+    Vx = 0;}
   //double w  = (Vr-Vl)/(eff_wheel_base_width);
   double theta_v = theta_delta / delta_time;
   twist.linear.x = Vx;

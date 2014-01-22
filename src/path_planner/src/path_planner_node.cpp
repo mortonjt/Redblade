@@ -101,13 +101,13 @@ void generate_single_i_waypoints(){
   waypoints.push_back(temp);
 
   //now the robot will turn counter clockwise and go forward again
-  temp[1] = center_of_snowfield + (plow_width/2) - (overlap_width/2) + back_up_distance;
+  temp[1] = center_of_snowfield + (plow_width/2) - (overlap_width/2) + (back_up_distance-0.1);//CHANGEDBOBTUES
   temp[2] = 1;
   waypoints.push_back(temp);
 
   //now back up a little bit
-  temp[0] = start_of_snowfield + field_length + end_of_snowfield - rotation_center_to_rear - buffer;
-  temp[1] = temp[1] - back_up_distance;
+  temp[0] = start_of_snowfield + field_length + end_of_snowfield - rotation_center_to_rear - buffer - .25;//CHANGEDBOBTUES
+  temp[1] = temp[1] - (back_up_distance-.1);//CHANGEDBOBTUES
   temp[2] = 0;
   waypoints.push_back(temp);
 
