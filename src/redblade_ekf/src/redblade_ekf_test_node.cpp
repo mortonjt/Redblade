@@ -359,11 +359,14 @@ int main(int argc, char **argv){
     x(5) = 0.0;//she ain't turnin'
     x(6) = -orientation;//TODO, based on x(3)
   }else{
-    start_position[0] = 2.53;//determined by rj, jamie, and bob
+    ROS_INFO("Made it to the triple I initialization");
+    //start_position[0] = 2.53;//determined by rj, jamie, and bob
+    start_position[0] = 1.715;
     start_position[1] = 4.385;//determined by rj, jamie, and bob
     rotation_matrix(start_position, orientation);
     orientation -= (M_PI/2);
     wrapToPi(orientation);
+    ROS_INFO("Orientation: %lf", orientation);
     x(1) = start_position[0];
     x(2) = start_position[1];
     x(3) = orientation;

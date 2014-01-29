@@ -84,7 +84,7 @@ p2,=plot(ekf_x[1:],ekf_y[1:],'-or')
 p4,=plot(gps_x[0],gps_y[0],'og',markersize=20.0)
 p5,=plot(gps_x[-2],gps_y[-2],'ok',markersize=20.0)
 
-legend([p1,p2,p3,p4,p5],["Truth position","EKF position","Denied GPS","Start","End"])
+legend([p1,p2,p3,p4,p5],["Truth position","EKF position","Denied GPS","Start","End"],loc=2)
 xlabel("Easting (m)")
 ylabel("Northing (m)")
 f1.show()
@@ -151,6 +151,8 @@ f9=figure(9)
 title("Angular Displacement")
 plot(odom_time[:len(odom_ang_pos)],odom_ang_pos,'or')
 plot(gyro_time[:len(gyro_z)],gyro_z,'ob')
+plot(ekf_time[:len(ekf_z)],ekf_z,'og')
+legend([p1,p2],["Odom heading","Imu heading", "EKF heading"],loc=2)
 f9.show()
 
 

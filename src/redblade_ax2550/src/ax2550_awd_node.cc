@@ -40,8 +40,8 @@ geometry_msgs::Vector3 orientation; //imu orientation
 double rot_cov = 0.0;
 double pos_cov = 0.0;
 
-static double A_MAX = 120.0;
-static double B_MAX = 120.0;
+static double A_MAX = 105.0;
+static double B_MAX = 105.0;
 
 // Persistent variables
 double prev_x = 0, prev_y = 0, prev_w = 0;
@@ -71,7 +71,7 @@ void cmd_vel_frontCallback(const geometry_msgs::Twist::ConstPtr& msg) {
     double A = msg->linear.x;
     double B = msg->angular.z * (wheel_base_length/2.0);
    
-    double A_rel = A / 0.01425;//truly a magical number, no idea where i got it
+    double A_rel = A / 0.01425;
     double B_rel = B / 0.01425;
     // ROS_INFO("Arpm: %f, Arel: %f, Brpm: %f, Brel: %f", A_rpm, A_rel, B_rpm, B_rel);
    

@@ -35,6 +35,7 @@ double linear_vel;
 bool forward_or_turn;//1 forward
 
 bool is_single_i;
+bool initial_triple_waypoint;
 
 bool avoidance_active;
 int avoidance_counter;
@@ -324,8 +325,8 @@ bool ye_ol_pid(){
   ROS_INFO("Current (%f,%f) Dest (%f,%f)",
 	   cur_pos.x,cur_pos.y,
 	   dest.x,dest.y);*/
-  //ROS_INFO("Error: %f\tCTE: %f\tCurrent Heading: %f\t Desired Heading: %f",(error*(180/M_PI)),cte,(current_heading*(180/M_PI)),(desired_heading*(180/M_PI)));
-  //ROS_INFO("PID: %f\tDistance: %f\t Current (%f, %f), Start (%f, %f), Desination (%f, %f)\n",pid,distance,cur_pos.x,cur_pos.y,start.x,start.y,dest.x,dest.y);
+  ROS_INFO("Error: %f\tCTE: %f\tCurrent Heading: %f\t Desired Heading: %f",(error*(180/M_PI)),cte,(current_heading*(180/M_PI)),(desired_heading*(180/M_PI)));
+  ROS_INFO("PID: %f\tDistance: %f\t Current (%f, %f), Start (%f, %f), Desination (%f, %f)\n",pid,distance,cur_pos.x,cur_pos.y,start.x,start.y,dest.x,dest.y);
 
   
   if(distance < 0.1){
@@ -503,6 +504,8 @@ int main(int argc, char** argv){
   //WAYPOINTS ~~~~~~~~~~~~~~~~~~~~~
   std::string waypoints_filename;
 
+  initial_triple_waypoint = true;
+
   waypoint_gen_file = "/home/redblade/Documents/Redblade/config/waypoints_4bob.csv";
   csvStream.open(waypoint_gen_file.c_str());
 
@@ -539,9 +542,11 @@ int main(int argc, char** argv){
   //grab the inital waypoint
   if(next_waypoint(avoidance_active)){
     ROS_INFO("Start: (%f,%f) Dest: (%f,%f) Fwd: %s",start.x,start.y,dest.x,dest.y,forward?"true":"false");
-    if(!is_single_i){
+    if(!is_single_i && initial_triple_waypoint){
       // do not recycle the first waypoint if it's triple i because there's
       // one temporary waypoint at the beginning
+      ROS_INFO("Triple I initial waypoint popped off. this message should only be seen once");
+      initial_triple_waypoint = false;
       waypoints.pop_back(); 
     }
   }else{

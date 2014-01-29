@@ -101,13 +101,13 @@ void generate_single_i_waypoints(){
   waypoints.push_back(temp);
 
   //now the robot will turn counter clockwise and go forward again
-  temp[1] = center_of_snowfield + (plow_width/2) - (overlap_width/2) + (back_up_distance-0.1);//CHANGEDBOBTUES
+  temp[1] = center_of_snowfield + (plow_width/2) - (overlap_width/2) + (back_up_distance-0.2);//CHANGEDBOBTUES
   temp[2] = 1;
   waypoints.push_back(temp);
 
   //now back up a little bit
   temp[0] = start_of_snowfield + field_length + end_of_snowfield - rotation_center_to_rear - buffer - .25;//CHANGEDBOBTUES
-  temp[1] = temp[1] - (back_up_distance-.1);//CHANGEDBOBTUES
+  temp[1] = temp[1] - (back_up_distance-.2);//CHANGEDBOBTUES
   temp[2] = 0;
   waypoints.push_back(temp);
 
@@ -145,7 +145,8 @@ void generate_triple_i_waypoints(){
   //we'll use a 4/6 pass strategy, we'll hit the outside first, then the inside, then the outside again
 
   //first waypoint, needed for triple i because we start rotated by 90 degrees
-  temp[0] = 2.53;
+  //temp[0] = 2.53;
+  temp[0] = 1.715;
   temp[1] = 4.385;
   temp[2] = 0;
   waypoints.push_back(temp);
@@ -189,7 +190,7 @@ void generate_triple_i_waypoints(){
   waypoints.push_back(temp);
 
   //turn counter clockwise and go towards the start waypoint for the inner loop
-  temp[0] = start_of_snowfield - rotation_center_to_front - buffer;
+  temp[0] = start_of_snowfield - rotation_center_to_front - (0.2);
   temp[1] = center_of_snowfield + (overlap_width/2) - (plow_width/2);
   temp[2] = 1;
   waypoints.push_back(temp);
@@ -210,7 +211,7 @@ void generate_triple_i_waypoints(){
   waypoints.push_back(temp);  
 
   //back up a bit
-  temp[0] = start_of_snowfield + field_length + end_of_snowfield - rotation_center_to_rear - buffer;//changed
+  temp[0] = start_of_snowfield + field_length + end_of_snowfield - rotation_center_to_rear - buffer - .3;//changed
   temp[1] = center_of_snowfield - (overlap_width/2) + (plow_width/2);
   temp[2] = 0;
   waypoints.push_back(temp);

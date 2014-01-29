@@ -93,6 +93,8 @@ bool checkForPole(std::deque<Waypoint>& avoidance_points,
 		  Waypoint a, Waypoint b, Waypoint c, 
 		  double field_orientation, bool is_single_i){
 
+  return false;
+
   avoidance_points.clear();
   bool approach_left, going_left;
   Waypoint entrancePoint,exitPoint,backupPoint;
@@ -100,9 +102,9 @@ bool checkForPole(std::deque<Waypoint>& avoidance_points,
   double heading = atan2((b.y-a.y),(b.x-a.x));
 
   double backup_dist = 1.5;
-  double radius_front = ROBOTFRONT + 0.5;
+  double radius_front = ROBOTFRONT + 0.6;
   double radius_back = ROBOTBACK + 0.8;
-  double radius_side = ROBOTWIDTH/2 + 0.5;
+  double radius_side = ROBOTWIDTH/2 + 0.25;
 
   // VARIABLE DEFINITIONS
   // avoidance_points: list of avoidance points to return
@@ -186,19 +188,19 @@ bool checkForPole(std::deque<Waypoint>& avoidance_points,
     Waypoint nextPoint,rightmost_point,leftmost_point, left_smooth_point,right_smooth_point;
     //remember, c and e are still in coord frame of robot heading
 
-    //-135 deg point for approaching right side so it 
-    //doesn't cut into the pole
-    right_smooth_point.x = c.x + cos(-3/4*PI)*radius_side;
-    right_smooth_point.y = c.y + sin(-3/4*PI)*radius_side;
-    right_smooth_point.forward = 1;
-    rotation_matrix(right_smooth_point,heading);
+    /* //-135 deg point for approaching right side so it  */
+    /* //doesn't cut into the pole */
+    /* right_smooth_point.x = c.x + cos(-3/4*PI)*radius_side; */
+    /* right_smooth_point.y = c.y + sin(-3/4*PI)*radius_side; */
+    /* right_smooth_point.forward = 1; */
+    /* rotation_matrix(right_smooth_point,heading); */
 
-    //+135 deg point for approaching left side so it 
-    //doesn't cut into the pole
-    left_smooth_point.x = c.x + cos(3/4*PI)*radius_side;
-    left_smooth_point.y = c.y + sin(3/4*PI)*radius_side;
-    left_smooth_point.forward = 1;
-    rotation_matrix(left_smooth_point,heading);
+    /* //+135 deg point for approaching left side so it  */
+    /* //doesn't cut into the pole */
+    /* left_smooth_point.x = c.x + cos(3/4*PI)*radius_side; */
+    /* left_smooth_point.y = c.y + sin(3/4*PI)*radius_side; */
+    /* left_smooth_point.forward = 1; */
+    /* rotation_matrix(left_smooth_point,heading); */
 
     //try -90 deg point (right side point)
     rightmost_point.x = c.x;
@@ -217,7 +219,7 @@ bool checkForPole(std::deque<Waypoint>& avoidance_points,
 	       rightmost_point.x,rightmost_point.y);
 
       if(!checkBoundaries(leftmost_point,is_single_i,field_orientation)){
-	ROS_INFO("PLOWING AROUND THE LEFT SIDE WOULD BE OUT OF BOUNDS (%f,%f), TIME FOR A HIT AND RUN.",
+	ROS_INFO("PLOWING AROUND THE LEFT SIDE WOULD BE OUT OF BOUNDS (%f,%f), TIME FOR A HIT AND RUN!",
 	       leftmost_point.x,leftmost_point.y);
 	return false; //tell the pid that the pole has gone away.
       }
@@ -227,34 +229,68 @@ bool checkForPole(std::deque<Waypoint>& avoidance_points,
       going_left = false;
     }
 
+    Waypoint leftOrRightPoint;
     if(approach_left && going_left){
-      avoidance_points.push_back(leftmost_point);
+      leftOrRightPoint = leftmost_point;
       ROS_INFO("APPROACHING LEFT, GOING LEFT");
     }
     else if(!approach_left && going_left){
-      //avoidance_points.push_back(left_smooth_point);
-      avoidance_points.push_back(leftmost_point);
+      //leftOrRightPoint = left_smooth_point);
+      leftOrRightPoint = leftmost_point;
       ROS_INFO("APPROACHING RIGHT, GOING LEFT");
     }
     else if(approach_left && !going_left){
-      //avoidance_points.push_back(right_smooth_point);
-      avoidance_points.push_back(rightmost_point);
+      //leftOrRightPoint = right_smooth_point);
+      leftOrRightPoint = rightmost_point;
       ROS_INFO("APPROACHING LEFT, GOING RIGHT");
     }
     else if(!approach_left && !going_left){
-      avoidance_points.push_back(rightmost_point);
+      leftOrRightPoint = rightmost_point;
       ROS_INFO("APPROACHING RIGHT, GOING RIGHT");
     }
 
     //next put in exit point (enough room for back end of robot to
     //swing in when it turns straight back to its orig heading)
 
+    avoidance_points.push_back(leftOrRightPoint);
+
+    Waypoint pushPastSidePoint;
+
+    rotation_matrix(leftOrRightPoint,-heading);
+    pushPastSidePoint.x = leftOrRightPoint.x + 1;//push past side point by 1 meter
+    pushPastSidePoint.y = leftOrRightPoint.y;
+    pushPastSidePoint.forward = 1;
+    rotation_matrix(pushPastSidePoint,heading);
+ 
+    //make it push past left or right point
+    avoidance_points.push_back(pushPastSidePoint);
+    
+    //make it go back to the left/right point
+    rotation_matrix(leftOrRightPoint,heading);
+    leftOrRightPoint.forward = 0;
+    avoidance_points.push_back(leftOrRightPoint);
+    
+
     rotation_matrix(entrancePoint,-heading);
 
     exitPoint.x = c.x + radius_back;
     exitPoint.y = entrancePoint.y;
-    exitPoint.forward = 1;
+    exitPoint.forward = 0;
     rotation_matrix(exitPoint,heading);
+
+    //pushPastPole point
+    Waypoint pushPastPolePoint;
+    double pushPastPole_dist = 0.5;
+    double side_to_exit_heading = atan2((exitPoint.y - avoidance_points.back().y),(exitPoint.x - avoidance_points.back().x));
+    rotation_matrix(exitPoint,-side_to_exit_heading);
+    pushPastPolePoint.x = exitPoint.x + pushPastPole_dist;
+    pushPastPolePoint.y = exitPoint.y;
+    pushPastPolePoint.forward = 1;
+    rotation_matrix(pushPastPolePoint,side_to_exit_heading);
+    rotation_matrix(exitPoint,side_to_exit_heading);
+    avoidance_points.push_back(pushPastPolePoint);
+
+    //now add exit point
     avoidance_points.push_back(exitPoint);
 
     //backup point
@@ -264,8 +300,27 @@ bool checkForPole(std::deque<Waypoint>& avoidance_points,
     rotation_matrix(backupPoint,heading);
     avoidance_points.push_front(backupPoint);
 
+    //rotate and add in entrace point
     rotation_matrix(entrancePoint,heading);
     avoidance_points.push_front(entrancePoint);
+
+    //make sure that entrance, exit, and backup are not going
+    //to cause a boundary infraction
+    if(!checkBoundaries(exitPoint,is_single_i,field_orientation) ||
+       !checkBoundaries(entrancePoint,is_single_i,field_orientation) ||
+       !checkBoundaries(backupPoint,is_single_i,field_orientation) ){
+      ROS_INFO("EITHER EXIT, ENTRANCE, OR BACKUP WOULD CAUSE A BOUNDARY INFRACTION, TIME FOR A HIT AND RUN!");
+      return false;
+    }
+
+    if(!checkBoundaries(pushPastPolePoint,is_single_i,field_orientation)){
+      ROS_INFO("PUSH PAST pole POINT IS OUT OF BOUNDS (%f,%f)",pushPastPolePoint.x, pushPastPolePoint.y);
+      return false;
+    }
+    if(!checkBoundaries(pushPastSidePoint,is_single_i,field_orientation)){
+      ROS_INFO("PUSH PAST side POINT IS OUT OF BOUNDS (%f,%f)",pushPastSidePoint.x, pushPastSidePoint.y);
+      return false;
+    }
 
     //return true because pole is in path
     return true;
